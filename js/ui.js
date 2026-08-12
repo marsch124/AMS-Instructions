@@ -1,4 +1,4 @@
-const APP_VERSION = '2.0';
+const APP_VERSION = '3.0';
 
 let currentInstruction = null;
 let allInstructions = [];
@@ -26,6 +26,27 @@ function formatRelativeTime(timestamp) {
 
     const date = new Date(timestamp);
     return date.toLocaleDateString();
+}
+
+function shareViaSMS(instruction) {
+    const title = instruction.title;
+    const where = instruction.where ? ` @ ${instruction.where}` : '';
+    const completed = instruction.completionCount ? ` (completed ${instruction.completionCount}x)` : '';
+    const message = `✓ Just completed: ${title}${where}${completed}`;
+
+    // Use SMS URL scheme (works on iOS and Android)
+    const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
+
+    // Check if SMS API is available (Web Share API)
+    if (navigator.share && navigator.canShare({ text: message })) {
+        navigator.share({
+            title: `Completed: ${title}`,
+            text: message
+        }).catch(err => console.log('Share cancelled'));
+    } else {
+        // Fallback to SMS URL
+        window.location.href = smsUrl;
+    }
 }
 
 function showScreen(screenId) {
@@ -107,6 +128,16 @@ function displayInstruction(instruction) {
         document.getElementById('instructionLastCompleted').textContent = formatRelativeTime(instruction.lastCompleted);
     } else {
         document.getElementById('instructionLastCompleted').textContent = 'Never';
+    }
+
+    // Location display
+    const locationRow = document.getElementById('locationRow');
+    if (instruction.where) {
+        locationRow.style.display = 'flex';
+        document.getElementById('instructionWhere').textContent = instruction.where;
+        document.getElementById('instructionWhereDetailed').textContent = instruction.whereDetailed || '--';
+    } else {
+        locationRow.style.display = 'none';
     }
 
     // Sections with toggle setup
@@ -355,6 +386,8 @@ function editInstruction(instruction) {
     document.getElementById('editorNumber').value = instruction.number;
     document.getElementById('editorName').value = instruction.title;
     document.getElementById('editorCategory').value = instruction.category;
+    document.getElementById('editorWhere').value = instruction.where || '';
+    document.getElementById('editorWhereDetailed').value = instruction.whereDetailed || '';
     document.getElementById('editorSteps').value = (instruction.steps || []).join('\n');
     document.getElementById('editorDescription').value = instruction.description || '';
     document.getElementById('editorOwner').value = instruction.owner || '';
@@ -395,6 +428,8 @@ function resetEditor() {
     document.getElementById('editorNumber').value = '';
     document.getElementById('editorName').value = '';
     document.getElementById('editorCategory').value = 'General';
+    document.getElementById('editorWhere').value = '';
+    document.getElementById('editorWhereDetailed').value = '';
     document.getElementById('editorSteps').value = '';
     document.getElementById('editorDescription').value = '';
     document.getElementById('editorOwner').value = '';
@@ -470,6 +505,8 @@ async function handleSaveInstruction() {
         number,
         title,
         category: document.getElementById('editorCategory').value,
+        where: document.getElementById('editorWhere').value,
+        whereDetailed: document.getElementById('editorWhereDetailed').value,
         description: document.getElementById('editorDescription').value,
         owner: document.getElementById('editorOwner').value,
         status: document.getElementById('editorStatus').value,
@@ -597,6 +634,12 @@ async function initializeApp() {
         setTimeout(() => {
             document.getElementById('doneBtn').textContent = '✓ Mark Done';
         }, 1500);
+    });
+
+    document.getElementById('shareBtn').addEventListener('click', () => {
+        if (currentInstruction) {
+            shareViaSMS(currentInstruction);
+        }
     });
 
     document.getElementById('editInstructionBtn').addEventListener('click', () => {

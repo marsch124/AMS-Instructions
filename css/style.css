@@ -13,18 +13,30 @@
     --color-text-secondary: #a0b8b8;
     --color-border: #2a5555;
 
-    --color-bedroom: #3b82f6;
-    --color-driving: #ef4444;
-    --color-water: #06b6d4;
-    --color-maintenance: #eab308;
-    --color-safety: #f97316;
-    --color-general: #6b7280;
+    /* Vibrant category colors that pop */
+    --color-general: #7c3aed;
+    --color-bedroom: #a855f7;
+    --color-driving: #f59e0b;
+    --color-water: #0891b2;
+    --color-maintenance: #ea580c;
+    --color-safety: #dc2626;
 
     --color-success: #10b981;
     --color-danger: #dc2626;
 
     --safe-area-inset-top: env(safe-area-inset-top, 0);
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Light mode palette */
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) {
+        --color-bg: #f9fafb;
+        --color-surface: #ffffff;
+        --color-text: #1f2937;
+        --color-text-secondary: #6b7280;
+        --color-border: #e5e7eb;
+    }
 }
 
 html {

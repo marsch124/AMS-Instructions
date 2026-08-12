@@ -19,7 +19,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v2.0</span>
+                <span class="version-badge" id="homeVersion">v3.0</span>
             </div>
             <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
         </header>
@@ -115,6 +115,18 @@
                 <div class="info-item">
                     <span class="info-label">Last Done:</span>
                     <span id="instructionLastCompleted" class="info-value">Never</span>
+                </div>
+            </div>
+
+            <!-- Location Info Row -->
+            <div class="quick-info-row" id="locationRow" style="display: none;">
+                <div class="info-item">
+                    <span class="info-label">📍 Where:</span>
+                    <span id="instructionWhere" class="info-value">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Detailed:</span>
+                    <span id="instructionWhereDetailed" class="info-value">--</span>
                 </div>
             </div>
 
@@ -263,6 +275,7 @@
             <!-- Buttons -->
             <div class="instruction-buttons">
                 <button id="doneBtn" class="btn-done">✓ Mark Done</button>
+                <button id="shareBtn" class="btn-secondary">📱 Share via SMS</button>
                 <button id="editInstructionBtn" class="btn-secondary">Edit</button>
             </div>
         </div>
@@ -294,7 +307,7 @@
                 <h3>About</h3>
                 <button id="howItWorksBtn" class="btn-secondary">How This Works</button>
                 <p class="app-info">
-                    <strong>Version:</strong> <span id="versionNumber">2.0</span><br>
+                    <strong>Version:</strong> <span id="versionNumber">3.0</span><br>
                     <strong>Database:</strong> <span id="dbSize">calculating...</span>
                 </p>
             </div>
@@ -302,8 +315,16 @@
             <div class="settings-section version-info-section">
                 <h3>Version Info</h3>
                 <div class="version-info-detail">
-                    <p><strong>v2.0 (2026-08-12, 16:00 UTC) - COMPLETION TRACKING LIVE</strong></p>
+                    <p><strong>v3.0 (2026-08-12, 17:30 UTC) - COLOR POP & LOCATION SHARING</strong></p>
                     <p><strong>What's New:</strong></p>
+                    <ul style="padding-left: 1.5rem; font-size: 0.95rem;">
+                        <li>✨ Vibrant, poppy category colors that pop on dark & light modes</li>
+                        <li>📍 Location tracking: Where task is done + detailed location (drawer, cupboard, etc)</li>
+                        <li>📱 SMS sharing: Share completed tasks via text message with one tap</li>
+                        <li>💬 Share message includes task name, location, and completion count</li>
+                    </ul>
+                    <p><strong>v2.0 (2026-08-12, 16:00 UTC) - COMPLETION TRACKING</strong></p>
+                    <p><strong>Features:</strong></p>
                     <ul style="padding-left: 1.5rem; font-size: 0.95rem;">
                         <li>✓ Track completion count for each instruction</li>
                         <li>✓ Record "last completed" timestamp with smart formatting</li>
@@ -383,6 +404,30 @@
                         <option value="Maintenance">Maintenance</option>
                         <option value="Safety">Safety</option>
                     </select>
+                </div>
+            </div>
+
+            <!-- Location -->
+            <div class="editor-section">
+                <h3>📍 Where to Do This</h3>
+                <div class="form-group">
+                    <label for="editorWhere">Location Type</label>
+                    <select id="editorWhere">
+                        <option value="">-- Select --</option>
+                        <option value="In Car">In Car</option>
+                        <option value="In RV">In RV</option>
+                        <option value="At Home">At Home</option>
+                        <option value="Attic">Attic</option>
+                        <option value="Cellar">Cellar</option>
+                        <option value="Garage">Garage</option>
+                        <option value="Shed">Shed</option>
+                        <option value="Outdoors">Outdoors</option>
+                        <option value="Other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editorWhereDetailed">Detailed Location (e.g., drawer, cupboard)</label>
+                    <input id="editorWhereDetailed" type="text" placeholder="e.g., In the kitchen drawer, Under the sink">
                 </div>
             </div>
 
