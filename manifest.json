@@ -1,7 +1,7 @@
 {
   "name": "AMS Instructions",
   "short_name": "Instructions",
-  "description": "Quick-reference guide system using QR codes for step-by-step instructions",
+  "description": "Quick-reference guide using 3-digit numbers for step-by-step RV instructions",
   "start_url": "/AMS-Instructions/",
   "scope": "/AMS-Instructions/",
   "display": "standalone",
@@ -21,7 +21,7 @@
     {
       "name": "Scan Instruction",
       "short_name": "Scan",
-      "description": "Quickly scan a QR code to view instructions",
+      "description": "Quickly enter a 3-digit number to view instructions",
       "url": "/AMS-Instructions/?action=scan",
       "icons": [
         {

@@ -439,7 +439,13 @@
                 <h3>Metadata</h3>
                 <div class="form-group">
                     <label for="editorOwner">Owner</label>
-                    <input id="editorOwner" type="text" placeholder="e.g., Martin">
+                    <select id="editorOwner">
+                        <option value="">-- Select --</option>
+                        <option value="Martin">Martin</option>
+                        <option value="Guest">Guest</option>
+                        <option value="System">System</option>
+                        <option value="Shared">Shared</option>
+                    </select>
                 </div>
                 <div class="form-group">
                     <label for="editorStatus">Status</label>
@@ -606,20 +612,24 @@
             <section>
                 <h3>Getting Started</h3>
                 <ol>
-                    <li><strong>Create instructions:</strong> Go to Settings → Add New Instruction. Assign a 3-digit number (001-999) to each task.</li>
-                    <li><strong>Print the numbers:</strong> Print 3-digit numbers (001-999) on cards or labels for each task. You can use a free generator like qr-server.com to embed the number, or just print the digits directly.</li>
-                    <li><strong>Print & label:</strong> Print the codes and attach to Duro tape at relevant locations.</li>
-                    <li><strong>Scan & follow:</strong> Open the app, tap Scan or enter a 3-digit number, and follow the instructions.</li>
+                    <li><strong>Create instructions:</strong> Go to Settings → Add New Instruction. Assign a 3-digit number (001-999) to each task. Fill in title, steps, warnings, and any other details you need.</li>
+                    <li><strong>Print the numbers:</strong> Create cards or labels with 3-digit numbers (001-999). You can print just the digits, or use a free QR generator (qr-server.com) to embed the number for backup scanning.</li>
+                    <li><strong>Attach to locations:</strong> Use Duro tape or adhesive to attach number cards to the relevant locations in your RV (bed, steering wheel, water tank, etc).</li>
+                    <li><strong>Scan & follow:</strong> Tap the pink scanner icon (🔢 crosshair) or go to Settings → View All Instructions, enter the 3-digit number, and follow the step-by-step guide.</li>
+                    <li><strong>Backup your data:</strong> Go to Settings → Export as JSON to create a backup. On iPhone, tap Share → Save to Files or Notes to keep your instructions safe.</li>
                 </ol>
             </section>
 
             <section>
                 <h3>Tips</h3>
                 <ul>
-                    <li><strong>Favorites:</strong> Tap ★ on any instruction to save it to your home screen for quick access.</li>
-                    <li><strong>Manual entry:</strong> If scanning fails, enter the 3-digit number manually.</li>
-                    <li><strong>Offline:</strong> All instructions are stored locally. Works without internet.</li>
-                    <li><strong>Dark mode:</strong> Perfect for bedside use at night.</li>
+                                        <li><strong>Share instructions:</strong> When viewing an instruction, tap the "📱 Share via SMS" button at the bottom to send a completion message via text with the task name and location.</li>
+                    <li><strong>Favorites:</strong> Tap ★ on any instruction to save it for quick access from the home screen.</li>
+                    <li><strong>Manual entry:</strong> Can't scan the number card? Just enter the 3-digit number manually in the number input field.</li>
+                    <li><strong>Export/Backup:</strong> Go to Settings → Export as JSON regularly to back up all your instructions. On iPhone, use Share to save to Files, Notes, or email.</li>
+                    <li><strong>Offline:</strong> All instructions are stored locally on your iPhone. Works completely offline — no internet needed.</li>
+                    <li><strong>Dark mode:</strong> The app defaults to dark mode, perfect for bedside use at night. Custom pink accents help tasks pop even in low light.</li>
+                    <li><strong>Search:</strong> Use Settings → View All Instructions to search or browse all your tasks by category.</li>
                 </ul>
             </section>
 
@@ -635,6 +645,57 @@
 
             <section class="version-log">
                 <h3>Version Log</h3>
+                <div class="version-entry">
+                    <p><strong>v8.0 (2026-08-12) - PINK THEME & ICON REFRESH</strong></p>
+                    <p><strong>What's New:</strong></p>
+                    <ul>
+                        <li>✨ Brand color updated to vibrant pink (#FF006E) throughout the app</li>
+                        <li>🎯 Custom pink SVG crosshair scanner icon (replaces generic emoji)</li>
+                        <li>📱 iOS-friendly export: tap Export → Share → Save to Files or Notes</li>
+                        <li>🔢 Simplified 3-digit number scanning (removed QR code library, faster load)</li>
+                    </ul>
+                </div>
+                <div class="version-entry">
+                    <p><strong>v7.0 (2026-08-12) - COLOR POP & LOCATION SHARING</strong></p>
+                    <p><strong>What's New:</strong></p>
+                    <ul>
+                        <li>✨ Vibrant, poppy category colors that pop on dark & light modes</li>
+                        <li>📍 Location tracking: Where task is done + detailed location (drawer, cupboard, etc)</li>
+                        <li>📱 SMS sharing: Share completed tasks via text message with one tap</li>
+                        <li>💬 Share message includes task name, location, and completion count</li>
+                    </ul>
+                </div>
+                <div class="version-entry">
+                    <p><strong>v6.0 (2026-08-12) - ACTIONS FEATURE</strong></p>
+                    <p><strong>What's New:</strong></p>
+                    <ul>
+                        <li>🗒️ Red Actions nav tab for to-do management</li>
+                        <li>☑️ Actions tied to items (permanent, with badge on item rows) or loose/General</li>
+                        <li>⚡ Priority + timing for actions</li>
+                        <li>🏠 Home screen nudge card showing open actions count</li>
+                    </ul>
+                </div>
+                <div class="version-entry">
+                    <p><strong>v5.0 (2026-08-12) - FORCE-PACK WEATHER GEAR</strong></p>
+                    <p><strong>What's New:</strong></p>
+                    <ul>
+                        <li>🌧️ Per-trip force toggles for Rain, Cold, Heat, Wind, Snow</li>
+                        <li>❄️ Pulls in all weather-tagged items regardless of forecast/season</li>
+                        <li>🏔️ Example: force cold kit on summer high-altitude hike</li>
+                    </ul>
+                </div>
+                <div class="version-entry">
+                    <p><strong>v3.0 (2026-08-12) - COLOR POP & LOCATION SHARING</strong></p>
+                    <p><strong>What's New:</strong></p>
+                    <ul>
+                        <li>✨ Vibrant, poppy category colors that pop on dark & light modes</li>
+                        <li>📍 Location tracking: Where task is done + detailed location (drawer, cupboard, etc)</li>
+                        <li>📱 SMS sharing: Share completed tasks via text message with one tap</li>
+                        <li>🧮 Icon & colour refresh: coloured weather glyphs, travel-emoji on packing-list headers</li>
+                        <li>🎨 Brand color: teal → vivid teal #0a92a6, Care → warm amber #dd7324</li>
+                    </ul>
+                </div>
+
                 <div class="version-entry">
                     <p><strong>v4.0 (2026-08-12) - HOME SCREEN FIX</strong></p>
                     <p><strong>Fixed:</strong> Saving the app to the iPhone home screen opened a 404 error page instead of the app.</p>
@@ -705,6 +766,8 @@
 
     <script src="js/db.js"></script>
     <script src="js/qr.js"></script>
+    <script src="js/persistence.js"></script>
+    <script src="js/hybrid-storage.js"></script>
     <script src="js/ui.js"></script>
     <script src="js/app.js"></script>
 </body>
