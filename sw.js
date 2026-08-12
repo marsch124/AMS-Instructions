@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ams-instructions-v8';
-const APP_VERSION = '8.0';
+const CACHE_NAME = 'ams-instructions-v9';
+const APP_VERSION = '9.0';
 
 const urlsToCache = [
     '/AMS-Instructions/',
@@ -30,21 +30,25 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
-            console.log('Clearing old caches. Current:', CACHE_NAME, 'Found:', cacheNames);
+            console.log('🔄 [SW Activate] Current cache:', CACHE_NAME, 'Found:', cacheNames);
             return Promise.all(
                 cacheNames.map((cacheName) => {
+                    // Delete ALL caches that don't match current version
                     if (cacheName !== CACHE_NAME) {
-                        console.log('Deleting cache:', cacheName);
+                        console.log('🗑️  [SW Activate] Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
+                    return Promise.resolve();
                 })
             );
         })
     );
     self.clients.claim();
+    
+    // Notify all clients to refresh
     self.clients.matchAll().then((clients) => {
         clients.forEach((client) => {
-            client.postMessage({ type: 'CACHE_CLEARED' });
+            client.postMessage({ type: 'CACHE_CLEARED', version: CACHE_NAME });
         });
     });
 });
