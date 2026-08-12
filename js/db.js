@@ -288,7 +288,7 @@ async function getDBSize() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION, {
+            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786558948-af9ba6be', {
                 scope: '/AMS-Instructions/'
             });
         } catch (error) {
