@@ -80,18 +80,179 @@
         </header>
 
         <div class="instruction-content">
+            <!-- Header -->
             <div class="instruction-header">
                 <h1 id="instructionTitle">Instruction Title</h1>
                 <span id="instructionCategory" class="category-badge">General</span>
+                <div class="instruction-meta">
+                    <span id="instructionStatus" class="status-badge">Active</span>
+                    <span id="instructionDifficulty" class="difficulty-badge"></span>
+                </div>
             </div>
 
-            <div class="instruction-body">
-                <ol id="instructionSteps" class="steps-list">
-                    <li>Step 1</li>
-                </ol>
+            <!-- Quick Info Row -->
+            <div class="quick-info-row">
+                <div class="info-item">
+                    <span class="info-label">Owner:</span>
+                    <span id="instructionOwner" class="info-value">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Frequency:</span>
+                    <span id="instructionFrequency" class="info-value">--</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Time:</span>
+                    <span id="instructionTime" class="info-value">--</span>
+                </div>
             </div>
 
-            <button id="doneBtn" class="btn-done">✓ Mark Done</button>
+            <!-- Description -->
+            <section class="instruction-section">
+                <div id="descriptionToggle" class="section-toggle">
+                    <h3>📖 Description</h3>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="descriptionContent" class="section-content expanded">
+                    <p id="instructionDescription">--</p>
+                </div>
+            </section>
+
+            <!-- Warnings -->
+            <section class="instruction-section">
+                <div id="warningsToggle" class="section-toggle">
+                    <h3>⚠️ Safety Warnings</h3>
+                    <span class="preview-indicator" id="warningsPreview"></span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="warningsContent" class="section-content">
+                    <p id="instructionWarnings">--</p>
+                </div>
+            </section>
+
+            <!-- Equipment -->
+            <section class="instruction-section">
+                <div id="equipmentToggle" class="section-toggle">
+                    <h3>🛠️ Equipment Needed</h3>
+                    <span class="preview-indicator" id="equipmentPreview"></span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="equipmentContent" class="section-content">
+                    <p id="instructionEquipment">--</p>
+                </div>
+            </section>
+
+            <!-- Preparations -->
+            <section class="instruction-section">
+                <div id="preparationsToggle" class="section-toggle">
+                    <h3>🟦 Preparations</h3>
+                    <span class="preview-indicator" id="preparationsPreview"></span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="preparationsContent" class="section-content">
+                    <p id="instructionPreparations">--</p>
+                </div>
+            </section>
+
+            <!-- Instructions -->
+            <section class="instruction-section">
+                <div class="section-toggle">
+                    <h3>✓ Instructions</h3>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content expanded">
+                    <ol id="instructionSteps" class="steps-list">
+                        <li><label><input type="checkbox"> Step 1</label></li>
+                    </ol>
+                </div>
+            </section>
+
+            <!-- After Use -->
+            <section class="instruction-section">
+                <div id="afterUseToggle" class="section-toggle">
+                    <h3>🧹 After Use / Cleanup</h3>
+                    <span class="preview-indicator" id="afterUsePreview"></span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="afterUseContent" class="section-content">
+                    <p id="instructionAfterUse">--</p>
+                </div>
+            </section>
+
+            <!-- Maintenance -->
+            <section class="instruction-section">
+                <div id="maintenanceToggle" class="section-toggle">
+                    <h3>🔧 Maintenance</h3>
+                    <span class="preview-indicator" id="maintenancePreview"></span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="maintenanceContent" class="section-content">
+                    <p id="instructionMaintenance">--</p>
+                </div>
+            </section>
+
+            <!-- Notes -->
+            <section class="instruction-section">
+                <div id="notesToggle" class="section-toggle">
+                    <h3>📝 Notes</h3>
+                    <span class="preview-indicator" id="notesPreview"></span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="notesContent" class="section-content">
+                    <p id="instructionNotes">--</p>
+                </div>
+            </section>
+
+            <!-- Photos -->
+            <section class="instruction-section" id="photosSection" style="display: none;">
+                <div id="photosToggle" class="section-toggle">
+                    <h3>📷 Photos</h3>
+                    <span class="preview-indicator" id="photosPreview"></span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="photosContent" class="section-content">
+                    <div id="instructionPhotos" class="photos-gallery"></div>
+                </div>
+            </section>
+
+            <!-- Links -->
+            <section class="instruction-section" id="linksSection" style="display: none;">
+                <div id="linksToggle" class="section-toggle">
+                    <h3>🔗 External Links</h3>
+                    <span class="preview-indicator" id="linksPreview"></span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="linksContent" class="section-content">
+                    <div id="instructionLinks" class="links-list"></div>
+                </div>
+            </section>
+
+            <!-- Related Instructions -->
+            <section class="instruction-section" id="relatedSection" style="display: none;">
+                <div id="relatedToggle" class="section-toggle">
+                    <h3>🔄 Related Instructions</h3>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="relatedContent" class="section-content">
+                    <div id="instructionRelated" class="related-list"></div>
+                </div>
+            </section>
+
+            <!-- Revision History -->
+            <section class="instruction-section">
+                <div id="historyToggle" class="section-toggle">
+                    <h3>📋 Revision History</h3>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="historyContent" class="section-content">
+                    <div id="instructionHistory" class="history-list"></div>
+                </div>
+            </section>
+
+            <!-- Buttons -->
+            <div class="instruction-buttons">
+                <button id="doneBtn" class="btn-done">✓ Mark Done</button>
+                <button id="editInstructionBtn" class="btn-secondary">Edit</button>
+            </div>
         </div>
     </div>
 
@@ -182,35 +343,182 @@
         </header>
 
         <div class="editor-content">
-            <div class="form-group">
-                <label for="editorNumber">Number (001-999)</label>
-                <input id="editorNumber" type="text" maxlength="3" inputmode="numeric" placeholder="001">
+            <!-- Basic Info -->
+            <div class="editor-section">
+                <h3>Basic Info</h3>
+                <div class="form-group">
+                    <label for="editorNumber">Number (001-999)</label>
+                    <input id="editorNumber" type="text" maxlength="3" inputmode="numeric" placeholder="001">
+                </div>
+                <div class="form-group">
+                    <label for="editorName">Title *</label>
+                    <input id="editorName" type="text" placeholder="e.g., Bedtime Routine">
+                </div>
+                <div class="form-group">
+                    <label for="editorCategory">Category</label>
+                    <select id="editorCategory">
+                        <option value="General">General</option>
+                        <option value="Bedroom">Bedroom</option>
+                        <option value="Driving">Driving</option>
+                        <option value="Water">Water Systems</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Safety">Safety</option>
+                    </select>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="editorName">Title</label>
-                <input id="editorName" type="text" placeholder="e.g., Bedtime Routine">
+            <!-- Metadata -->
+            <div class="editor-section">
+                <h3>Metadata</h3>
+                <div class="form-group">
+                    <label for="editorOwner">Owner</label>
+                    <input id="editorOwner" type="text" placeholder="e.g., Martin">
+                </div>
+                <div class="form-group">
+                    <label for="editorStatus">Status</label>
+                    <select id="editorStatus">
+                        <option value="Auto">Auto (based on completeness)</option>
+                        <option value="Draft">Draft</option>
+                        <option value="Active">Active</option>
+                        <option value="Review Needed">Review Needed</option>
+                        <option value="Archived">Archived</option>
+                    </select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="editorFrequency">Frequency</label>
+                        <select id="editorFrequency">
+                            <option value="">-- Select --</option>
+                            <option value="Daily">Daily</option>
+                            <option value="Weekly">Weekly</option>
+                            <option value="Monthly">Monthly</option>
+                            <option value="As-needed">As-needed</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="editorTimeEstimate">Time Estimate (min)</label>
+                        <input id="editorTimeEstimate" type="number" placeholder="e.g., 15" min="0">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="editorDifficulty">Difficulty</label>
+                    <select id="editorDifficulty">
+                        <option value="">-- Select --</option>
+                        <option value="1">⭐ Easy</option>
+                        <option value="2">⭐⭐ Medium</option>
+                        <option value="3">⭐⭐⭐ Hard</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editorTags">Tags (comma-separated)</label>
+                    <input id="editorTags" type="text" placeholder="e.g., morning, routine, daily">
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="editorCategory">Category</label>
-                <select id="editorCategory">
-                    <option value="General">General</option>
-                    <option value="Bedroom">Bedroom</option>
-                    <option value="Driving">Driving</option>
-                    <option value="Water">Water Systems</option>
-                    <option value="Maintenance">Maintenance</option>
-                    <option value="Safety">Safety</option>
-                </select>
+            <!-- Description -->
+            <div class="editor-section">
+                <h3>Description</h3>
+                <div class="form-group">
+                    <label for="editorDescription">What is this instruction about?</label>
+                    <textarea id="editorDescription" placeholder="Brief overview..." rows="3"></textarea>
+                </div>
             </div>
 
-            <div class="form-group">
-                <label for="editorSteps">Instructions (one per line)</label>
-                <textarea id="editorSteps" placeholder="Step 1&#10;Step 2&#10;Step 3" rows="8"></textarea>
+            <!-- Warnings -->
+            <div class="editor-section">
+                <h3>⚠️ Safety Warnings</h3>
+                <div class="form-group">
+                    <label for="editorWarnings">Critical warnings or precautions</label>
+                    <textarea id="editorWarnings" placeholder="e.g., Do not skip safety check..." rows="3"></textarea>
+                </div>
             </div>
 
-            <button id="saveBtn" class="btn-primary">Save Instruction</button>
-            <button id="deleteEditorBtn" class="btn-danger" style="display: none;">Delete Instruction</button>
+            <!-- Equipment -->
+            <div class="editor-section">
+                <h3>🛠️ Equipment/Tools Needed</h3>
+                <div class="form-group">
+                    <label for="editorEquipment">Items required</label>
+                    <textarea id="editorEquipment" placeholder="e.g., Phone charger, water glass..." rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Preparations -->
+            <div class="editor-section">
+                <h3>🟦 Preparations</h3>
+                <div class="form-group">
+                    <label for="editorPreparations">Setup steps before starting</label>
+                    <textarea id="editorPreparations" placeholder="e.g., Set out morning clothes..." rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="editor-section">
+                <h3>✓ Instructions (one per line) *</h3>
+                <div class="form-group">
+                    <textarea id="editorSteps" placeholder="Step 1&#10;Step 2&#10;Step 3" rows="6"></textarea>
+                </div>
+            </div>
+
+            <!-- After Use -->
+            <div class="editor-section">
+                <h3>🧹 After Use / Cleanup</h3>
+                <div class="form-group">
+                    <label for="editorAfterUse">Post-completion steps</label>
+                    <textarea id="editorAfterUse" placeholder="e.g., Put water glass on nightstand..." rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Maintenance -->
+            <div class="editor-section">
+                <h3>🔧 Maintenance</h3>
+                <div class="form-group">
+                    <label for="editorMaintenance">Regular maintenance notes</label>
+                    <textarea id="editorMaintenance" placeholder="e.g., Change bedsheet weekly..." rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Notes -->
+            <div class="editor-section">
+                <h3>📝 Notes</h3>
+                <div class="form-group">
+                    <label for="editorNotes">Additional notes</label>
+                    <textarea id="editorNotes" placeholder="Tips, observations, issues..." rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Photos -->
+            <div class="editor-section">
+                <h3>📷 Photos (max 5)</h3>
+                <div class="form-group">
+                    <input id="editorPhotoInput" type="file" accept="image/*" hidden>
+                    <button type="button" id="addPhotoBtn" class="btn-secondary">+ Add Photo</button>
+                </div>
+                <div id="editorPhotosList" class="photos-list"></div>
+            </div>
+
+            <!-- Links -->
+            <div class="editor-section">
+                <h3>🔗 External Links</h3>
+                <div class="form-group">
+                    <label for="editorLinks">Links (one per line: Title|URL)</label>
+                    <textarea id="editorLinks" placeholder="Sleep article|https://...&#10;Pillow review|https://..." rows="3"></textarea>
+                </div>
+            </div>
+
+            <!-- Related Instructions -->
+            <div class="editor-section">
+                <h3>🔄 Related Instructions</h3>
+                <div class="form-group">
+                    <label for="editorRelated">Related instruction numbers (comma-separated)</label>
+                    <input id="editorRelated" type="text" placeholder="e.g., 002, 015">
+                </div>
+            </div>
+
+            <!-- Buttons -->
+            <div class="editor-buttons">
+                <button id="saveBtn" class="btn-primary">Save Instruction</button>
+                <button id="deleteEditorBtn" class="btn-danger" style="display: none;">Delete Instruction</button>
+            </div>
         </div>
     </div>
 
@@ -260,6 +568,23 @@
 
             <section class="version-log">
                 <h3>Version Log</h3>
+                <div class="version-entry">
+                    <p><strong>v2.0 (2026-08-12, 18:00 UTC) - MAJOR UPDATE</strong></p>
+                    <p><strong>New in v2.0:</strong></p>
+                    <ul>
+                        <li>Comprehensive instruction properties: owner, status, frequency, time estimate, difficulty</li>
+                        <li>Multiple content sections with smart toggles (Warnings, Equipment, Preparations, After Use, Maintenance, Notes)</li>
+                        <li>Collapsible sections show preview indicators (empty/filled status)</li>
+                        <li>Photo storage (up to 5 per instruction, upload/delete)</li>
+                        <li>External links management</li>
+                        <li>Related instructions cross-linking</li>
+                        <li>Auto-tracked revision history with timestamps</li>
+                        <li>Auto-populated status based on completeness</li>
+                        <li>Checkboxes on instruction steps</li>
+                        <li>Completion counter & last completed tracking</li>
+                        <li>Tags/keywords for better search</li>
+                    </ul>
+                </div>
                 <div class="version-entry">
                     <p><strong>v1.0 (2026-08-12, 14:30 UTC)</strong></p>
                     <p><strong>Content:</strong></p>

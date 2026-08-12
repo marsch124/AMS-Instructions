@@ -1,8 +1,8 @@
-const APP_VERSION = '1.0';
-const CACHE_VERSION = 'v1';
+const APP_VERSION = '2.0';
 
 let currentInstruction = null;
 let allInstructions = [];
+let currentPhotos = [];
 
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(screen => {
@@ -42,12 +42,10 @@ function showModal(title, message, callback) {
 
 async function navigateToInstruction(number) {
     const instruction = await getInstruction(number);
-
     if (!instruction) {
         alert('Instruction not found: ' + number);
         return;
     }
-
     currentInstruction = instruction;
     await addToRecent(instruction);
     displayInstruction(instruction);
@@ -57,20 +55,110 @@ async function navigateToInstruction(number) {
 function displayInstruction(instruction) {
     document.getElementById('instructionNumber').textContent = instruction.number;
     document.getElementById('instructionTitle').textContent = instruction.title;
+    document.getElementById('instructionDescription').textContent = instruction.description || '--';
 
     const categoryEl = document.getElementById('instructionCategory');
     categoryEl.textContent = instruction.category;
     categoryEl.className = 'category-badge ' + instruction.category.toLowerCase();
 
+    // Metadata
+    const statusEl = document.getElementById('instructionStatus');
+    statusEl.textContent = instruction.status || 'Active';
+    statusEl.className = 'status-badge ' + (instruction.status === 'Draft' ? 'draft' : instruction.status === 'Review Needed' ? 'review' : instruction.status === 'Archived' ? 'archived' : '');
+
+    const diffEl = document.getElementById('instructionDifficulty');
+    const stars = ['', '⭐', '⭐⭐', '⭐⭐⭐'];
+    diffEl.textContent = stars[instruction.difficulty || 0];
+
+    // Quick info
+    document.getElementById('instructionOwner').textContent = instruction.owner || '--';
+    document.getElementById('instructionFrequency').textContent = instruction.frequency || '--';
+    document.getElementById('instructionTime').textContent = instruction.timeEstimate ? instruction.timeEstimate + ' min' : '--';
+
+    // Sections with toggle setup
+    setupSection('warnings', instruction.warnings);
+    setupSection('equipment', instruction.equipment);
+    setupSection('preparations', instruction.preparations);
+    setupSection('afterUse', instruction.afterUse);
+    setupSection('maintenance', instruction.maintenance);
+    setupSection('notes', instruction.notes);
+
+    // Instructions with checkboxes
     const stepsList = document.getElementById('instructionSteps');
     stepsList.innerHTML = '';
-    instruction.steps.forEach(step => {
+    (instruction.steps || []).forEach((step, i) => {
         const li = document.createElement('li');
-        li.textContent = step;
+        li.innerHTML = `<label><input type="checkbox" data-step="${i}"> ${step}</label>`;
         stepsList.appendChild(li);
     });
 
-    // Check if favorited
+    // Photos
+    if (instruction.photos && instruction.photos.length > 0) {
+        document.getElementById('photosSection').style.display = 'flex';
+        const photosGal = document.getElementById('instructionPhotos');
+        photosGal.innerHTML = '';
+        instruction.photos.forEach(photo => {
+            const img = document.createElement('img');
+            img.src = photo.data;
+            img.className = 'photo-thumbnail';
+            photosGal.appendChild(img);
+        });
+        updatePreviewIndicator('photosPreview', instruction.photos.length > 0);
+    } else {
+        document.getElementById('photosSection').style.display = 'none';
+    }
+
+    // Links
+    if (instruction.links && instruction.links.length > 0) {
+        document.getElementById('linksSection').style.display = 'flex';
+        const linksList = document.getElementById('instructionLinks');
+        linksList.innerHTML = '';
+        instruction.links.forEach(link => {
+            const a = document.createElement('a');
+            a.href = link.url;
+            a.target = '_blank';
+            a.className = 'link-item';
+            a.textContent = link.title;
+            linksList.appendChild(a);
+        });
+        updatePreviewIndicator('linksPreview', instruction.links.length > 0);
+    } else {
+        document.getElementById('linksSection').style.display = 'none';
+    }
+
+    // Related instructions
+    if (instruction.related && instruction.related.length > 0) {
+        document.getElementById('relatedSection').style.display = 'flex';
+        const relList = document.getElementById('instructionRelated');
+        relList.innerHTML = '';
+        instruction.related.forEach(relNum => {
+            const div = document.createElement('div');
+            div.className = 'related-item';
+            div.innerHTML = `<span class="related-number">${relNum}</span> - Related instruction`;
+            div.addEventListener('click', () => navigateToInstruction(relNum));
+            relList.appendChild(div);
+        });
+    } else {
+        document.getElementById('relatedSection').style.display = 'none';
+    }
+
+    // Revision history
+    const historyList = document.getElementById('instructionHistory');
+    historyList.innerHTML = '';
+    (instruction.revisionHistory || []).reverse().forEach(rev => {
+        const div = document.createElement('div');
+        div.className = 'history-entry';
+        const date = new Date(rev.timestamp).toLocaleString();
+        div.innerHTML = `
+            <div class="history-version">v${rev.version}</div>
+            <div class="history-date">${date}</div>
+            <div class="history-author">By: ${rev.author}</div>
+            <div class="history-changes">${rev.changes}</div>
+        `;
+        historyList.appendChild(div);
+    });
+
+    // Favorites
     isFavorited(instruction.id).then(favorited => {
         const btn = document.getElementById('favoriteBtn');
         if (favorited) {
@@ -83,23 +171,33 @@ function displayInstruction(instruction) {
     });
 }
 
+function setupSection(sectionId, content) {
+    const contentEl = document.getElementById(sectionId.charAt(0).toUpperCase() + sectionId.slice(1) + 'Content');
+    const contentText = document.getElementById('instruction' + sectionId.charAt(0).toUpperCase() + sectionId.slice(1));
+    contentText.textContent = content || '--';
+    updatePreviewIndicator(sectionId + 'Preview', content && content.trim().length > 0);
+}
+
+function updatePreviewIndicator(id, filled) {
+    const el = document.getElementById(id);
+    if (el) {
+        el.className = 'preview-indicator ' + (filled ? 'filled' : 'empty');
+    }
+}
+
 async function toggleFavorite() {
     if (!currentInstruction) return;
-
     const isFav = await isFavorited(currentInstruction.id);
-
     if (isFav) {
         await removeFromFavorites(currentInstruction.id);
     } else {
         await addToFavorites(currentInstruction.id);
     }
-
     displayInstruction(currentInstruction);
     await renderHomeScreen();
 }
 
 async function renderHomeScreen() {
-    // Render favorites
     const favorites = await getFavorites();
     const instructions = await getAllInstructions();
     const favoritesList = document.getElementById('favoritesList');
@@ -118,7 +216,6 @@ async function renderHomeScreen() {
         }
     }
 
-    // Render recent
     const recent = await getRecent(5);
     const recentList = document.getElementById('recentList');
 
@@ -157,7 +254,6 @@ function createInstructionCard(instruction) {
 
     textDiv.appendChild(title);
     textDiv.appendChild(category);
-
     card.appendChild(number);
     card.appendChild(textDiv);
 
@@ -219,11 +315,30 @@ async function renderInstructionsList(filter = '') {
 }
 
 function editInstruction(instruction) {
+    currentPhotos = [...(instruction.photos || [])];
+
     document.getElementById('editorTitle').textContent = 'Edit Instruction';
     document.getElementById('editorNumber').value = instruction.number;
     document.getElementById('editorName').value = instruction.title;
     document.getElementById('editorCategory').value = instruction.category;
-    document.getElementById('editorSteps').value = instruction.steps.join('\n');
+    document.getElementById('editorSteps').value = (instruction.steps || []).join('\n');
+    document.getElementById('editorDescription').value = instruction.description || '';
+    document.getElementById('editorOwner').value = instruction.owner || '';
+    document.getElementById('editorStatus').value = instruction.status || 'Auto';
+    document.getElementById('editorFrequency').value = instruction.frequency || '';
+    document.getElementById('editorTimeEstimate').value = instruction.timeEstimate || '';
+    document.getElementById('editorDifficulty').value = instruction.difficulty || '';
+    document.getElementById('editorTags').value = (instruction.tags || []).join(', ');
+    document.getElementById('editorWarnings').value = instruction.warnings || '';
+    document.getElementById('editorEquipment').value = instruction.equipment || '';
+    document.getElementById('editorPreparations').value = instruction.preparations || '';
+    document.getElementById('editorAfterUse').value = instruction.afterUse || '';
+    document.getElementById('editorMaintenance').value = instruction.maintenance || '';
+    document.getElementById('editorNotes').value = instruction.notes || '';
+    document.getElementById('editorLinks').value = (instruction.links || []).map(l => l.title + '|' + l.url).join('\n');
+    document.getElementById('editorRelated').value = (instruction.related || []).join(', ');
+
+    renderPhotosList();
 
     const deleteBtn = document.getElementById('deleteEditorBtn');
     deleteBtn.style.display = 'block';
@@ -247,29 +362,98 @@ function resetEditor() {
     document.getElementById('editorName').value = '';
     document.getElementById('editorCategory').value = 'General';
     document.getElementById('editorSteps').value = '';
+    document.getElementById('editorDescription').value = '';
+    document.getElementById('editorOwner').value = '';
+    document.getElementById('editorStatus').value = 'Auto';
+    document.getElementById('editorFrequency').value = '';
+    document.getElementById('editorTimeEstimate').value = '';
+    document.getElementById('editorDifficulty').value = '';
+    document.getElementById('editorTags').value = '';
+    document.getElementById('editorWarnings').value = '';
+    document.getElementById('editorEquipment').value = '';
+    document.getElementById('editorPreparations').value = '';
+    document.getElementById('editorAfterUse').value = '';
+    document.getElementById('editorMaintenance').value = '';
+    document.getElementById('editorNotes').value = '';
+    document.getElementById('editorLinks').value = '';
+    document.getElementById('editorRelated').value = '';
     document.getElementById('deleteEditorBtn').style.display = 'none';
+    currentPhotos = [];
+    renderPhotosList();
     window.currentEditingId = null;
+}
+
+function renderPhotosList() {
+    const list = document.getElementById('editorPhotosList');
+    list.innerHTML = '';
+    currentPhotos.forEach((photo, i) => {
+        const div = document.createElement('div');
+        div.className = 'photo-item';
+        div.innerHTML = `
+            <img src="${photo.data}">
+            <div class="photo-item-info">
+                <div class="photo-item-name">${photo.name}</div>
+                <div class="photo-item-size">${(photo.data.length / 1024).toFixed(1)} KB</div>
+            </div>
+        `;
+        const delBtn = document.createElement('button');
+        delBtn.className = 'photo-item-delete';
+        delBtn.textContent = '✕';
+        delBtn.addEventListener('click', () => {
+            currentPhotos.splice(i, 1);
+            renderPhotosList();
+        });
+        div.appendChild(delBtn);
+        list.appendChild(div);
+    });
 }
 
 async function handleSaveInstruction() {
     const number = document.getElementById('editorNumber').value.padStart(3, '0');
     const title = document.getElementById('editorName').value.trim();
-    const category = document.getElementById('editorCategory').value;
     const stepsText = document.getElementById('editorSteps').value.trim();
 
     if (!number || !title || !stepsText) {
-        alert('Please fill in all fields');
+        alert('Please fill in: Number, Title, and Instructions');
         return;
     }
 
     const steps = stepsText.split('\n').map(s => s.trim()).filter(s => s);
+    const links = document.getElementById('editorLinks').value.trim()
+        .split('\n')
+        .filter(s => s.trim())
+        .map(line => {
+            const [title, url] = line.split('|');
+            return { title: title.trim(), url: url.trim() };
+        });
+    const related = document.getElementById('editorRelated').value
+        .split(',')
+        .map(s => s.trim())
+        .filter(s => s);
 
     const instruction = {
         id: window.currentEditingId || 'instr_' + Date.now(),
         number,
         title,
-        category,
-        steps
+        category: document.getElementById('editorCategory').value,
+        description: document.getElementById('editorDescription').value,
+        owner: document.getElementById('editorOwner').value,
+        status: document.getElementById('editorStatus').value,
+        frequency: document.getElementById('editorFrequency').value,
+        timeEstimate: parseInt(document.getElementById('editorTimeEstimate').value) || 0,
+        difficulty: parseInt(document.getElementById('editorDifficulty').value) || 0,
+        tags: document.getElementById('editorTags').value.split(',').map(t => t.trim()).filter(t => t),
+        warnings: document.getElementById('editorWarnings').value,
+        equipment: document.getElementById('editorEquipment').value,
+        preparations: document.getElementById('editorPreparations').value,
+        steps,
+        afterUse: document.getElementById('editorAfterUse').value,
+        maintenance: document.getElementById('editorMaintenance').value,
+        notes: document.getElementById('editorNotes').value,
+        photos: currentPhotos,
+        links,
+        related,
+        lastChanges: window.currentEditingId ? 'Updated instruction' : 'Created'
     };
 
     await saveInstructionDB(instruction);
@@ -278,11 +462,53 @@ async function handleSaveInstruction() {
     showScreen('instructionsListScreen');
 }
 
+// Photo upload
+document.addEventListener('DOMContentLoaded', () => {
+    const photoInput = document.getElementById('editorPhotoInput');
+    const addPhotoBtn = document.getElementById('addPhotoBtn');
+
+    if (addPhotoBtn) {
+        addPhotoBtn.addEventListener('click', () => {
+            photoInput.click();
+        });
+
+        photoInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && currentPhotos.length < 5) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    currentPhotos.push({
+                        name: file.name,
+                        data: event.target.result
+                    });
+                    renderPhotosList();
+                    photoInput.value = '';
+                };
+                reader.readAsDataURL(file);
+            } else if (currentPhotos.length >= 5) {
+                alert('Maximum 5 photos per instruction');
+            }
+        });
+    }
+});
+
+// Setup toggles for instruction viewer
+document.addEventListener('click', (e) => {
+    if (e.target.closest('.section-toggle')) {
+        const toggle = e.target.closest('.section-toggle');
+        const content = toggle.nextElementSibling;
+        if (content && content.classList.contains('section-content')) {
+            content.classList.toggle('expanded');
+            toggle.classList.toggle('collapsed');
+        }
+    }
+});
+
 async function initializeApp() {
     document.getElementById('versionNumber').textContent = APP_VERSION;
     document.getElementById('homeVersion').textContent = 'v' + APP_VERSION;
 
-    // Event listeners for navigation
+    // Navigation
     document.getElementById('settingsBtn').addEventListener('click', () => showScreen('settingsScreen'));
     document.getElementById('backFromSettingsBtn').addEventListener('click', async () => {
         await renderHomeScreen();
@@ -323,11 +549,16 @@ async function initializeApp() {
     });
 
     document.getElementById('doneBtn').addEventListener('click', () => {
-        // Visual feedback for completing a step
         document.getElementById('doneBtn').textContent = '✓ Done!';
         setTimeout(() => {
             document.getElementById('doneBtn').textContent = '✓ Mark Done';
         }, 1500);
+    });
+
+    document.getElementById('editInstructionBtn').addEventListener('click', () => {
+        if (currentInstruction) {
+            editInstruction(currentInstruction);
+        }
     });
 
     document.getElementById('favoriteBtn').addEventListener('click', toggleFavorite);
@@ -412,14 +643,12 @@ async function initializeApp() {
         });
     });
 
-    // Initialize DB and render home screen
     try {
         await initDB();
         await registerServiceWorker();
         await renderHomeScreen();
         showScreen('homeScreen');
 
-        // Update DB size
         const size = await getDBSize();
         document.getElementById('dbSize').textContent = size;
     } catch (error) {
@@ -428,7 +657,6 @@ async function initializeApp() {
     }
 }
 
-// Initialize when DOM is ready
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initializeApp);
 } else {

@@ -70,6 +70,37 @@ async function getAllInstructions() {
 
 async function saveInstructionDB(instruction) {
     instruction.number = instruction.number.toString().padStart(3, '0');
+
+    // Initialize missing fields with defaults
+    if (!instruction.createdAt) {
+        instruction.createdAt = Date.now();
+        instruction.revisionHistory = [{
+            version: 1,
+            timestamp: Date.now(),
+            author: instruction.owner || 'System',
+            changes: 'Created'
+        }];
+    } else {
+        // Add to revision history
+        if (!instruction.revisionHistory) {
+            instruction.revisionHistory = [];
+        }
+        const lastVersion = instruction.revisionHistory[instruction.revisionHistory.length - 1];
+        const newVersion = (lastVersion?.version || 0) + 1;
+        instruction.revisionHistory.push({
+            version: newVersion,
+            timestamp: Date.now(),
+            author: instruction.owner || 'System',
+            changes: instruction.lastChanges || 'Updated'
+        });
+        delete instruction.lastChanges;
+    }
+
+    // Auto-populate status based on completeness
+    if (!instruction.status || instruction.status === 'Auto') {
+        instruction.status = calculateStatus(instruction);
+    }
+
     const tx = db.transaction(STORE_INSTRUCTIONS, 'readwrite');
     const store = tx.objectStore(STORE_INSTRUCTIONS);
 
@@ -78,6 +109,17 @@ async function saveInstructionDB(instruction) {
         request.onsuccess = () => resolve(instruction);
         request.onerror = () => reject(request.error);
     });
+}
+
+function calculateStatus(instruction) {
+    const hasCore = instruction.title && instruction.description && instruction.steps?.length > 0;
+    const hasDetails = instruction.frequency && instruction.timeEstimate && instruction.owner;
+    const hasSafety = instruction.warnings && instruction.warnings.trim().length > 0;
+    const isComplete = hasCore && hasDetails && hasSafety;
+
+    if (!hasCore) return 'Draft';
+    if (isComplete) return 'Active';
+    return 'Review Needed';
 }
 
 async function deleteInstruction(id) {
