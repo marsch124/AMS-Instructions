@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="AMS Instructions">
+    <meta name="theme-color" content="#0a1f1f">
+    <title>AMS Instructions</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%230a92a6' width='180' height='180'/><text x='50%' y='50%' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>📋</text></svg>">
+    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 180 180'><rect fill='%230a92a6' width='180' height='180'/><text x='50%' y='50%' font-size='80' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle'>📋</text></svg>">
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <!-- Home Screen -->
+    <div id="homeScreen" class="screen active">
+        <header class="app-header">
+            <div style="flex: 1; text-align: center;">
+                <h1>Instructions</h1>
+                <span class="version-badge" id="homeVersion">v1.0</span>
+            </div>
+            <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
+        </header>
+
+        <div class="home-content">
+            <button id="scanBtn" class="scan-button" aria-label="Scan QR code">
+                <span class="scan-icon">📱</span>
+                <span>Scan Instruction</span>
+            </button>
+
+            <div class="home-section">
+                <h2>Favorites</h2>
+                <div id="favoritesList" class="instructions-grid">
+                    <p class="empty-state">No favorites yet. Tap ★ on an instruction to add.</p>
+                </div>
+            </div>
+
+            <div class="home-section">
+                <h2>Recently Viewed</h2>
+                <div id="recentList" class="instructions-grid">
+                    <p class="empty-state">Scanned instructions appear here.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scan Screen -->
+    <div id="scanScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromScanBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2>Scan QR Code</h2>
+            <div></div>
+        </header>
+
+        <div class="scan-container">
+            <video id="cameraFeed" playsinline></video>
+            <div class="scan-overlay">
+                <div class="scan-box"></div>
+                <p>Point at QR code</p>
+            </div>
+        </div>
+
+        <div class="manual-entry">
+            <p>Can't scan?</p>
+            <div class="number-input-group">
+                <input id="manualNumber" type="text" placeholder="Enter number (e.g., 001)" maxlength="3" inputmode="numeric">
+                <button id="manualSubmitBtn" class="btn-primary">Go</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instruction Screen -->
+    <div id="instructionScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromInstructionBtn" class="back-btn" aria-label="Back">← Back</button>
+            <span id="instructionNumber" class="instruction-number">001</span>
+            <button id="favoriteBtn" class="icon-btn favorite-toggle" aria-label="Add to favorites">☆</button>
+        </header>
+
+        <div class="instruction-content">
+            <div class="instruction-header">
+                <h1 id="instructionTitle">Instruction Title</h1>
+                <span id="instructionCategory" class="category-badge">General</span>
+            </div>
+
+            <div class="instruction-body">
+                <ol id="instructionSteps" class="steps-list">
+                    <li>Step 1</li>
+                </ol>
+            </div>
+
+            <button id="doneBtn" class="btn-done">✓ Mark Done</button>
+        </div>
+    </div>
+
+    <!-- Settings Screen -->
+    <div id="settingsScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromSettingsBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2>Settings</h2>
+            <div></div>
+        </header>
+
+        <div class="settings-content">
+            <div class="settings-section">
+                <h3>Instructions</h3>
+                <button id="allInstructionsBtn" class="btn-secondary">View All Instructions</button>
+                <button id="addInstructionBtn" class="btn-secondary">+ Add New Instruction</button>
+            </div>
+
+            <div class="settings-section">
+                <h3>Data</h3>
+                <button id="exportBtn" class="btn-secondary">Export as JSON</button>
+                <button id="importBtn" class="btn-secondary">Import from JSON</button>
+                <input id="importFile" type="file" accept=".json" hidden>
+            </div>
+
+            <div class="settings-section">
+                <h3>About</h3>
+                <button id="howItWorksBtn" class="btn-secondary">How This Works</button>
+                <p class="app-info">
+                    <strong>Version:</strong> <span id="versionNumber">1.0</span><br>
+                    <strong>Database:</strong> <span id="dbSize">calculating...</span>
+                </p>
+            </div>
+
+            <div class="settings-section">
+                <button id="clearDataBtn" class="btn-danger">Clear All Data</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Instructions List Screen -->
+    <div id="instructionsListScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromListBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2>All Instructions</h2>
+            <div></div>
+        </header>
+
+        <div class="list-content">
+            <input id="searchInput" type="text" placeholder="Search..." class="search-input">
+            <div id="instructionsList" class="full-instructions-list">
+                <p class="empty-state">No instructions yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Editor Screen -->
+    <div id="editorScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromEditorBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2 id="editorTitle">New Instruction</h2>
+            <div></div>
+        </header>
+
+        <div class="editor-content">
+            <div class="form-group">
+                <label for="editorNumber">Number (001-999)</label>
+                <input id="editorNumber" type="text" maxlength="3" inputmode="numeric" placeholder="001">
+            </div>
+
+            <div class="form-group">
+                <label for="editorName">Title</label>
+                <input id="editorName" type="text" placeholder="e.g., Bedtime Routine">
+            </div>
+
+            <div class="form-group">
+                <label for="editorCategory">Category</label>
+                <select id="editorCategory">
+                    <option value="General">General</option>
+                    <option value="Bedroom">Bedroom</option>
+                    <option value="Driving">Driving</option>
+                    <option value="Water">Water Systems</option>
+                    <option value="Maintenance">Maintenance</option>
+                    <option value="Safety">Safety</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="editorSteps">Instructions (one per line)</label>
+                <textarea id="editorSteps" placeholder="Step 1&#10;Step 2&#10;Step 3" rows="8"></textarea>
+            </div>
+
+            <button id="saveBtn" class="btn-primary">Save Instruction</button>
+            <button id="deleteEditorBtn" class="btn-danger" style="display: none;">Delete Instruction</button>
+        </div>
+    </div>
+
+    <!-- How It Works Screen -->
+    <div id="howItWorksScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromHowBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2>How This Works</h2>
+            <div></div>
+        </header>
+
+        <div class="how-it-works-content">
+            <section>
+                <h3>What is AMS Instructions?</h3>
+                <p>A quick-reference guide system using QR codes. Attach labeled QR codes to key locations in your RV (bed, steering wheel, water systems) and scan them to see step-by-step instructions.</p>
+            </section>
+
+            <section>
+                <h3>Getting Started</h3>
+                <ol>
+                    <li><strong>Create instructions:</strong> Go to Settings → Add New Instruction. Assign a 3-digit number (001-999) to each task.</li>
+                    <li><strong>Generate QR codes:</strong> Use a free QR generator (qr-server.com) to create codes for each number (e.g., encode "001").</li>
+                    <li><strong>Print & label:</strong> Print the codes and attach to Duro tape at relevant locations.</li>
+                    <li><strong>Scan & follow:</strong> Open the app, tap Scan, point at a QR code, and follow the instructions.</li>
+                </ol>
+            </section>
+
+            <section>
+                <h3>Tips</h3>
+                <ul>
+                    <li><strong>Favorites:</strong> Tap ★ on any instruction to save it to your home screen for quick access.</li>
+                    <li><strong>Manual entry:</strong> If scanning fails, enter the 3-digit number manually.</li>
+                    <li><strong>Offline:</strong> All instructions are stored locally. Works without internet.</li>
+                    <li><strong>Dark mode:</strong> Perfect for bedside use at night.</li>
+                </ul>
+            </section>
+
+            <section>
+                <h3>Sample Use Cases</h3>
+                <ul>
+                    <li><strong>Bedside (001):</strong> Evening wind-down checklist</li>
+                    <li><strong>Driver's seat (002):</strong> Pre-drive vehicle check</li>
+                    <li><strong>Water tank (003):</strong> Filling & maintenance steps</li>
+                    <li><strong>Maintenance (004-009):</strong> Various RV systems</li>
+                </ul>
+            </section>
+
+            <section class="version-log">
+                <h3>Version Log</h3>
+                <div class="version-entry">
+                    <p><strong>v1.0 (2026-08-12, 14:30 UTC)</strong></p>
+                    <p><strong>Content:</strong></p>
+                    <ul>
+                        <li>QR code scanning with fallback manual number entry</li>
+                        <li>Create, edit, and delete instructions</li>
+                        <li>Organize instructions by 6 categories (General, Bedroom, Driving, Water, Maintenance, Safety)</li>
+                        <li>Favorites system for quick access to frequently-used instructions</li>
+                        <li>Recently viewed history</li>
+                        <li>Search and browse all instructions</li>
+                        <li>Import/export data as JSON for backup</li>
+                        <li>Offline-first with service worker caching</li>
+                    </ul>
+                    <p><strong>Main Benefits:</strong></p>
+                    <ul>
+                        <li>📱 Mobile-first design optimized for RV use</li>
+                        <li>🌙 Dark mode for bedside/night use</li>
+                        <li>📡 Fully offline capable — no internet required</li>
+                        <li>🎯 Quick scanning instead of manual lookups</li>
+                        <li>⭐ Favorites for instant access to critical tasks</li>
+                        <li>💾 Local data storage — privacy-first</li>
+                    </ul>
+                </div>
+            </section>
+        </div>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal" class="modal" hidden>
+        <div class="modal-content">
+            <h3 id="modalTitle">Confirm</h3>
+            <p id="modalMessage">Are you sure?</p>
+            <div class="modal-buttons">
+                <button id="modalCancel" class="btn-secondary">Cancel</button>
+                <button id="modalConfirm" class="btn-danger">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/db.js"></script>
+    <script src="js/qr.js"></script>
+    <script src="js/ui.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>
