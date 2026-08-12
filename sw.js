@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ams-instructions-v5';
-const APP_VERSION = '5.0';
+const CACHE_NAME = 'ams-instructions-v6';
+const APP_VERSION = '6.0';
 
 const urlsToCache = [
     '/AMS-Instructions/',
@@ -30,9 +30,11 @@ self.addEventListener('install', (event) => {
 self.addEventListener('activate', (event) => {
     event.waitUntil(
         caches.keys().then((cacheNames) => {
+            console.log('Clearing old caches. Current:', CACHE_NAME, 'Found:', cacheNames);
             return Promise.all(
                 cacheNames.map((cacheName) => {
                     if (cacheName !== CACHE_NAME) {
+                        console.log('Deleting cache:', cacheName);
                         return caches.delete(cacheName);
                     }
                 })
@@ -40,6 +42,11 @@ self.addEventListener('activate', (event) => {
         })
     );
     self.clients.claim();
+    self.clients.matchAll().then((clients) => {
+        clients.forEach((client) => {
+            client.postMessage({ type: 'CACHE_CLEARED' });
+        });
+    });
 });
 
 self.addEventListener('fetch', (event) => {
