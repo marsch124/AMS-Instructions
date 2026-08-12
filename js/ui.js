@@ -4,6 +4,30 @@ let currentInstruction = null;
 let allInstructions = [];
 let currentPhotos = [];
 
+function formatRelativeTime(timestamp) {
+    const now = Date.now();
+    const diff = now - timestamp;
+    const seconds = Math.floor(diff / 1000);
+    const minutes = Math.floor(seconds / 60);
+    const hours = Math.floor(minutes / 60);
+    const days = Math.floor(hours / 24);
+    const weeks = Math.floor(days / 7);
+    const months = Math.floor(days / 30);
+
+    if (seconds < 60) return 'Just now';
+    if (minutes < 60) return minutes === 1 ? '1 minute ago' : minutes + ' minutes ago';
+    if (hours < 24) return hours === 1 ? '1 hour ago' : hours + ' hours ago';
+    if (days === 1) return 'Yesterday';
+    if (days < 7) return days + ' days ago';
+    if (weeks === 1) return '1 week ago';
+    if (weeks < 4) return weeks + ' weeks ago';
+    if (months === 1) return '1 month ago';
+    if (months < 12) return months + ' months ago';
+
+    const date = new Date(timestamp);
+    return date.toLocaleDateString();
+}
+
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
@@ -74,6 +98,16 @@ function displayInstruction(instruction) {
     document.getElementById('instructionOwner').textContent = instruction.owner || '--';
     document.getElementById('instructionFrequency').textContent = instruction.frequency || '--';
     document.getElementById('instructionTime').textContent = instruction.timeEstimate ? instruction.timeEstimate + ' min' : '--';
+
+    // Completion tracking
+    const completionCount = instruction.completionCount || 0;
+    document.getElementById('instructionCompletionCount').textContent = completionCount === 1 ? '1 time' : completionCount + ' times';
+
+    if (instruction.lastCompleted) {
+        document.getElementById('instructionLastCompleted').textContent = formatRelativeTime(instruction.lastCompleted);
+    } else {
+        document.getElementById('instructionLastCompleted').textContent = 'Never';
+    }
 
     // Sections with toggle setup
     setupSection('warnings', instruction.warnings);
@@ -548,7 +582,17 @@ async function initializeApp() {
         showScreen('homeScreen');
     });
 
-    document.getElementById('doneBtn').addEventListener('click', () => {
+    document.getElementById('doneBtn').addEventListener('click', async () => {
+        if (currentInstruction) {
+            currentInstruction.completionCount = (currentInstruction.completionCount || 0) + 1;
+            currentInstruction.lastCompleted = Date.now();
+            await saveInstructionDB(currentInstruction);
+
+            document.getElementById('instructionCompletionCount').textContent =
+                currentInstruction.completionCount === 1 ? '1 time' : currentInstruction.completionCount + ' times';
+            document.getElementById('instructionLastCompleted').textContent = 'Just now';
+        }
+
         document.getElementById('doneBtn').textContent = '✓ Done!';
         setTimeout(() => {
             document.getElementById('doneBtn').textContent = '✓ Mark Done';
