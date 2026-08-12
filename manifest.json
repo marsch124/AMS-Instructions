@@ -2,8 +2,8 @@
   "name": "AMS Instructions",
   "short_name": "Instructions",
   "description": "Quick-reference guide system using QR codes for step-by-step instructions",
-  "start_url": "/",
-  "scope": "/",
+  "start_url": "/AMS-Instructions/",
+  "scope": "/AMS-Instructions/",
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0a1f1f",
@@ -22,7 +22,7 @@
       "name": "Scan Instruction",
       "short_name": "Scan",
       "description": "Quickly scan a QR code to view instructions",
-      "url": "/?action=scan",
+      "url": "/AMS-Instructions/?action=scan",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230a92a6' width='192' height='192'/><text x='50%' y='50%' font-size='120' text-anchor='middle' dominant-baseline='middle'>📱</text></svg>",
@@ -35,7 +35,7 @@
       "name": "View All Instructions",
       "short_name": "All",
       "description": "Browse and search all instructions",
-      "url": "/?action=all",
+      "url": "/AMS-Instructions/?action=all",
       "icons": [
         {
           "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230a92a6' width='192' height='192'/><text x='50%' y='50%' font-size='120' text-anchor='middle' dominant-baseline='middle'>📋</text></svg>",

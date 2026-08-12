@@ -19,7 +19,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v3.0</span>
+                <span class="version-badge" id="homeVersion">v4.0</span>
             </div>
             <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
         </header>
@@ -632,6 +632,18 @@
 
             <section class="version-log">
                 <h3>Version Log</h3>
+                <div class="version-entry">
+                    <p><strong>v4.0 (2026-08-12) - HOME SCREEN FIX</strong></p>
+                    <p><strong>Fixed:</strong> Saving the app to the iPhone home screen opened a 404 error page instead of the app.</p>
+                    <p><strong>Cause:</strong> The app is published in a sub-folder (<code>/AMS-Instructions/</code>), but every internal address pointed at the top level of the website instead. Opening the app in Safari worked because Safari already knew where you were; the home screen icon had only the (wrong) stored address to go on.</p>
+                    <p><strong>What changed:</strong></p>
+                    <ul>
+                        <li>App start address and boundary corrected to the <code>/AMS-Instructions/</code> sub-folder</li>
+                        <li>Both home screen quick actions (Scan, View All) re-pointed to the sub-folder</li>
+                        <li>Offline file list and offline fallback page corrected to the sub-folder, so offline use works from the home screen icon</li>
+                        <li>Offline storage version raised to v4 to clear the stale files from your phone</li>
+                    </ul>
+                </div>
                 <div class="version-entry">
                     <p><strong>v2.0 (2026-08-12, 18:00 UTC) - MAJOR UPDATE</strong></p>
                     <p><strong>New in v2.0:</strong></p>

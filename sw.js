@@ -1,15 +1,15 @@
-const CACHE_NAME = 'ams-instructions-v3';
-const APP_VERSION = '3.0';
+const CACHE_NAME = 'ams-instructions-v4';
+const APP_VERSION = '4.0';
 
 const urlsToCache = [
-    '/',
-    '/index.html',
-    '/css/style.css',
-    '/js/app.js',
-    '/js/db.js',
-    '/js/qr.js',
-    '/js/ui.js',
-    '/manifest.json'
+    '/AMS-Instructions/',
+    '/AMS-Instructions/index.html',
+    '/AMS-Instructions/css/style.css',
+    '/AMS-Instructions/js/app.js',
+    '/AMS-Instructions/js/db.js',
+    '/AMS-Instructions/js/qr.js',
+    '/AMS-Instructions/js/ui.js',
+    '/AMS-Instructions/manifest.json'
 ];
 
 self.addEventListener('install', (event) => {
@@ -19,7 +19,7 @@ self.addEventListener('install', (event) => {
                 console.error('Cache addAll error:', error);
                 // Continue even if some resources fail to cache
                 return cache.addAll(urlsToCache.filter((url) => {
-                    return url !== '/';
+                    return url !== '/AMS-Instructions/';
                 }));
             });
         })
@@ -88,7 +88,7 @@ self.addEventListener('fetch', (event) => {
                 })
                 .catch(() => {
                     // Return offline page or cached version if available
-                    return caches.match('/index.html');
+                    return caches.match('/AMS-Instructions/index.html');
                 });
         })
     );
