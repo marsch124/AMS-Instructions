@@ -679,13 +679,17 @@ async function initializeApp() {
     document.getElementById('exportBtn').addEventListener('click', async () => {
         const data = await exportData();
         const json = JSON.stringify(data, null, 2);
-        const blob = new Blob([json], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'ams-instructions-' + new Date().toISOString().split('T')[0] + '.json';
-        a.click();
-        URL.revokeObjectURL(url);
+        
+        // iOS-friendly export: open JSON in new window for user to save
+        const w = window.open();
+        w.document.write('<html><head><title>AMS Instructions Backup</title><style>body{font-family:monospace;padding:1rem;white-space:pre-wrap;word-wrap:break-word;background:#0a1f1f;color:#fff;}</style></head><body>');
+        w.document.write('<h2>AMS Instructions Backup</h2>');
+        w.document.write('<p>Date: ' + new Date().toISOString() + '</p>');
+        w.document.write('<p><strong>On iPhone:</strong> Tap Share → Save to Files or Notes</p>');
+        w.document.write('<hr>');
+        w.document.write(json.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+        w.document.write('</body></html>');
+        w.document.close();
     });
 
     document.getElementById('importBtn').addEventListener('click', () => {
