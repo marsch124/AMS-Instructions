@@ -7,11 +7,11 @@
   "display": "standalone",
   "orientation": "portrait-primary",
   "background_color": "#0a1f1f",
-  "theme_color": "#0a92a6",
+  "theme_color": "#FF006E",
   "categories": ["productivity", "reference"],
   "screenshots": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%230a1f1f' width='540' height='720'/><text x='50%' y='50%' font-size='100' font-weight='bold' fill='%230a92a6' text-anchor='middle' dominant-baseline='middle'>📋</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%230a1f1f' width='540' height='720'/><g transform='translate(270,360)'><rect fill='%23FF006E' width='200' height='200' rx='30'/><g transform='translate(-60,-40)'><path d='M 20 80 L 50 40 L 120 40 L 140 80 Z' fill='%23FFFFFF' stroke='%23FFFFFF' stroke-width='3'/><circle cx='35' cy='100' r='8' fill='%23333333'/><circle cx='125' cy='100' r='8' fill='%23333333'/><rect x='30' y='55' width='80' height='25' fill='%23FFFFFF' opacity='0.7'/><rect x='35' y='62' width='15' height='3' fill='%23FF006E'/><rect x='55' y='62' width='15' height='3' fill='%23FF006E'/><rect x='75' y='62' width='15' height='3' fill='%23FF006E'/></g></g></svg>",
       "sizes": "540x720",
       "type": "image/svg+xml",
       "form_factor": "narrow"
@@ -25,7 +25,7 @@
       "url": "/AMS-Instructions/?action=scan",
       "icons": [
         {
-          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230a92a6' width='192' height='192'/><text x='50%' y='50%' font-size='120' text-anchor='middle' dominant-baseline='middle'>📱</text></svg>",
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23FF006E' width='192' height='192'/><g transform='translate(96,96)'><circle cx='0' cy='-30' r='20' fill='%23FFFFFF' stroke='%23FFFFFF' stroke-width='2'/><rect x='-25' y='-5' width='50' height='35' rx='5' fill='%23FFFFFF' stroke='%23FFFFFF' stroke-width='2'/><rect x='-15' y='5' width='12' height='12' fill='%23FF006E'/><rect x='3' y='5' width='12' height='12' fill='%23FF006E'/></g></svg>",
           "sizes": "192x192",
           "type": "image/svg+xml"
         }
@@ -38,7 +38,7 @@
       "url": "/AMS-Instructions/?action=all",
       "icons": [
         {
-          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230a92a6' width='192' height='192'/><text x='50%' y='50%' font-size='120' text-anchor='middle' dominant-baseline='middle'>📋</text></svg>",
+          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23FF006E' width='192' height='192'/><g transform='translate(96,96)'><rect x='-35' y='-40' width='70' height='80' rx='5' fill='%23FFFFFF' stroke='%23FFFFFF' stroke-width='2'/><line x1='-25' y1='-25' x2='25' y2='-25' stroke='%23FF006E' stroke-width='3'/><line x1='-25' y1='-10' x2='25' y2='-10' stroke='%23FF006E' stroke-width='3'/><line x1='-25' y1='5' x2='25' y2='5' stroke='%23FF006E' stroke-width='3'/><line x1='-25' y1='20' x2='15' y2='20' stroke='%23FF006E' stroke-width='3'/></g></svg>",
           "sizes": "192x192",
           "type": "image/svg+xml"
         }
@@ -47,13 +47,13 @@
   ],
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230a92a6' width='192' height='192'/><text x='50%' y='50%' font-size='120' fill='white' text-anchor='middle' dominant-baseline='middle'>📋</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23FF006E' width='192' height='192'/><g transform='translate(96,96)'><path d='M -40 20 L -15 -25 L 15 -25 L 40 20 Z' fill='%23FFFFFF' stroke='%23FFFFFF' stroke-width='3' stroke-linejoin='round'/><circle cx='-25' cy='35' r='10' fill='%23333333'/><circle cx='25' cy='35' r='10' fill='%23333333'/><rect x='-30' y='-10' width='60' height='20' fill='%23FFFFFF' opacity='0.8' rx='3'/><rect x='-24' y='-5' width='10' height='3' fill='%23FF006E'/><rect x='-6' y='-5' width='10' height='3' fill='%23FF006E'/><rect x='12' y='-5' width='10' height='3' fill='%23FF006E'/></g></svg>",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%230a92a6' width='192' height='192'/><text x='50%' y='50%' font-size='120' fill='white' text-anchor='middle' dominant-baseline='middle'>📋</text></svg>",
+      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='85' fill='%23FF006E'/><g transform='translate(96,96)'><path d='M -40 20 L -15 -25 L 15 -25 L 40 20 Z' fill='%23FFFFFF' stroke='%23FFFFFF' stroke-width='3' stroke-linejoin='round'/><circle cx='-25' cy='35' r='10' fill='%23333333'/><circle cx='25' cy='35' r='10' fill='%23333333'/><rect x='-30' y='-10' width='60' height='20' fill='%23FFFFFF' opacity='0.8' rx='3'/><rect x='-24' y='-5' width='10' height='3' fill='%23FF006E'/><rect x='-6' y='-5' width='10' height='3' fill='%23FF006E'/><rect x='12' y='-5' width='10' height='3' fill='%23FF006E'/></g></svg>",
       "sizes": "192x192",
       "type": "image/svg+xml",
       "purpose": "maskable"
