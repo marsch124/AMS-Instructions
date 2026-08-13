@@ -1,4 +1,4 @@
-const APP_VERSION = '9.0';
+const APP_VERSION = '10.0';
 
 let currentInstruction = null;
 let allInstructions = [];
@@ -587,8 +587,10 @@ async function initializeApp() {
     });
 
     document.getElementById('scanBtn').addEventListener('click', async () => {
-        await loadQRLibrary();
         showScreen('scanScreen');
+        const statusEl = document.getElementById('scanStatus');
+        statusEl.textContent = 'Loading scanner… (first time may take a moment)';
+        await loadQRLibrary();
         setTimeout(() => {
             startQRScanning((number, error) => {
                 stopQRScanning();
@@ -599,6 +601,10 @@ async function initializeApp() {
                 }
             });
         }, 100);
+    });
+
+    document.getElementById('captureBtn').addEventListener('click', () => {
+        captureAndScan();
     });
 
     document.getElementById('backFromScanBtn').addEventListener('click', () => {

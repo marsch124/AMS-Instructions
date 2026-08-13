@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ams-instructions-v9';
-const APP_VERSION = '9.0';
+const CACHE_NAME = 'ams-instructions-v10';
+const APP_VERSION = '10.0';
 
 const urlsToCache = [
     '/AMS-Instructions/',
@@ -9,7 +9,15 @@ const urlsToCache = [
     '/AMS-Instructions/js/db.js',
     '/AMS-Instructions/js/qr.js',
     '/AMS-Instructions/js/ui.js',
-    '/AMS-Instructions/manifest.json'
+    '/AMS-Instructions/js/version-sync.js',
+    '/AMS-Instructions/js/persistence.js',
+    '/AMS-Instructions/js/hybrid-storage.js',
+    '/AMS-Instructions/manifest.json',
+    '/AMS-Instructions/icons/icon-192.png',
+    '/AMS-Instructions/icons/icon-512.png',
+    '/AMS-Instructions/icons/icon-512-maskable.png',
+    '/AMS-Instructions/icons/apple-touch-icon.png',
+    '/AMS-Instructions/icons/favicon-64.png'
 ];
 
 self.addEventListener('install', (event) => {

@@ -9,14 +9,6 @@
   "background_color": "#0a1f1f",
   "theme_color": "#FF006E",
   "categories": ["productivity", "reference"],
-  "screenshots": [
-    {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 540 720'><rect fill='%230a1f1f' width='540' height='720'/><g transform='translate(270,360)'><circle cx='0' cy='-10' r='70' fill='none' stroke='%23FF006E' stroke-width='6'/><circle cx='45' cy='35' r='18' fill='%23FF006E'/><text x='-15' y='0' font-size='50' font-weight='bold' fill='%23FFFFFF'>001</text></g></svg>",
-      "sizes": "540x720",
-      "type": "image/svg+xml",
-      "form_factor": "narrow"
-    }
-  ],
   "shortcuts": [
     {
       "name": "Scan Instruction",
@@ -25,9 +17,9 @@
       "url": "/AMS-Instructions/?action=scan",
       "icons": [
         {
-          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23FF006E' width='192' height='192'/><g transform='translate(96,96)'><circle cx='-5' cy='-10' r='40' fill='none' stroke='%23FFFFFF' stroke-width='4'/><circle cx='28' cy='23' r='12' fill='%23FFFFFF'/><text x='-16' y='2' font-size='28' font-weight='bold' fill='%23FFFFFF'>001</text></g></svg>",
+          "src": "icons/icon-192.png",
           "sizes": "192x192",
-          "type": "image/svg+xml"
+          "type": "image/png"
         }
       ]
     },
@@ -38,24 +30,30 @@
       "url": "/AMS-Instructions/?action=all",
       "icons": [
         {
-          "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23FF006E' width='192' height='192'/><g transform='translate(96,96)'><circle cx='-5' cy='-10' r='40' fill='none' stroke='%23FFFFFF' stroke-width='4'/><circle cx='28' cy='23' r='12' fill='%23FFFFFF'/><text x='-16' y='2' font-size='28' font-weight='bold' fill='%23FFFFFF'>001</text></g></svg>",
+          "src": "icons/icon-192.png",
           "sizes": "192x192",
-          "type": "image/svg+xml"
+          "type": "image/png"
         }
       ]
     }
   ],
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23FF006E' width='192' height='192'/><g transform='translate(96,96)'><circle cx='-5' cy='-10' r='40' fill='none' stroke='%23FFFFFF' stroke-width='4'/><circle cx='28' cy='23' r='12' fill='%23FFFFFF'/><text x='-16' y='2' font-size='28' font-weight='bold' fill='%23FFFFFF'>001</text></g></svg>",
+      "src": "icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='85' fill='%23FF006E'/><g transform='translate(96,96)'><circle cx='-5' cy='-10' r='40' fill='none' stroke='%23FFFFFF' stroke-width='4'/><circle cx='28' cy='23' r='12' fill='%23FFFFFF'/><text x='-16' y='2' font-size='28' font-weight='bold' fill='%23FFFFFF'>001</text></g></svg>",
-      "sizes": "192x192",
-      "type": "image/svg+xml",
+      "src": "icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ]

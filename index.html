@@ -15,10 +15,11 @@
     <meta name="apple-mobile-web-app-title" content="AMS Instructions">
     <meta name="theme-color" content="#FF006E">
     <title>AMS Instructions</title>
-    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect fill='%23FF006E' width='192' height='192'/><g transform='translate(96,96)'><circle cx='-5' cy='-10' r='40' fill='none' stroke='%23FFFFFF' stroke-width='4'/><circle cx='28' cy='23' r='12' fill='%23FFFFFF'/><text x='-16' y='2' font-size='28' font-weight='bold' fill='%23FFFFFF'>001</text></g></svg>">
-    <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><circle cx='96' cy='96' r='85' fill='%23FF006E'/><g transform='translate(96,96)'><circle cx='-5' cy='-10' r='40' fill='none' stroke='%23FFFFFF' stroke-width='4'/><circle cx='28' cy='23' r='12' fill='%23FFFFFF'/><text x='-16' y='2' font-size='28' font-weight='bold' fill='%23FFFFFF'>001</text></g></svg>">
+    <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=9.0&t=1786558941-0e3dbc95">
+    <link rel="stylesheet" href="css/style.css?v=10.0&t=1786598358-0e9e9fdf">
 </head>
 <body>
     <!-- Home Screen -->
@@ -26,7 +27,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v9.0</span>
+                <span class="version-badge" id="homeVersion">v10.0</span>
             </div>
             <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
         </header>
@@ -65,8 +66,12 @@
             <video id="cameraFeed" playsinline></video>
             <div class="scan-overlay">
                 <div class="scan-box"></div>
-                <p>Seek the answer</p>
             </div>
+        </div>
+
+        <div class="scan-status-row">
+            <p id="scanStatus" class="scan-status"></p>
+            <button id="captureBtn" class="btn-secondary">📸 Capture &amp; Scan</button>
         </div>
 
         <div class="manual-entry">
@@ -629,9 +634,10 @@
                 <ul>
                                         <li><strong>Share instructions:</strong> When viewing an instruction, tap the "📱 Share via SMS" button at the bottom to send a completion message via text with the task name and location.</li>
                     <li><strong>Favorites:</strong> Tap ★ on any instruction to save it for quick access from the home screen.</li>
-                    <li><strong>Manual entry:</strong> Can't scan the number card? Just enter the 3-digit number manually in the number input field.</li>
+                    <li><strong>Scanning a number:</strong> Point the box at the printed number and hold steady, or tap "📸 Capture & Scan" for a deliberate one-shot read. Good, even lighting helps a lot.</li>
+                    <li><strong>Manual entry:</strong> Can't scan the number card? Just enter the 3-digit number manually in the number input field — always fast and 100% reliable.</li>
                     <li><strong>Export/Backup:</strong> Go to Settings → Export as JSON regularly to back up all your instructions. On iPhone, use Share to save to Files, Notes, or email.</li>
-                    <li><strong>Offline:</strong> All instructions are stored locally on your iPhone. Works completely offline — no internet needed.</li>
+                    <li><strong>Offline:</strong> Your instructions are stored locally and everything works offline, including manual number entry. Camera scanning needs internet the very first time to download its recognition engine (a few MB) — after that it works normally.</li>
                     <li><strong>Dark mode:</strong> The app defaults to dark mode, perfect for bedside use at night. Custom pink accents help tasks pop even in low light.</li>
                     <li><strong>Search:</strong> Use Settings → View All Instructions to search or browse all your tasks by category.</li>
                 </ul>
@@ -649,6 +655,19 @@
 
             <section class="version-log">
                 <h3>Version Log</h3>
+                <div class="version-entry">
+                    <p><strong>v10.0 (2026-08-13) - REAL SCANNING & HOME SCREEN ICON FIX</strong></p>
+                    <p><strong>Fixed:</strong> The home screen icon looked wrong, and scanning a number never actually worked — it silently always failed and fell back to nothing.</p>
+                    <p><strong>Cause:</strong> The home screen icon was an SVG, which iOS does not support for home screen icons — it was silently falling back to an auto-generated screenshot instead. Separately, the number-scanning code was a leftover placeholder that always returned "not found," so scanning could never succeed.</p>
+                    <p><strong>What changed:</strong></p>
+                    <ul>
+                        <li>🎨 New organic, hand-drawn "#" icon shipped as a real PNG (not SVG) — this is what iOS actually uses for the home screen tile</li>
+                        <li>🔍 Scanning now uses real on-device text recognition (OCR) to read the 3-digit number from the camera</li>
+                        <li>📸 Added a "Capture & Scan" button for a reliable, deliberate scan instead of relying only on continuous auto-detection</li>
+                        <li>🧹 Removed the redundant "Seek the answer" caption below the scan box — status text now only appears when something is actually happening (loading, analyzing, or an error)</li>
+                        <li>⚠️ Scanning needs internet the first time to download the recognition engine (a few MB); manual number entry always works fully offline</li>
+                    </ul>
+                </div>
                 <div class="version-entry">
                     <p><strong>v8.0 (2026-08-12) - PINK THEME & ICON REFRESH</strong></p>
                     <p><strong>What's New:</strong></p>
@@ -768,12 +787,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=9.0&t=1786558941-0e3dbc95"></script>
-    <script src="js/qr.js?v=9.0&t=1786558941-0e3dbc95"></script>
-    <script src="js/version-sync.js"></script>
-    <script src="js/persistence.js?v=9.0&t=1786558941-0e3dbc95"></script>
-    <script src="js/hybrid-storage.js?v=9.0&t=1786558941-0e3dbc95"></script>
-    <script src="js/ui.js?v=9.0&t=1786558941-0e3dbc95"></script>
-    <script src="js/app.js?v=9.0&t=1786558941-0e3dbc95"></script>
+    <script src="js/db.js?v=10.0&t=1786598358-0e9e9fdf"></script>
+    <script src="js/qr.js?v=10.0&t=1786598358-0e9e9fdf"></script>
+    <script src="js/version-sync.js?v=10.0&t=1786598358-0e9e9fdf"></script>
+    <script src="js/persistence.js?v=10.0&t=1786598358-0e9e9fdf"></script>
+    <script src="js/hybrid-storage.js?v=10.0&t=1786598358-0e9e9fdf"></script>
+    <script src="js/ui.js?v=10.0&t=1786598358-0e9e9fdf"></script>
+    <script src="js/app.js?v=10.0&t=1786598358-0e9e9fdf"></script>
 </body>
 </html>
