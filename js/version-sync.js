@@ -4,11 +4,15 @@ const CHECK_INTERVAL = 5000; // Check every 5 seconds
 
 class VersionSync {
     constructor() {
-        this.currentVersion = APP_VERSION;
+        this.currentVersion = null;
         this.lastCheck = null;
     }
 
     init() {
+        // APP_VERSION is defined in js/ui.js, which loads after this script —
+        // must not be read until the 'load' event, once every script has run.
+        this.currentVersion = APP_VERSION;
+
         // Store version on load
         this.updateStoredVersion();
         

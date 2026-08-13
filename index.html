@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786615256-a4c5c903">
+    <meta name="cache-bust" content="1786615962-724b9ce8">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=13.0&t=1786615256-a4c5c903">
+    <link rel="stylesheet" href="css/style.css?v=14.0&t=1786615962-724b9ce8">
 </head>
 <body>
     <!-- Home Screen -->
@@ -27,7 +27,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v13.0</span>
+                <span class="version-badge" id="homeVersion">v14.0</span>
             </div>
             <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
         </header>
@@ -676,6 +676,16 @@
             <section class="version-log">
                 <h3>Version Log</h3>
                 <div class="version-entry">
+                    <p><strong>v14.0 (2026-08-13) - FIXED THE AUTO VERSION-SYNC ITSELF</strong></p>
+                    <p><strong>Fixed:</strong> The background check that's supposed to notice when Safari and the Home Screen app fall out of sync and automatically fix it had never actually been running, on any version — Safari staying ahead of Home Screen after an update relied entirely on manually force-closing the Home Screen app.</p>
+                    <p><strong>Cause:</strong> That checker read the app's version number one script file too early, before that file had loaded — which silently crashed it before it ever started watching.</p>
+                    <p><strong>What changed:</strong></p>
+                    <ul>
+                        <li>🔄 The version-sync checker now actually runs, so future updates should reach the Home Screen app on their own within a few seconds of opening it, without a manual force-close</li>
+                    </ul>
+                    <p>If Safari and Home Screen still show different versions after this update, that one time still needs a manual force-close of the Home Screen app to pick up the fix — after that, it should self-correct going forward.</p>
+                </div>
+                <div class="version-entry">
                     <p><strong>v13.0 (2026-08-13) - PEOPLE & REVISION CONTACT INFO</strong></p>
                     <p><strong>What's New:</strong></p>
                     <ul>
@@ -842,12 +852,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=13.0&t=1786615256-a4c5c903"></script>
-    <script src="js/qr.js?v=13.0&t=1786615256-a4c5c903"></script>
-    <script src="js/version-sync.js?v=13.0&t=1786615256-a4c5c903"></script>
-    <script src="js/persistence.js?v=13.0&t=1786615256-a4c5c903"></script>
-    <script src="js/hybrid-storage.js?v=13.0&t=1786615256-a4c5c903"></script>
-    <script src="js/ui.js?v=13.0&t=1786615256-a4c5c903"></script>
-    <script src="js/app.js?v=13.0&t=1786615256-a4c5c903"></script>
+    <script src="js/db.js?v=14.0&t=1786615962-724b9ce8"></script>
+    <script src="js/qr.js?v=14.0&t=1786615962-724b9ce8"></script>
+    <script src="js/version-sync.js?v=14.0&t=1786615962-724b9ce8"></script>
+    <script src="js/persistence.js?v=14.0&t=1786615962-724b9ce8"></script>
+    <script src="js/hybrid-storage.js?v=14.0&t=1786615962-724b9ce8"></script>
+    <script src="js/ui.js?v=14.0&t=1786615962-724b9ce8"></script>
+    <script src="js/app.js?v=14.0&t=1786615962-724b9ce8"></script>
 </body>
 </html>
