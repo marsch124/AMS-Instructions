@@ -1,4 +1,5 @@
-const APP_VERSION = '12.0';
+const APP_VERSION = '13.0';
+const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
 let allInstructions = [];
@@ -210,17 +211,31 @@ function displayInstruction(instruction) {
     // Revision history
     const historyList = document.getElementById('instructionHistory');
     historyList.innerHTML = '';
-    (instruction.revisionHistory || []).reverse().forEach(rev => {
+    (instruction.revisionHistory || []).slice().reverse().forEach((rev, i) => {
         const div = document.createElement('div');
         div.className = 'history-entry';
         const date = new Date(rev.timestamp).toLocaleString();
+        const authorName = rev.authorName || rev.author || 'Unknown';
+        const contactId = 'historyContact-' + i;
         div.innerHTML = `
             <div class="history-version">v${rev.version}</div>
             <div class="history-date">${date}</div>
-            <div class="history-author">By: ${rev.author}</div>
+            <div class="history-author">By: ${authorName}</div>
+            <div class="history-contact" id="${contactId}"></div>
             <div class="history-changes">${rev.changes}</div>
         `;
         historyList.appendChild(div);
+
+        if (rev.authorId) {
+            getPerson(rev.authorId).then(person => {
+                if (!person) return;
+                const parts = [];
+                if (person.phone) parts.push('📞 ' + person.phone);
+                if (person.email) parts.push('✉️ ' + person.email);
+                const contactEl = document.getElementById(contactId);
+                if (contactEl) contactEl.textContent = parts.join('  ·  ');
+            });
+        }
     });
 
     // Favorites
@@ -379,8 +394,38 @@ async function renderInstructionsList(filter = '') {
     });
 }
 
-function editInstruction(instruction) {
+// Populates the Owner and Revised-by selects from the People store.
+// selectedOwnerId pre-selects Owner (matches nothing for legacy instructions without an ownerId — by design, see plan).
+// Revised-by always defaults to the last person used, for one-tap convenience on repeat edits.
+async function populateOwnerAndRevisedBySelects(selectedOwnerId) {
+    const people = await getAllPeople();
+    people.sort((a, b) => a.name.localeCompare(b.name));
+
+    const ownerSelect = document.getElementById('editorOwner');
+    ownerSelect.innerHTML = '<option value="">-- Select --</option>';
+    people.forEach(person => {
+        const opt = document.createElement('option');
+        opt.value = person.id;
+        opt.textContent = person.name;
+        ownerSelect.appendChild(opt);
+    });
+    ownerSelect.value = selectedOwnerId || '';
+
+    const revisedBySelect = document.getElementById('editorRevisedBy');
+    revisedBySelect.innerHTML = '<option value="">-- Select --</option>';
+    people.forEach(person => {
+        const opt = document.createElement('option');
+        opt.value = person.id;
+        opt.textContent = person.name;
+        revisedBySelect.appendChild(opt);
+    });
+    const lastRevisedBy = localStorage.getItem(LAST_REVISED_BY_KEY);
+    revisedBySelect.value = people.some(p => p.id === lastRevisedBy) ? lastRevisedBy : '';
+}
+
+async function editInstruction(instruction) {
     currentPhotos = [...(instruction.photos || [])];
+    window.currentEditingInstruction = instruction;
 
     document.getElementById('editorTitle').textContent = 'Edit Instruction';
     document.getElementById('editorNumber').value = instruction.number;
@@ -390,7 +435,7 @@ function editInstruction(instruction) {
     document.getElementById('editorWhereDetailed').value = instruction.whereDetailed || '';
     document.getElementById('editorSteps').value = (instruction.steps || []).join('\n');
     document.getElementById('editorDescription').value = instruction.description || '';
-    document.getElementById('editorOwner').value = instruction.owner || '';
+    await populateOwnerAndRevisedBySelects(instruction.ownerId || '');
     document.getElementById('editorStatus').value = instruction.status || 'Auto';
     document.getElementById('editorFrequency').value = instruction.frequency || '';
     document.getElementById('editorTimeEstimate').value = instruction.timeEstimate || '';
@@ -432,7 +477,6 @@ function resetEditor() {
     document.getElementById('editorWhereDetailed').value = '';
     document.getElementById('editorSteps').value = '';
     document.getElementById('editorDescription').value = '';
-    document.getElementById('editorOwner').value = '';
     document.getElementById('editorStatus').value = 'Auto';
     document.getElementById('editorFrequency').value = '';
     document.getElementById('editorTimeEstimate').value = '';
@@ -450,6 +494,7 @@ function resetEditor() {
     currentPhotos = [];
     renderPhotosList();
     window.currentEditingId = null;
+    window.currentEditingInstruction = null;
 }
 
 function renderPhotosList() {
@@ -500,6 +545,17 @@ async function handleSaveInstruction() {
         .map(s => s.trim())
         .filter(s => s);
 
+    const ownerSelect = document.getElementById('editorOwner');
+    const ownerId = ownerSelect.value || null;
+    const ownerName = ownerId ? ownerSelect.options[ownerSelect.selectedIndex].textContent : '';
+
+    const revisedBySelect = document.getElementById('editorRevisedBy');
+    const revisedById = revisedBySelect.value || null;
+    const revisedByName = revisedById ? revisedBySelect.options[revisedBySelect.selectedIndex].textContent : null;
+    if (revisedById) {
+        localStorage.setItem(LAST_REVISED_BY_KEY, revisedById);
+    }
+
     const instruction = {
         id: window.currentEditingId || 'instr_' + Date.now(),
         number,
@@ -508,7 +564,8 @@ async function handleSaveInstruction() {
         where: document.getElementById('editorWhere').value,
         whereDetailed: document.getElementById('editorWhereDetailed').value,
         description: document.getElementById('editorDescription').value,
-        owner: document.getElementById('editorOwner').value,
+        owner: ownerName,
+        ownerId,
         status: document.getElementById('editorStatus').value,
         frequency: document.getElementById('editorFrequency').value,
         timeEstimate: parseInt(document.getElementById('editorTimeEstimate').value) || 0,
@@ -524,13 +581,132 @@ async function handleSaveInstruction() {
         photos: currentPhotos,
         links,
         related,
-        lastChanges: window.currentEditingId ? 'Updated instruction' : 'Created'
+        lastChanges: window.currentEditingId ? 'Updated instruction' : 'Created',
+        revisedById,
+        revisedByName
     };
+
+    // Editing an existing instruction: carry forward fields the form doesn't touch,
+    // so saving an edit doesn't reset completion tracking or wipe prior revision history.
+    if (window.currentEditingId && window.currentEditingInstruction) {
+        const existing = window.currentEditingInstruction;
+        instruction.createdAt = existing.createdAt;
+        instruction.completionCount = existing.completionCount;
+        instruction.lastCompleted = existing.lastCompleted;
+        instruction.revisionHistory = existing.revisionHistory;
+    }
 
     await saveInstructionDB(instruction);
     resetEditor();
     await renderInstructionsList();
     showScreen('instructionsListScreen');
+}
+
+async function renderPeopleList() {
+    const list = document.getElementById('peopleList');
+    const people = await getAllPeople();
+    people.sort((a, b) => a.name.localeCompare(b.name));
+
+    if (people.length === 0) {
+        list.innerHTML = '<p class="empty-state">No people yet.</p>';
+        return;
+    }
+
+    list.innerHTML = '';
+    people.forEach(person => {
+        const item = document.createElement('div');
+        item.className = 'list-item';
+
+        const info = document.createElement('div');
+        info.className = 'list-item-info';
+        info.addEventListener('click', () => editPerson(person));
+
+        const nameEl = document.createElement('div');
+        nameEl.className = 'list-item-title';
+        nameEl.textContent = person.name;
+
+        const contactEl = document.createElement('div');
+        contactEl.className = 'list-item-category';
+        contactEl.textContent = [person.phone, person.email].filter(Boolean).join('  ·  ') || '--';
+
+        info.appendChild(nameEl);
+        info.appendChild(contactEl);
+
+        const editBtn = document.createElement('button');
+        editBtn.className = 'list-item-edit';
+        editBtn.textContent = '✎';
+        editBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            editPerson(person);
+        });
+
+        item.appendChild(info);
+        item.appendChild(editBtn);
+        list.appendChild(item);
+    });
+}
+
+function editPerson(person) {
+    document.getElementById('personEditorTitle').textContent = 'Edit Person';
+    document.getElementById('personEditorName').value = person.name || '';
+    document.getElementById('personEditorPhone').value = person.phone || '';
+    document.getElementById('personEditorEmail').value = person.email || '';
+    document.getElementById('personEditorHandles').value = (person.handles || [])
+        .map(h => h.label + '|' + h.value).join('\n');
+
+    const deleteBtn = document.getElementById('deletePersonBtn');
+    deleteBtn.style.display = 'block';
+    deleteBtn.onclick = () => {
+        showModal('Delete Person', `Delete "${person.name}"? This does not remove them from past revision history.`, async (confirmed) => {
+            if (confirmed) {
+                await deletePerson(person.id);
+                await renderPeopleList();
+                showScreen('peopleScreen');
+            }
+        });
+    };
+
+    window.currentEditingPersonId = person.id;
+    showScreen('personEditorScreen');
+}
+
+function resetPersonEditor() {
+    document.getElementById('personEditorTitle').textContent = 'New Person';
+    document.getElementById('personEditorName').value = '';
+    document.getElementById('personEditorPhone').value = '';
+    document.getElementById('personEditorEmail').value = '';
+    document.getElementById('personEditorHandles').value = '';
+    document.getElementById('deletePersonBtn').style.display = 'none';
+    window.currentEditingPersonId = null;
+}
+
+async function handleSavePerson() {
+    const name = document.getElementById('personEditorName').value.trim();
+    if (!name) {
+        alert('Please enter a name');
+        return;
+    }
+
+    const handles = document.getElementById('personEditorHandles').value.trim()
+        .split('\n')
+        .filter(s => s.trim())
+        .map(line => {
+            const [label, value] = line.split('|');
+            return { label: (label || '').trim(), value: (value || '').trim() };
+        });
+
+    const person = {
+        id: window.currentEditingPersonId || undefined,
+        name,
+        phone: document.getElementById('personEditorPhone').value.trim(),
+        email: document.getElementById('personEditorEmail').value.trim(),
+        handles
+    };
+
+    await savePersonDB(person);
+    resetPersonEditor();
+    await renderPeopleList();
+    showScreen('peopleScreen');
 }
 
 // Photo upload
@@ -627,9 +803,7 @@ async function initializeApp() {
 
     document.getElementById('doneBtn').addEventListener('click', async () => {
         if (currentInstruction) {
-            currentInstruction.completionCount = (currentInstruction.completionCount || 0) + 1;
-            currentInstruction.lastCompleted = Date.now();
-            await saveInstructionDB(currentInstruction);
+            currentInstruction = await recordCompletion(currentInstruction);
 
             document.getElementById('instructionCompletionCount').textContent =
                 currentInstruction.completionCount === 1 ? '1 time' : currentInstruction.completionCount + ' times';
@@ -662,10 +836,33 @@ async function initializeApp() {
         showScreen('instructionsListScreen');
     });
 
-    document.getElementById('addInstructionBtn').addEventListener('click', () => {
+    document.getElementById('addInstructionBtn').addEventListener('click', async () => {
         resetEditor();
+        await populateOwnerAndRevisedBySelects();
         showScreen('editorScreen');
     });
+
+    // People
+    document.getElementById('managePeopleBtn').addEventListener('click', async () => {
+        await renderPeopleList();
+        showScreen('peopleScreen');
+    });
+
+    document.getElementById('addPersonBtn').addEventListener('click', () => {
+        resetPersonEditor();
+        showScreen('personEditorScreen');
+    });
+
+    document.getElementById('backFromPeopleBtn').addEventListener('click', () => {
+        showScreen('settingsScreen');
+    });
+
+    document.getElementById('backFromPersonEditorBtn').addEventListener('click', async () => {
+        await renderPeopleList();
+        showScreen('peopleScreen');
+    });
+
+    document.getElementById('savePersonBtn').addEventListener('click', handleSavePerson);
 
     document.getElementById('backFromListBtn').addEventListener('click', () => {
         showScreen('settingsScreen');

@@ -89,13 +89,19 @@ async function getAllInstructions() {
 async function saveInstructionDB(instruction) {
     instruction.number = instruction.number.toString().padStart(3, '0');
 
+    const authorId = instruction.revisedById || null;
+    const authorName = instruction.revisedByName || instruction.owner || 'System';
+    delete instruction.revisedById;
+    delete instruction.revisedByName;
+
     // Initialize missing fields with defaults
     if (!instruction.createdAt) {
         instruction.createdAt = Date.now();
         instruction.revisionHistory = [{
             version: 1,
             timestamp: Date.now(),
-            author: instruction.owner || 'System',
+            authorId,
+            authorName,
             changes: 'Created'
         }];
     } else {
@@ -108,7 +114,8 @@ async function saveInstructionDB(instruction) {
         instruction.revisionHistory.push({
             version: newVersion,
             timestamp: Date.now(),
-            author: instruction.owner || 'System',
+            authorId,
+            authorName,
             changes: instruction.lastChanges || 'Updated'
         });
         delete instruction.lastChanges;
@@ -118,6 +125,21 @@ async function saveInstructionDB(instruction) {
     if (!instruction.status || instruction.status === 'Auto') {
         instruction.status = calculateStatus(instruction);
     }
+
+    const tx = db.transaction(STORE_INSTRUCTIONS, 'readwrite');
+    const store = tx.objectStore(STORE_INSTRUCTIONS);
+
+    return new Promise((resolve, reject) => {
+        const request = store.put(instruction);
+        request.onsuccess = () => resolve(instruction);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// Bare completion update — no revision history entry (see Mark Done bug, v11 plan)
+async function recordCompletion(instruction) {
+    instruction.completionCount = (instruction.completionCount || 0) + 1;
+    instruction.lastCompleted = Date.now();
 
     const tx = db.transaction(STORE_INSTRUCTIONS, 'readwrite');
     const store = tx.objectStore(STORE_INSTRUCTIONS);
@@ -239,6 +261,52 @@ async function getFavorites() {
     });
 }
 
+async function savePersonDB(person) {
+    if (!person.id) {
+        person.id = 'person_' + Date.now();
+    }
+    if (!person.createdAt) {
+        person.createdAt = Date.now();
+    }
+    person.updatedAt = Date.now();
+
+    const tx = db.transaction(STORE_PEOPLE, 'readwrite');
+    const store = tx.objectStore(STORE_PEOPLE);
+
+    return new Promise((resolve, reject) => {
+        const request = store.put(person);
+        request.onsuccess = () => resolve(person);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function getAllPeople() {
+    return getAllFromStore(STORE_PEOPLE);
+}
+
+async function getPerson(id) {
+    if (!id) return null;
+    const tx = db.transaction(STORE_PEOPLE, 'readonly');
+    const store = tx.objectStore(STORE_PEOPLE);
+
+    return new Promise((resolve, reject) => {
+        const request = store.get(id);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function deletePerson(id) {
+    const tx = db.transaction(STORE_PEOPLE, 'readwrite');
+    const store = tx.objectStore(STORE_PEOPLE);
+
+    return new Promise((resolve, reject) => {
+        const request = store.delete(id);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
 async function getAllFromStore(storeName) {
     const tx = db.transaction(storeName, 'readonly');
     const store = tx.objectStore(storeName);
@@ -341,7 +409,7 @@ async function getDBSize() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786613151-b9e62f17', {
+            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786615256-a4c5c903', {
                 scope: '/AMS-Instructions/'
             });
         } catch (error) {

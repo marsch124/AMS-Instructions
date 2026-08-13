@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786613151-b9e62f17">
+    <meta name="cache-bust" content="1786615256-a4c5c903">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=12.0&t=1786613151-b9e62f17">
+    <link rel="stylesheet" href="css/style.css?v=13.0&t=1786615256-a4c5c903">
 </head>
 <body>
     <!-- Home Screen -->
@@ -27,7 +27,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v12.0</span>
+                <span class="version-badge" id="homeVersion">v13.0</span>
             </div>
             <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
         </header>
@@ -309,6 +309,12 @@
             </div>
 
             <div class="settings-section">
+                <h3>People</h3>
+                <button id="managePeopleBtn" class="btn-secondary">Manage People</button>
+                <button id="addPersonBtn" class="btn-secondary">+ Add Person</button>
+            </div>
+
+            <div class="settings-section">
                 <h3>Data</h3>
                 <button id="exportBtn" class="btn-secondary">Export as JSON</button>
                 <button id="importBtn" class="btn-secondary">Import from JSON</button>
@@ -342,6 +348,57 @@
             <input id="searchInput" type="text" placeholder="Search..." class="search-input">
             <div id="instructionsList" class="full-instructions-list">
                 <p class="empty-state">No instructions yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- People List Screen -->
+    <div id="peopleScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromPeopleBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2>People</h2>
+            <div></div>
+        </header>
+
+        <div class="list-content">
+            <div id="peopleList" class="full-instructions-list">
+                <p class="empty-state">No people yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Person Editor Screen -->
+    <div id="personEditorScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromPersonEditorBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2 id="personEditorTitle">New Person</h2>
+            <div></div>
+        </header>
+
+        <div class="editor-content">
+            <div class="editor-section">
+                <h3>Contact Info</h3>
+                <div class="form-group">
+                    <label for="personEditorName">Name *</label>
+                    <input id="personEditorName" type="text" placeholder="e.g., Martin">
+                </div>
+                <div class="form-group">
+                    <label for="personEditorPhone">Phone</label>
+                    <input id="personEditorPhone" type="tel" placeholder="e.g., +1 555-123-4567">
+                </div>
+                <div class="form-group">
+                    <label for="personEditorEmail">Email</label>
+                    <input id="personEditorEmail" type="email" placeholder="e.g., martin@example.com">
+                </div>
+                <div class="form-group">
+                    <label for="personEditorHandles">Other Handles (one per line, Label|Value)</label>
+                    <textarea id="personEditorHandles" rows="3" placeholder="Signal|+1 555-123-4567"></textarea>
+                </div>
+            </div>
+
+            <div class="editor-buttons">
+                <button id="savePersonBtn" class="btn-primary">Save Person</button>
+                <button id="deletePersonBtn" class="btn-danger" style="display: none;">Delete Person</button>
             </div>
         </div>
     </div>
@@ -410,10 +467,12 @@
                     <label for="editorOwner">Owner</label>
                     <select id="editorOwner">
                         <option value="">-- Select --</option>
-                        <option value="Martin">Martin</option>
-                        <option value="Guest">Guest</option>
-                        <option value="System">System</option>
-                        <option value="Shared">Shared</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="editorRevisedBy">Revised by</label>
+                    <select id="editorRevisedBy">
+                        <option value="">-- Select --</option>
                     </select>
                 </div>
                 <div class="form-group">
@@ -594,6 +653,7 @@
                 <ul>
                                         <li><strong>Share instructions:</strong> When viewing an instruction, tap the "📱 Share via SMS" button at the bottom to send a completion message via text with the task name and location.</li>
                     <li><strong>Favorites:</strong> Tap ★ on any instruction to save it for quick access from the home screen.</li>
+                    <li><strong>People:</strong> Add names once under Settings → Manage People, then pick them as Owner or "Revised by" on any instruction instead of retyping — their phone/email shows up automatically in Revision History.</li>
                     <li><strong>Scanning a number:</strong> Point the box at the printed number and hold steady, or tap "📸 Capture & Scan" for a deliberate one-shot read. Good, even lighting helps a lot.</li>
                     <li><strong>Manual entry:</strong> Can't scan the number card? Just enter the 3-digit number manually in the number input field — always fast and 100% reliable.</li>
                     <li><strong>Export/Backup:</strong> Go to Settings → Export as JSON regularly to back up all your instructions. On iPhone, use Share to save to Files, Notes, or email.</li>
@@ -615,6 +675,22 @@
 
             <section class="version-log">
                 <h3>Version Log</h3>
+                <div class="version-entry">
+                    <p><strong>v13.0 (2026-08-13) - PEOPLE & REVISION CONTACT INFO</strong></p>
+                    <p><strong>What's New:</strong></p>
+                    <ul>
+                        <li>👤 New "People" list in Settings — add names with phone/email/other handles once, reuse everywhere</li>
+                        <li>✏️ Owner and a new "Revised by" field on each instruction now pick from People instead of retyping a name — Revised by remembers the last person you picked for one-tap repeat edits</li>
+                        <li>📋 Revision History now shows the reviser's phone/email live next to each entry, looked up from People</li>
+                    </ul>
+                    <p><strong>Fixed:</strong> Editing an instruction (even just fixing a typo) was silently resetting its completion count and wiping its entire revision history down to a single "Created" entry.</p>
+                    <p><strong>Cause:</strong> Saving an edit built a brand-new instruction record from the form fields alone, without carrying forward the existing completion count, last-completed date, or revision history — so every save looked like a fresh instruction to the database.</p>
+                    <p><strong>What changed:</strong></p>
+                    <ul>
+                        <li>🛡️ Editing now preserves completion tracking and full revision history — only "Mark Done" and genuine edits add to it, exactly as intended</li>
+                    </ul>
+                    <p>Existing instructions are unaffected — Owner still shows correctly even before you've added matching People, and old revision history entries display exactly as before.</p>
+                </div>
                 <div class="version-entry">
                     <p><strong>v12.0 (2026-08-13) - RECENTLY VIEWED FIX & STALE VERSION INFO REMOVED</strong></p>
                     <p><strong>Fixed:</strong> Tapping an instruction under "Recently Viewed" did nothing if you'd already viewed it once before — the tap was silently swallowed.</p>
@@ -766,12 +842,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=12.0&t=1786613151-b9e62f17"></script>
-    <script src="js/qr.js?v=12.0&t=1786613151-b9e62f17"></script>
-    <script src="js/version-sync.js?v=12.0&t=1786613151-b9e62f17"></script>
-    <script src="js/persistence.js?v=12.0&t=1786613151-b9e62f17"></script>
-    <script src="js/hybrid-storage.js?v=12.0&t=1786613151-b9e62f17"></script>
-    <script src="js/ui.js?v=12.0&t=1786613151-b9e62f17"></script>
-    <script src="js/app.js?v=12.0&t=1786613151-b9e62f17"></script>
+    <script src="js/db.js?v=13.0&t=1786615256-a4c5c903"></script>
+    <script src="js/qr.js?v=13.0&t=1786615256-a4c5c903"></script>
+    <script src="js/version-sync.js?v=13.0&t=1786615256-a4c5c903"></script>
+    <script src="js/persistence.js?v=13.0&t=1786615256-a4c5c903"></script>
+    <script src="js/hybrid-storage.js?v=13.0&t=1786615256-a4c5c903"></script>
+    <script src="js/ui.js?v=13.0&t=1786615256-a4c5c903"></script>
+    <script src="js/app.js?v=13.0&t=1786615256-a4c5c903"></script>
 </body>
 </html>

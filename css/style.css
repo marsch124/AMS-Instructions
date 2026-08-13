@@ -694,6 +694,12 @@ body {
     font-size: 0.85rem;
 }
 
+.history-contact {
+    color: var(--color-text-secondary);
+    font-size: 0.8rem;
+    margin-top: 0.125rem;
+}
+
 .history-changes {
     margin-top: 0.25rem;
     color: var(--color-text);

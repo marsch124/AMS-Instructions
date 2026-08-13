@@ -64,6 +64,28 @@ saveInstructionDB = async function(instruction) {
     return result;
 };
 
+// Same mirroring for the other functions that write to IndexedDB directly
+const originalRecordCompletion = recordCompletion;
+recordCompletion = async function(instruction) {
+    const result = await originalRecordCompletion(instruction);
+    await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
+const originalSavePersonDB = savePersonDB;
+savePersonDB = async function(person) {
+    const result = await originalSavePersonDB(person);
+    await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
+const originalDeletePerson = deletePerson;
+deletePerson = async function(id) {
+    const result = await originalDeletePerson(id);
+    await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
 // Initialize on app ready
 document.addEventListener('DOMContentLoaded', async () => {
     // Wait for DB to be initialized
