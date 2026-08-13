@@ -156,7 +156,7 @@ async function addToRecent(instruction) {
     const store = tx.objectStore(STORE_RECENT);
 
     return new Promise((resolve, reject) => {
-        const request = store.add({
+        const request = store.put({
             id: instruction.id,
             number: instruction.number,
             title: instruction.title,
@@ -341,7 +341,7 @@ async function getDBSize() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786611639-995fafff', {
+            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786613151-b9e62f17', {
                 scope: '/AMS-Instructions/'
             });
         } catch (error) {

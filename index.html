@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786611639-995fafff">
+    <meta name="cache-bust" content="1786613151-b9e62f17">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=11.0&t=1786611639-995fafff">
+    <link rel="stylesheet" href="css/style.css?v=12.0&t=1786613151-b9e62f17">
 </head>
 <body>
     <!-- Home Screen -->
@@ -27,7 +27,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v11.0</span>
+                <span class="version-badge" id="homeVersion">v12.0</span>
             </div>
             <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
         </header>
@@ -324,46 +324,6 @@
                 </p>
             </div>
 
-            <div class="settings-section version-info-section">
-                <h3>Version Info</h3>
-                <div class="version-info-detail">
-                    <p><strong>v3.0 (2026-08-12, 17:30 UTC) - COLOR POP & LOCATION SHARING</strong></p>
-                    <p><strong>What's New:</strong></p>
-                    <ul style="padding-left: 1.5rem; font-size: 0.95rem;">
-                        <li>✨ Vibrant, poppy category colors that pop on dark & light modes</li>
-                        <li>📍 Location tracking: Where task is done + detailed location (drawer, cupboard, etc)</li>
-                        <li>📱 SMS sharing: Share completed tasks via text message with one tap</li>
-                        <li>💬 Share message includes task name, location, and completion count</li>
-                    </ul>
-                    <p><strong>v2.0 (2026-08-12, 16:00 UTC) - COMPLETION TRACKING</strong></p>
-                    <p><strong>Features:</strong></p>
-                    <ul style="padding-left: 1.5rem; font-size: 0.95rem;">
-                        <li>✓ Track completion count for each instruction</li>
-                        <li>✓ Record "last completed" timestamp with smart formatting</li>
-                        <li>✓ Visual completion history display</li>
-                    </ul>
-                    <p><strong>v1.0 (2026-08-12, 14:30 UTC)</strong></p>
-                    <p><strong>What's Included:</strong></p>
-                    <ul style="padding-left: 1.5rem; font-size: 0.95rem;">
-                        <li>3-digit number scanning with manual fallback</li>
-                        <li>Create, edit, delete instructions</li>
-                        <li>6 color-coded categories</li>
-                        <li>Favorites & recently viewed</li>
-                        <li>Search all instructions</li>
-                        <li>Import/export JSON backups</li>
-                        <li>Full offline support</li>
-                    </ul>
-                    <p><strong>Key Benefits:</strong></p>
-                    <ul style="padding-left: 1.5rem; font-size: 0.95rem;">
-                        <li>📱 Mobile-first design</li>
-                        <li>🌙 Dark mode for bedside use</li>
-                        <li>📡 Works offline</li>
-                        <li>🎯 Fast QR scanning</li>
-                        <li>💾 Privacy-first (local storage)</li>
-                    </ul>
-                </div>
-            </div>
-
             <div class="settings-section">
                 <button id="clearDataBtn" class="btn-danger">Clear All Data</button>
             </div>
@@ -656,6 +616,16 @@
             <section class="version-log">
                 <h3>Version Log</h3>
                 <div class="version-entry">
+                    <p><strong>v12.0 (2026-08-13) - RECENTLY VIEWED FIX & STALE VERSION INFO REMOVED</strong></p>
+                    <p><strong>Fixed:</strong> Tapping an instruction under "Recently Viewed" did nothing if you'd already viewed it once before — the tap was silently swallowed.</p>
+                    <p><strong>Cause:</strong> Re-viewing an instruction tried to re-insert its Recently Viewed entry as if it were brand new, which the database correctly refused (the entry already existed) — but that refusal happened before the instruction screen ever opened, so nothing visibly happened.</p>
+                    <p><strong>What changed:</strong></p>
+                    <ul>
+                        <li>🔁 Re-viewing an instruction now correctly refreshes its "Recently Viewed" position instead of failing silently</li>
+                        <li>🧹 Removed a leftover "Version Info" block on the Settings screen that had been frozen at v3.0 for months — the "How This Works" screen's Version Log (below) is the one place version history is now kept, so it can't go stale again</li>
+                    </ul>
+                </div>
+                <div class="version-entry">
                     <p><strong>v11.0 (2026-08-13) - FOUNDATION FOR PEOPLE, AUDITS & ACTIONS</strong></p>
                     <p><strong>What changed:</strong> Behind-the-scenes groundwork only — nothing new to see yet. This prepares storage for three upcoming features: a shared People list (so revision history can show who made a change and how to reach them), an Audit Log per instruction, and Actions (to-dos) that audits can be converted into.</p>
                     <ul>
@@ -796,12 +766,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=11.0&t=1786611639-995fafff"></script>
-    <script src="js/qr.js?v=11.0&t=1786611639-995fafff"></script>
-    <script src="js/version-sync.js?v=11.0&t=1786611639-995fafff"></script>
-    <script src="js/persistence.js?v=11.0&t=1786611639-995fafff"></script>
-    <script src="js/hybrid-storage.js?v=11.0&t=1786611639-995fafff"></script>
-    <script src="js/ui.js?v=11.0&t=1786611639-995fafff"></script>
-    <script src="js/app.js?v=11.0&t=1786611639-995fafff"></script>
+    <script src="js/db.js?v=12.0&t=1786613151-b9e62f17"></script>
+    <script src="js/qr.js?v=12.0&t=1786613151-b9e62f17"></script>
+    <script src="js/version-sync.js?v=12.0&t=1786613151-b9e62f17"></script>
+    <script src="js/persistence.js?v=12.0&t=1786613151-b9e62f17"></script>
+    <script src="js/hybrid-storage.js?v=12.0&t=1786613151-b9e62f17"></script>
+    <script src="js/ui.js?v=12.0&t=1786613151-b9e62f17"></script>
+    <script src="js/app.js?v=12.0&t=1786613151-b9e62f17"></script>
 </body>
 </html>

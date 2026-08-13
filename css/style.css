@@ -1143,27 +1143,6 @@ body {
     margin-top: 0.25rem;
 }
 
-.version-info-section {
-    background-color: var(--color-surface);
-    padding: 1rem;
-    border-radius: 8px;
-    border-left: 4px solid var(--color-brand);
-}
-
-.version-info-detail {
-    font-size: 0.9rem;
-    line-height: 1.6;
-}
-
-.version-info-detail p {
-    margin: 0.75rem 0;
-    color: var(--color-text);
-}
-
-.version-info-detail ul {
-    color: var(--color-text);
-}
-
 .version-entry {
     display: flex;
     flex-direction: column;
