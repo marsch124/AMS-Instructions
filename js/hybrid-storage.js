@@ -45,18 +45,9 @@ class HybridStorage {
     // Mirror data to localStorage
     async mirrorToLocalStorage() {
         try {
-            const allInstructions = await getAllInstructions();
-            const favorites = await getFavorites();
-            
-            const data = {
-                instructions: allInstructions,
-                favorites: favorites,
-                timestamp: new Date().toISOString(),
-                version: APP_VERSION
-            };
-            
+            const data = await exportData();
             localStorage.setItem(HYBRID_STORAGE_KEY, JSON.stringify(data));
-            console.log('[HybridStorage] Mirrored ' + allInstructions.length + ' instructions to localStorage');
+            console.log('[HybridStorage] Mirrored ' + data.instructions.length + ' instructions to localStorage');
         } catch (error) {
             console.error('[HybridStorage] Mirror to localStorage failed:', error);
         }

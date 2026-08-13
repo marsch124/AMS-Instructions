@@ -1,9 +1,12 @@
 const DB_NAME = 'AMSInstructions';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 const STORE_INSTRUCTIONS = 'instructions';
 const STORE_SETTINGS = 'settings';
 const STORE_RECENT = 'recent';
 const STORE_FAVORITES = 'favorites';
+const STORE_PEOPLE = 'people';
+const STORE_AUDITS = 'audits';
+const STORE_ACTIONS = 'actions';
 
 let db = null;
 
@@ -40,6 +43,21 @@ async function initDB() {
             // Favorites store
             if (!database.objectStoreNames.contains(STORE_FAVORITES)) {
                 database.createObjectStore(STORE_FAVORITES, { keyPath: 'id' });
+            }
+
+            // People store
+            if (!database.objectStoreNames.contains(STORE_PEOPLE)) {
+                database.createObjectStore(STORE_PEOPLE, { keyPath: 'id' });
+            }
+
+            // Audits store
+            if (!database.objectStoreNames.contains(STORE_AUDITS)) {
+                database.createObjectStore(STORE_AUDITS, { keyPath: 'id' });
+            }
+
+            // Actions store
+            if (!database.objectStoreNames.contains(STORE_ACTIONS)) {
+                database.createObjectStore(STORE_ACTIONS, { keyPath: 'id' });
             }
         };
     });
@@ -221,19 +239,36 @@ async function getFavorites() {
     });
 }
 
+async function getAllFromStore(storeName) {
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+
+    return new Promise((resolve, reject) => {
+        const request = store.getAll();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
 async function exportData() {
     const instructions = await getAllInstructions();
     const favorites = await getFavorites();
+    const people = await getAllFromStore(STORE_PEOPLE);
+    const audits = await getAllFromStore(STORE_AUDITS);
+    const actions = await getAllFromStore(STORE_ACTIONS);
     return {
         version: 1,
         timestamp: new Date().toISOString(),
         instructions,
-        favorites
+        favorites,
+        people,
+        audits,
+        actions
     };
 }
 
 async function importData(data) {
-    const tx = db.transaction([STORE_INSTRUCTIONS, STORE_FAVORITES], 'readwrite');
+    const tx = db.transaction([STORE_INSTRUCTIONS, STORE_FAVORITES, STORE_PEOPLE, STORE_AUDITS, STORE_ACTIONS], 'readwrite');
 
     return new Promise((resolve, reject) => {
         try {
@@ -247,6 +282,21 @@ async function importData(data) {
                 data.favorites.forEach(favId => favStore.put({ id: favId, favorited: true }));
             }
 
+            if (data.people && Array.isArray(data.people)) {
+                const peopleStore = tx.objectStore(STORE_PEOPLE);
+                data.people.forEach(person => peopleStore.put(person));
+            }
+
+            if (data.audits && Array.isArray(data.audits)) {
+                const auditsStore = tx.objectStore(STORE_AUDITS);
+                data.audits.forEach(audit => auditsStore.put(audit));
+            }
+
+            if (data.actions && Array.isArray(data.actions)) {
+                const actionsStore = tx.objectStore(STORE_ACTIONS);
+                data.actions.forEach(action => actionsStore.put(action));
+            }
+
             tx.oncomplete = () => resolve();
             tx.onerror = () => reject(tx.error);
         } catch (error) {
@@ -257,12 +307,15 @@ async function importData(data) {
 
 async function clearAllData() {
     return new Promise((resolve, reject) => {
-        const tx = db.transaction([STORE_INSTRUCTIONS, STORE_RECENT, STORE_FAVORITES, STORE_SETTINGS], 'readwrite');
+        const tx = db.transaction([STORE_INSTRUCTIONS, STORE_RECENT, STORE_FAVORITES, STORE_SETTINGS, STORE_AUDITS, STORE_ACTIONS], 'readwrite');
 
         tx.objectStore(STORE_INSTRUCTIONS).clear();
         tx.objectStore(STORE_RECENT).clear();
         tx.objectStore(STORE_FAVORITES).clear();
         tx.objectStore(STORE_SETTINGS).clear();
+        tx.objectStore(STORE_AUDITS).clear();
+        tx.objectStore(STORE_ACTIONS).clear();
+        // STORE_PEOPLE intentionally not cleared — contacts are configuration, not data-to-nuke
 
         tx.oncomplete = () => resolve();
         tx.onerror = () => reject(tx.error);
@@ -288,7 +341,7 @@ async function getDBSize() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786558948-af9ba6be', {
+            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786611639-995fafff', {
                 scope: '/AMS-Instructions/'
             });
         } catch (error) {

@@ -1,4 +1,4 @@
-const APP_VERSION = '10.0';
+const APP_VERSION = '11.0';
 
 let currentInstruction = null;
 let allInstructions = [];
