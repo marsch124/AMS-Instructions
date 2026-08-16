@@ -263,7 +263,7 @@ async function getFavorites() {
 
 async function savePersonDB(person) {
     if (!person.id) {
-        person.id = 'person_' + Date.now();
+        person.id = 'person_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
     }
     if (!person.createdAt) {
         person.createdAt = Date.now();
@@ -282,6 +282,25 @@ async function savePersonDB(person) {
 
 async function getAllPeople() {
     return getAllFromStore(STORE_PEOPLE);
+}
+
+const PEOPLE_SEEDED_KEY = 'ams_people_seeded';
+const DEFAULT_PEOPLE = ['Anna', 'Martin'];
+
+// Give the People list a starting point, so the Owner / Revised by / Audited by
+// pickers aren't empty the first time they're opened. Runs once ever, and only
+// when the list is genuinely empty — deleting a seeded person won't bring them back.
+async function seedDefaultPeople() {
+    if (localStorage.getItem(PEOPLE_SEEDED_KEY)) return;
+
+    const existing = await getAllPeople();
+    if (existing.length === 0) {
+        for (const name of DEFAULT_PEOPLE) {
+            await savePersonDB({ name, phone: '', email: '', handles: [] });
+        }
+    }
+
+    localStorage.setItem(PEOPLE_SEEDED_KEY, '1');
 }
 
 async function getPerson(id) {
@@ -309,7 +328,7 @@ async function deletePerson(id) {
 
 async function saveAuditDB(audit) {
     if (!audit.id) {
-        audit.id = 'audit_' + Date.now();
+        audit.id = 'audit_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
     }
     if (!audit.createdAt) {
         audit.createdAt = Date.now();
@@ -449,7 +468,7 @@ async function getDBSize() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786879795-8dfbd232', {
+            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786880466-7a4dc293', {
                 scope: '/AMS-Instructions/'
             });
         } catch (error) {

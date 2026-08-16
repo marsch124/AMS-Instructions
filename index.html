@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786879795-8dfbd232">
+    <meta name="cache-bust" content="1786880466-7a4dc293">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=16.0&t=1786879795-8dfbd232">
+    <link rel="stylesheet" href="css/style.css?v=17.0&t=1786880466-7a4dc293">
 </head>
 <body>
     <!-- Home Screen -->
@@ -27,7 +27,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v16.0</span>
+                <span class="version-badge" id="homeVersion">v17.0</span>
             </div>
             <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
         </header>
@@ -297,9 +297,12 @@
                     <div class="audit-form">
                         <div class="form-group">
                             <label for="auditAuditor">Audited by</label>
-                            <select id="auditAuditor">
-                                <option value="">-- Select --</option>
-                            </select>
+                            <div class="select-with-add">
+                                <select id="auditAuditor">
+                                    <option value="">-- Select --</option>
+                                </select>
+                                <button id="auditAddPersonBtn" class="btn-secondary btn-inline-add">+ Person</button>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label for="auditDate">Date</label>
@@ -685,7 +688,7 @@
                     <li><strong>Favorites:</strong> Tap ★ on any instruction to save it for quick access from the home screen.</li>
                     <li><strong>People:</strong> Add names once under Settings → Manage People, then pick them as Owner or "Revised by" on any instruction instead of retyping — their phone/email shows up automatically in Revision History.</li>
                     <li><strong>Revision History:</strong> Open an instruction and scroll to the bottom, then tap "📋 Revision History" to expand it. It lists every saved change with the version number, date, and who made it. You choose that person from the "Revised by" dropdown while editing, and the entry appears here after you save. Marking an instruction Done and adding an audit do not create entries — this section is only for changes to the instruction itself.</li>
-                    <li><strong>Audit Log:</strong> Open any instruction, tap "🔍 Audit Log" to expand it, then record who checked it, when, and what they found. The dot next to the heading tells you at a glance whether an instruction has been audited.</li>
+                    <li><strong>Audit Log:</strong> Open any instruction, tap "🔍 Audit Log" to expand it, then record who checked it, when, and what they found. The dot next to the heading tells you at a glance whether an instruction has been audited. If the person who did the audit isn't in the "Audited by" list, tap "+ Person" beside it to add them on the spot — you'll come back to the same instruction with them selected.</li>
                     <li><strong>Scanning a number:</strong> Point the box at the printed number and hold steady, or tap "📸 Capture & Scan" for a deliberate one-shot read. Good, even lighting helps a lot.</li>
                     <li><strong>Manual entry:</strong> Can't scan the number card? Just enter the 3-digit number manually in the number input field — always fast and 100% reliable.</li>
                     <li><strong>Export/Backup:</strong> Go to Settings → Export as JSON regularly to back up all your instructions. On iPhone, use Share to save to Files, Notes, or email.</li>
@@ -707,6 +710,16 @@
 
             <section class="version-log">
                 <h3>Version Log</h3>
+                <div class="version-entry">
+                    <p><strong>v17.0 (2026-08-16) - NAMES TO PICK FROM</strong></p>
+                    <p><strong>What's New:</strong></p>
+                    <ul>
+                        <li>👥 Anna and Martin are added to the People list automatically, so "Audited by", "Owner" and "Revised by" have names to choose from right away</li>
+                        <li>➕ A "+ Person" button now sits next to the "Audited by" dropdown — add a new name without leaving the instruction, and you come straight back with that person already selected</li>
+                        <li>📝 Anything you had already typed into the Findings box is kept while you nip out to add the person</li>
+                    </ul>
+                    <p><strong>Note:</strong> The two starter names are added once only. Delete them and they stay deleted. To fill in their phone and email, or to add or remove anyone, go to Settings → Manage People.</p>
+                </div>
                 <div class="version-entry">
                     <p><strong>v16.0 (2026-08-16) - COLLAPSED SECTIONS FIXED</strong></p>
                     <p><strong>What's Fixed:</strong></p>
@@ -905,12 +918,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=16.0&t=1786879795-8dfbd232"></script>
-    <script src="js/qr.js?v=16.0&t=1786879795-8dfbd232"></script>
-    <script src="js/version-sync.js?v=16.0&t=1786879795-8dfbd232"></script>
-    <script src="js/persistence.js?v=16.0&t=1786879795-8dfbd232"></script>
-    <script src="js/hybrid-storage.js?v=16.0&t=1786879795-8dfbd232"></script>
-    <script src="js/ui.js?v=16.0&t=1786879795-8dfbd232"></script>
-    <script src="js/app.js?v=16.0&t=1786879795-8dfbd232"></script>
+    <script src="js/db.js?v=17.0&t=1786880466-7a4dc293"></script>
+    <script src="js/qr.js?v=17.0&t=1786880466-7a4dc293"></script>
+    <script src="js/version-sync.js?v=17.0&t=1786880466-7a4dc293"></script>
+    <script src="js/persistence.js?v=17.0&t=1786880466-7a4dc293"></script>
+    <script src="js/hybrid-storage.js?v=17.0&t=1786880466-7a4dc293"></script>
+    <script src="js/ui.js?v=17.0&t=1786880466-7a4dc293"></script>
+    <script src="js/app.js?v=17.0&t=1786880466-7a4dc293"></script>
 </body>
 </html>

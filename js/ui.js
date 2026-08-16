@@ -1,4 +1,4 @@
-const APP_VERSION = '16.0';
+const APP_VERSION = '17.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -671,6 +671,7 @@ function editPerson(person) {
     };
 
     window.currentEditingPersonId = person.id;
+    window.personEditorReturn = null;
     showScreen('personEditorScreen');
 }
 
@@ -707,8 +708,29 @@ async function handleSavePerson() {
         handles
     };
 
-    await savePersonDB(person);
+    const saved = await savePersonDB(person);
     resetPersonEditor();
+
+    // Opened from the audit form's "+ Person" shortcut: go straight back to the
+    // instruction with the new person already picked, instead of the People list.
+    if (window.personEditorReturn === 'audit') {
+        window.personEditorReturn = null;
+
+        // populateAuditForm() resets the date and findings, so keep whatever was
+        // already typed before stepping away to add the person.
+        const keptDate = document.getElementById('auditDate').value;
+        const keptFindings = document.getElementById('auditFindings').value;
+
+        await populateAuditForm();
+
+        document.getElementById('auditAuditor').value = saved.id;
+        if (keptDate) document.getElementById('auditDate').value = keptDate;
+        document.getElementById('auditFindings').value = keptFindings;
+
+        showScreen('instructionScreen');
+        return;
+    }
+
     await renderPeopleList();
     showScreen('peopleScreen');
 }
@@ -1003,6 +1025,7 @@ async function initializeApp() {
 
     document.getElementById('addPersonBtn').addEventListener('click', () => {
         resetPersonEditor();
+        window.personEditorReturn = null;
         showScreen('personEditorScreen');
     });
 
@@ -1011,8 +1034,20 @@ async function initializeApp() {
     });
 
     document.getElementById('backFromPersonEditorBtn').addEventListener('click', async () => {
+        // Came from the audit form's "+ Person" shortcut — return there, not to People
+        if (window.personEditorReturn === 'audit') {
+            window.personEditorReturn = null;
+            showScreen('instructionScreen');
+            return;
+        }
         await renderPeopleList();
         showScreen('peopleScreen');
+    });
+
+    document.getElementById('auditAddPersonBtn').addEventListener('click', () => {
+        resetPersonEditor();
+        window.personEditorReturn = 'audit';
+        showScreen('personEditorScreen');
     });
 
     document.getElementById('savePersonBtn').addEventListener('click', handleSavePerson);
@@ -1092,6 +1127,7 @@ async function initializeApp() {
 
     try {
         await initDB();
+        await seedDefaultPeople();
         await registerServiceWorker();
         await renderHomeScreen();
         showScreen('homeScreen');
