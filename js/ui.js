@@ -1,4 +1,4 @@
-const APP_VERSION = '20.0';
+const APP_VERSION = '22.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -143,6 +143,14 @@ function displayInstruction(instruction) {
 
     // Sections with toggle setup
     setupSection('warnings', instruction.warnings);
+
+    // Safety Warnings sits above the steps, so it only appears when there is
+    // actually something to warn about — and it opens already expanded, since a
+    // warning folded away behind a tap is not a warning.
+    const hasWarnings = !!(instruction.warnings && instruction.warnings.trim());
+    document.getElementById('warningsSection').style.display = hasWarnings ? 'flex' : 'none';
+    document.getElementById('warningsContent').classList.toggle('expanded', hasWarnings);
+
     setupSection('equipment', instruction.equipment);
     setupSection('preparations', instruction.preparations);
     setupSection('afterUse', instruction.afterUse);
