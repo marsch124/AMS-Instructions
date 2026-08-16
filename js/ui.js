@@ -1,4 +1,4 @@
-const APP_VERSION = '25.0';
+const APP_VERSION = '26.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -429,58 +429,175 @@ function createInstructionCard(instruction) {
     return card;
 }
 
+// The order categories appear in on the All Instructions screen. Deliberately not
+// alphabetical — it follows the same RV / Life / Sport grouping as the category
+// picker, so related categories sit next to each other. Anything not listed here
+// (a category from an older backup, say) is appended at the end rather than lost.
+const CATEGORY_ORDER = [
+    'General', 'Bedroom', 'Driving', 'Water', 'Maintenance', 'Safety',
+    'Home',
+    'Diving', 'Running', 'Cycling', 'Swimming', 'Golf', 'Strength', 'Mobility', 'Meditation'
+];
+
+const OPEN_GROUPS_KEY = 'ams_open_instruction_groups';
+
+function openGroups() {
+    try {
+        return new Set(JSON.parse(localStorage.getItem(OPEN_GROUPS_KEY) || '[]'));
+    } catch (error) {
+        return new Set();
+    }
+}
+
+function saveOpenGroups(set) {
+    localStorage.setItem(OPEN_GROUPS_KEY, JSON.stringify([...set]));
+}
+
+// One row in the list. Used both grouped and flat, so a search result and a
+// browsed result look and behave identically.
+function createInstructionRow(instr) {
+    const item = document.createElement('div');
+    item.className = 'list-item';
+
+    const info = document.createElement('div');
+    info.className = 'list-item-info';
+    info.addEventListener('click', () => navigateToInstruction(instr.number));
+
+    const numberEl = document.createElement('div');
+    numberEl.className = 'list-item-number';
+    numberEl.textContent = instr.number;
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'list-item-title';
+    titleEl.textContent = instr.title;
+
+    const categoryEl = document.createElement('div');
+    categoryEl.className = 'list-item-category';
+    categoryEl.textContent = instr.category;
+
+    info.appendChild(numberEl);
+    info.appendChild(titleEl);
+    info.appendChild(categoryEl);
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'list-item-edit';
+    editBtn.textContent = '✎';
+    editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        editInstruction(instr);
+    });
+
+    item.appendChild(info);
+    item.appendChild(editBtn);
+    return item;
+}
+
 async function renderInstructionsList(filter = '') {
     const list = document.getElementById('instructionsList');
+    const summary = document.getElementById('listSummary');
     const instructions = await getAllInstructions();
 
+    const term = filter.trim().toLowerCase();
     const filtered = instructions.filter(i =>
-        i.title.toLowerCase().includes(filter.toLowerCase()) ||
-        i.number.includes(filter) ||
-        i.category.toLowerCase().includes(filter.toLowerCase())
+        i.title.toLowerCase().includes(term) ||
+        i.number.includes(term) ||
+        i.category.toLowerCase().includes(term)
     );
+
+    list.innerHTML = '';
 
     if (filtered.length === 0) {
         list.innerHTML = '<p class="empty-state">No instructions found.</p>';
+        if (summary) summary.hidden = true;
         return;
     }
 
-    list.innerHTML = '';
+    // Searching shows a flat list. Grouping while filtering would bury results
+    // behind folded headers, which is the opposite of what a search is for.
+    if (term) {
+        filtered.sort((a, b) => a.number.localeCompare(b.number));
+        filtered.forEach(instr => list.appendChild(createInstructionRow(instr)));
+        if (summary) {
+            summary.hidden = false;
+            summary.querySelector('.list-summary-text').textContent =
+                filtered.length + (filtered.length === 1 ? ' match' : ' matches');
+            summary.querySelector('#toggleAllGroupsBtn').hidden = true;
+        }
+        return;
+    }
+
+    // Browsing: one collapsible group per category.
+    const byCategory = new Map();
     filtered.forEach(instr => {
-        const item = document.createElement('div');
-        item.className = 'list-item';
-
-        const info = document.createElement('div');
-        info.className = 'list-item-info';
-        info.addEventListener('click', () => navigateToInstruction(instr.number));
-
-        const numberEl = document.createElement('div');
-        numberEl.className = 'list-item-number';
-        numberEl.textContent = instr.number;
-
-        const titleEl = document.createElement('div');
-        titleEl.className = 'list-item-title';
-        titleEl.textContent = instr.title;
-
-        const categoryEl = document.createElement('div');
-        categoryEl.className = 'list-item-category';
-        categoryEl.textContent = instr.category;
-
-        info.appendChild(numberEl);
-        info.appendChild(titleEl);
-        info.appendChild(categoryEl);
-
-        const editBtn = document.createElement('button');
-        editBtn.className = 'list-item-edit';
-        editBtn.textContent = '✎';
-        editBtn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            editInstruction(instr);
-        });
-
-        item.appendChild(info);
-        item.appendChild(editBtn);
-        list.appendChild(item);
+        const cat = instr.category || 'General';
+        if (!byCategory.has(cat)) byCategory.set(cat, []);
+        byCategory.get(cat).push(instr);
     });
+
+    const ordered = [
+        ...CATEGORY_ORDER.filter(c => byCategory.has(c)),
+        ...[...byCategory.keys()].filter(c => !CATEGORY_ORDER.includes(c)).sort()
+    ];
+
+    const open = openGroups();
+
+    ordered.forEach(cat => {
+        const items = byCategory.get(cat).sort((a, b) => a.number.localeCompare(b.number));
+        const isOpen = open.has(cat);
+
+        const section = document.createElement('section');
+        section.className = 'instruction-section group-section';
+
+        const toggle = document.createElement('div');
+        toggle.className = 'section-toggle group-toggle' + (isOpen ? '' : ' collapsed');
+        toggle.dataset.group = cat;
+
+        const swatch = document.createElement('span');
+        swatch.className = 'group-swatch ' + cat.toLowerCase();
+
+        const heading = document.createElement('h3');
+        heading.textContent = cat;
+
+        const count = document.createElement('span');
+        count.className = 'group-count';
+        count.textContent = items.length;
+
+        const icon = document.createElement('span');
+        icon.className = 'toggle-icon';
+        icon.textContent = '▼';
+
+        toggle.appendChild(swatch);
+        toggle.appendChild(heading);
+        toggle.appendChild(count);
+        toggle.appendChild(icon);
+
+        const content = document.createElement('div');
+        content.className = 'section-content group-content' + (isOpen ? ' expanded' : '');
+        items.forEach(instr => content.appendChild(createInstructionRow(instr)));
+
+        section.appendChild(toggle);
+        section.appendChild(content);
+        list.appendChild(section);
+    });
+
+    if (summary) {
+        summary.hidden = false;
+        summary.querySelector('.list-summary-text').textContent =
+            `${ordered.length} groups · ${filtered.length} instructions`;
+        const btn = summary.querySelector('#toggleAllGroupsBtn');
+        btn.hidden = false;
+        btn.textContent = open.size >= ordered.length ? 'Collapse all' : 'Expand all';
+    }
+}
+
+async function toggleAllGroups() {
+    const open = openGroups();
+    const groups = [...document.querySelectorAll('#instructionsList .group-toggle')]
+        .map(t => t.dataset.group);
+    // If everything is already open, this collapses; otherwise it opens everything.
+    const shouldOpen = open.size < groups.length;
+    saveOpenGroups(shouldOpen ? new Set(groups) : new Set());
+    await renderInstructionsList(document.getElementById('searchInput').value);
 }
 
 // Populates the Owner and Revised-by selects from the People store.
@@ -1585,9 +1702,29 @@ document.addEventListener('click', (e) => {
         if (content && content.classList.contains('section-content')) {
             content.classList.toggle('expanded');
             toggle.classList.toggle('collapsed');
+
+            // Category groups on the All Instructions screen remember whether they
+            // were left open, so the list looks the same next time you come back.
+            if (toggle.dataset.group) {
+                const open = openGroups();
+                if (content.classList.contains('expanded')) {
+                    open.add(toggle.dataset.group);
+                } else {
+                    open.delete(toggle.dataset.group);
+                }
+                saveOpenGroups(open);
+                updateToggleAllLabel();
+            }
         }
     }
 });
+
+function updateToggleAllLabel() {
+    const btn = document.getElementById('toggleAllGroupsBtn');
+    if (!btn) return;
+    const total = document.querySelectorAll('#instructionsList .group-toggle').length;
+    btn.textContent = openGroups().size >= total && total > 0 ? 'Collapse all' : 'Expand all';
+}
 
 async function initializeApp() {
     document.getElementById('versionNumber').textContent = APP_VERSION;
@@ -1734,6 +1871,8 @@ async function initializeApp() {
     });
 
     document.getElementById('saveActionBtn').addEventListener('click', handleSaveAction);
+
+    document.getElementById('toggleAllGroupsBtn').addEventListener('click', toggleAllGroups);
 
     document.getElementById('searchInput').addEventListener('input', (e) => {
         renderInstructionsList(e.target.value);

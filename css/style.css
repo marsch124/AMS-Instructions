@@ -1204,11 +1204,109 @@ body {
     border-color: var(--accent);
 }
 
+/* Count line and expand-all control, sitting between the search box and the list */
+.list-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 0 0.25rem;
+}
+
+.list-summary[hidden] {
+    display: none;
+}
+
+.list-summary-text {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+}
+
+.list-summary-btn {
+    background: none;
+    border: none;
+    padding: 0.35rem 0.25rem;
+    font-family: inherit;
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.list-summary-btn[hidden] {
+    display: none;
+}
+
+/* Collapsible category groups on the All Instructions screen */
+.group-toggle {
+    padding: 0.85rem 1rem;
+}
+
+/* A dot of the category's own colour, so the group is recognisable before reading it */
+.group-swatch {
+    width: 0.7rem;
+    height: 0.7rem;
+    border-radius: 50%;
+    flex-shrink: 0;
+    background-color: var(--color-general);
+}
+
+.group-swatch.bedroom { background-color: var(--color-bedroom); }
+.group-swatch.driving { background-color: var(--color-driving); }
+.group-swatch.water { background-color: var(--color-water); }
+.group-swatch.maintenance { background-color: var(--color-maintenance); }
+.group-swatch.safety { background-color: var(--color-safety); }
+.group-swatch.home { background-color: var(--color-home); }
+.group-swatch.diving { background-color: var(--color-diving); }
+.group-swatch.running { background-color: var(--color-running); }
+.group-swatch.cycling { background-color: var(--color-cycling); }
+.group-swatch.swimming { background-color: var(--color-swimming); }
+.group-swatch.golf { background-color: var(--color-golf); }
+.group-swatch.strength { background-color: var(--color-strength); }
+.group-swatch.mobility { background-color: var(--color-mobility); }
+.group-swatch.meditation { background-color: var(--color-meditation); }
+
+.group-count {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    background-color: var(--color-bg);
+    border-radius: 999px;
+    padding: 0.1rem 0.5rem;
+    min-width: 1.75rem;
+    text-align: center;
+}
+
+/* The rows inside a group are already cards, so the group body just stacks them.
+   Note this MUST be on .expanded and not on .group-content alone — .group-content
+   sits later in this file than .section-content, so a bare display here would beat
+   the .section-content { display: none } that does the actual collapsing. */
+.group-content.expanded {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 0.75rem;
+}
+
+/* Inside a group the category is already in the header — repeating it on every
+   row is noise. It stays visible on flat search results. */
+.group-content .list-item-category {
+    display: none;
+}
+
 .full-instructions-list {
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
     padding-bottom: var(--safe-area-inset-bottom);
+}
+
+/* Same v16.0 guard as .instruction-content and .list-content: the category groups
+   are .instruction-section (overflow: hidden), and inside a flex column that makes
+   their automatic minimum size resolve to 0, so flex would squash them to nothing. */
+.full-instructions-list > * {
+    flex-shrink: 0;
 }
 
 .list-item {

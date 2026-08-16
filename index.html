@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786894157-e8bb5b3d">
+    <meta name="cache-bust" content="1786896251-c7abdb72">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=25.0&t=1786894157-e8bb5b3d">
+    <link rel="stylesheet" href="css/style.css?v=26.0&t=1786896251-c7abdb72">
 </head>
 <body>
     <!--
@@ -69,7 +69,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v25.0</span>
+                <span class="version-badge" id="homeVersion">v26.0</span>
             </div>
         </header>
 
@@ -439,6 +439,10 @@
 
         <div class="list-content">
             <input id="searchInput" type="text" placeholder="Search..." class="search-input">
+            <div id="listSummary" class="list-summary" hidden>
+                <span class="list-summary-text"></span>
+                <button id="toggleAllGroupsBtn" class="list-summary-btn">Expand all</button>
+            </div>
             <div id="instructionsList" class="full-instructions-list">
                 <p class="empty-state">No instructions yet.</p>
             </div>
@@ -909,7 +913,8 @@
                     <li><strong>One phone, one copy:</strong> The app keeps its data on the device it's running on — the Home Screen app and Safari each have their own separate copy and do not share. Treat the Home Screen app on your phone as the real one, and use backups rather than expecting the two to match.</li>
                     <li><strong>Offline:</strong> Your instructions are stored locally and everything works offline, including manual number entry. Camera scanning needs internet the very first time to download its recognition engine (a few MB) — after that it works normally.</li>
                     <li><strong>Dark mode:</strong> The app defaults to dark mode, perfect for bedside use at night. Custom pink accents help tasks pop even in low light.</li>
-                    <li><strong>Search:</strong> Use the 📋 Instructions tab to search or browse all your tasks by category. The search box clears itself each time you come back to the tab, so you never land on a filtered list wondering where everything went.</li>
+                    <li><strong>Browsing by category:</strong> The 📋 Instructions tab is grouped into folding sections — one per category, each with a coloured dot and a count. Tap a header to open it, tap again to close. It remembers what you left open, and "Expand all" / "Collapse all" beside the count line does the lot at once. This is the way to find something when you do not know what to search for.</li>
+                    <li><strong>Search:</strong> Type in the search box and the groups drop away, giving you a plain list of every match across all categories, with the category shown on each result. Searching by number works too. The box clears itself each time you come back to the tab, so you never land on a filtered list wondering where everything went.</li>
                 </ul>
             </section>
 
@@ -945,6 +950,18 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v26.0 (2026-08-16) - FOLDABLE CATEGORY GROUPS</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>📂 <strong>All Instructions is now grouped by category,</strong> each group folding open and shut. Instead of scrolling 200-odd rows you see fifteen headers and open the one you want</li>
+                            <li>🔢 <strong>Every group shows its count</strong> and a dot in its own category colour, so you can find Water or Golf without reading the words</li>
+                            <li>💾 <strong>Groups remember what you left open.</strong> Come back to the tab and it looks exactly as you left it</li>
+                            <li>↕️ <strong>"Expand all" / "Collapse all"</strong> beside the count line, for when you want the whole list or a clean slate</li>
+                            <li>🔎 <strong>Search still shows a plain flat list</strong> across every category — burying search results behind folded headers would defeat the point of searching. The category name stays on each result so you know where a match came from</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v25.0 (2026-08-16) - ROOM FOR THE WHOLE LIBRARY</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1266,12 +1283,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=25.0&t=1786894157-e8bb5b3d"></script>
-    <script src="js/qr.js?v=25.0&t=1786894157-e8bb5b3d"></script>
-    <script src="js/version-sync.js?v=25.0&t=1786894157-e8bb5b3d"></script>
-    <script src="js/persistence.js?v=25.0&t=1786894157-e8bb5b3d"></script>
-    <script src="js/hybrid-storage.js?v=25.0&t=1786894157-e8bb5b3d"></script>
-    <script src="js/ui.js?v=25.0&t=1786894157-e8bb5b3d"></script>
-    <script src="js/app.js?v=25.0&t=1786894157-e8bb5b3d"></script>
+    <script src="js/db.js?v=26.0&t=1786896251-c7abdb72"></script>
+    <script src="js/qr.js?v=26.0&t=1786896251-c7abdb72"></script>
+    <script src="js/version-sync.js?v=26.0&t=1786896251-c7abdb72"></script>
+    <script src="js/persistence.js?v=26.0&t=1786896251-c7abdb72"></script>
+    <script src="js/hybrid-storage.js?v=26.0&t=1786896251-c7abdb72"></script>
+    <script src="js/ui.js?v=26.0&t=1786896251-c7abdb72"></script>
+    <script src="js/app.js?v=26.0&t=1786896251-c7abdb72"></script>
 </body>
 </html>
