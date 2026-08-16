@@ -1,63 +1,36 @@
-// Enhanced Data Persistence Layer with Auto-Backup and Recovery
-const BACKUP_KEY = 'ams_instructions_backup';
+// Data recovery checks.
+//
+// This file used to keep its OWN separate backup, written by a function nothing
+// ever called — so that backup never existed, and the recovery below never had
+// anything to recover from. It now reads the real backup slots kept by
+// hybrid-storage.js, so there is one backup system rather than two, and this
+// acts as a second chance if the restore at startup did not run.
+
 const LAST_SAVE_KEY = 'ams_last_save_time';
-const RECOVERY_KEY = 'ams_recovery_data';
-
-// Auto-backup every 5 seconds if data has changed
-let hasUnsavedChanges = false;
-let autoBackupInterval;
-
-async function enableAutoBackup() {
-    autoBackupInterval = setInterval(async () => {
-        if (hasUnsavedChanges) {
-            console.log('[AutoBackup] Backing up data...');
-            await createLocalBackup();
-            hasUnsavedChanges = false;
-        }
-    }, 5000);
-}
 
 function markDataChanged() {
-    hasUnsavedChanges = true;
+    // Kept for callers below. Every database write now saves a backup
+    // immediately (see hybrid-storage.js), so there is nothing to defer.
 }
 
 async function createLocalBackup() {
-    try {
-        const data = await exportData();
-        const backup = {
-            data: data,
-            timestamp: new Date().toISOString(),
-            version: APP_VERSION
-        };
-        localStorage.setItem(BACKUP_KEY, JSON.stringify(backup));
+    const ok = await hybridStorage.mirrorToLocalStorage();
+    if (ok) {
         localStorage.setItem(LAST_SAVE_KEY, new Date().getTime());
-        console.log('[Backup] Data backed up to localStorage');
-        return true;
-    } catch (error) {
-        console.error('[Backup] Failed to backup:', error);
-        return false;
     }
+    return ok;
 }
 
 async function getRecoveryData() {
-    try {
-        const backup = localStorage.getItem(BACKUP_KEY);
-        if (backup) {
-            const parsed = JSON.parse(backup);
-            return parsed;
-        }
-    } catch (error) {
-        console.error('[Recovery] Failed to parse backup:', error);
-    }
-    return null;
+    return hybridStorage.bestBackup();
 }
 
 async function recoverFromBackup() {
     try {
         const backup = await getRecoveryData();
-        if (backup && backup.data) {
+        if (backup && (backup.instructions || []).length > 0) {
             console.log('[Recovery] Recovering from backup...');
-            await importData(backup.data);
+            await importData(backup);
             console.log('[Recovery] Data recovered successfully');
             return true;
         }
@@ -69,19 +42,26 @@ async function recoverFromBackup() {
 
 async function verifyDataIntegrity() {
     try {
+        // The database may still be opening when this runs — that is not a
+        // failure, and must not be reported as one.
+        if (!db) {
+            console.log('[Integrity] Database not open yet, skipping check');
+            return true;
+        }
+
         const allInstructions = await getAllInstructions();
         const backup = await getRecoveryData();
-        
+
         const dbCount = allInstructions.length;
-        const backupCount = backup?.data?.instructions?.length || 0;
-        
+        const backupCount = backup ? (backup.instructions || []).length : 0;
+
         console.log(`[Integrity] DB: ${dbCount} instructions, Backup: ${backupCount} instructions`);
-        
+
         if (dbCount === 0 && backupCount > 0) {
             console.warn('[Integrity] DB empty but backup exists! Attempting recovery...');
             return await recoverFromBackup();
         }
-        
+
         return true;
     } catch (error) {
         console.error('[Integrity] Verification failed:', error);
@@ -152,21 +132,14 @@ function showSaveError(message) {
 
 // Initialize on app load
 window.addEventListener('load', async () => {
-    console.log('[Init] Starting persistence layer...');
-    enableAutoBackup();
-    
-    // Check if we need recovery
+    console.log('[Init] Starting recovery checks...');
+
+    // Second chance, after the restore that runs at startup. Deliberately late,
+    // so the database has finished opening.
     setTimeout(async () => {
         const isValid = await verifyDataIntegrity();
         if (!isValid) {
             console.warn('[Init] Data integrity check failed');
         }
     }, 1000);
-});
-
-// Cleanup on unload
-window.addEventListener('beforeunload', async () => {
-    if (hasUnsavedChanges) {
-        await createLocalBackup();
-    }
 });

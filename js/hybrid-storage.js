@@ -1,7 +1,44 @@
-// Hybrid Storage Layer - Works across Safari and Home Screen App on iOS
-// This synchronizes IndexedDB with localStorage for cross-context access
+// On-device backup layer.
+//
+// This is NOT a sync mechanism between Safari and the Home Screen app. On iOS
+// those are separate storage areas, and trying to keep them in step is what let
+// the two drift into different instruction lists. Its one job is to keep a
+// recoverable copy of THIS app instance's data, on this device.
+//
+// Two slots are kept: the current backup, and a previous generation that is at
+// least a day older, so a bad current backup is never the only copy left.
 
-const HYBRID_STORAGE_KEY = 'ams_instructions_hybrid';
+const BACKUP_CURRENT_KEY = 'ams_instructions_hybrid';       // existing installs already store here
+const BACKUP_PREVIOUS_KEY = 'ams_instructions_hybrid_prev';
+const BACKUP_FAILED_KEY = 'ams_backup_failed';
+const GENERATION_GAP_MS = 24 * 60 * 60 * 1000;
+
+function readBackupSlot(key) {
+    try {
+        const raw = localStorage.getItem(key);
+        if (!raw) return null;
+        const parsed = JSON.parse(raw);
+        return parsed && Array.isArray(parsed.instructions) ? parsed : null;
+    } catch (error) {
+        console.error('[Backup] Could not read slot ' + key + ':', error);
+        return null;
+    }
+}
+
+function backupIsEmpty(data) {
+    return !data || (data.instructions || []).length === 0;
+}
+
+function backupCounts(data) {
+    if (!data) return null;
+    return {
+        instructions: (data.instructions || []).length,
+        people: (data.people || []).length,
+        audits: (data.audits || []).length,
+        actions: (data.actions || []).length,
+        timestamp: data.timestamp || null
+    };
+}
 
 class HybridStorage {
     constructor() {
@@ -10,53 +47,130 @@ class HybridStorage {
     }
 
     async init(database) {
+        if (this.initialized) return;
         this.db = database;
         this.initialized = true;
-        console.log('[HybridStorage] Initialized');
-        
-        // Check if we need to sync from localStorage
-        await this.syncFromLocalStorage();
+        console.log('[Backup] Initialized');
+
+        await this.restoreIfEmpty();
     }
 
-    // Sync stored data to IndexedDB from localStorage
-    async syncFromLocalStorage() {
+    // If the app has come up with no instructions but a backup holds some, put
+    // them back. Must run BEFORE anything writes to the database — a write would
+    // otherwise save an empty snapshot over the very backup being restored from.
+    async restoreIfEmpty() {
         try {
-            const stored = localStorage.getItem(HYBRID_STORAGE_KEY);
-            if (stored) {
-                const data = JSON.parse(stored);
-                if (data.instructions && data.instructions.length > 0) {
-                    const dbInstructions = await getAllInstructions();
-                    
-                    // If DB is empty but localStorage has data, restore it
-                    if (dbInstructions.length === 0) {
-                        console.log('[HybridStorage] Restoring from localStorage...');
-                        for (const instruction of data.instructions) {
-                            await saveInstructionDB(instruction);
-                        }
-                        console.log('[HybridStorage] Restored ' + data.instructions.length + ' instructions');
-                    }
-                }
-            }
+            const existing = await getAllInstructions();
+            if (existing.length > 0) return false;
+
+            const backup = this.bestBackup();
+            if (backupIsEmpty(backup)) return false;
+
+            console.warn('[Backup] No instructions found — restoring from backup...');
+            // importData() is deliberately not wrapped for mirroring, so restoring
+            // cannot trigger a save back over the backup mid-restore.
+            await importData(backup);
+            console.log('[Backup] Restored ' + backup.instructions.length + ' instructions');
+            return true;
         } catch (error) {
-            console.error('[HybridStorage] Sync from localStorage failed:', error);
+            console.error('[Backup] Restore failed:', error);
+            return false;
         }
     }
 
-    // Mirror data to localStorage
-    async mirrorToLocalStorage() {
+    // Prefer the current slot, but fall back to the previous generation if the
+    // current one is empty or unreadable.
+    bestBackup() {
+        const current = readBackupSlot(BACKUP_CURRENT_KEY);
+        if (!backupIsEmpty(current)) return current;
+
+        const previous = readBackupSlot(BACKUP_PREVIOUS_KEY);
+        if (!backupIsEmpty(previous)) return previous;
+
+        return null;
+    }
+
+    // Save a fresh backup. `allowEmpty` is set only by deliberate deletions —
+    // everything else is refused if it would empty a backup that holds data.
+    async mirrorToLocalStorage({ allowEmpty = false } = {}) {
         try {
             const data = await exportData();
-            localStorage.setItem(HYBRID_STORAGE_KEY, JSON.stringify(data));
-            console.log('[HybridStorage] Mirrored ' + data.instructions.length + ' instructions to localStorage');
+            const existing = readBackupSlot(BACKUP_CURRENT_KEY);
+
+            // The rule that was missing, and that cost real data: a backup holding
+            // instructions is never replaced by an empty snapshot. An empty database
+            // at save time means something went wrong, not that the data is gone.
+            if (!allowEmpty && backupIsEmpty(data) && !backupIsEmpty(existing)) {
+                console.warn('[Backup] Refused to overwrite a backup of ' +
+                    existing.instructions.length + ' instructions with an empty one');
+                return false;
+            }
+
+            this.rollGeneration(existing);
+            const ok = this.persist(BACKUP_CURRENT_KEY, data);
+            if (ok) {
+                console.log('[Backup] Saved ' + data.instructions.length + ' instructions');
+            }
+            return ok;
         } catch (error) {
-            console.error('[HybridStorage] Mirror to localStorage failed:', error);
+            console.error('[Backup] Save failed:', error);
+            return false;
         }
+    }
+
+    // Keep the previous slot roughly a day behind the current one, so it is a
+    // genuinely older copy rather than just one write ago.
+    rollGeneration(existing) {
+        if (backupIsEmpty(existing)) return;
+
+        const previous = readBackupSlot(BACKUP_PREVIOUS_KEY);
+        const previousTime = previous && previous.timestamp ? Date.parse(previous.timestamp) : NaN;
+        if (Number.isFinite(previousTime) && Date.now() - previousTime < GENERATION_GAP_MS) return;
+
+        this.persist(BACKUP_PREVIOUS_KEY, existing);
+    }
+
+    // Photos are stored inside the data, so a large library can fill the storage
+    // allowance. Rather than failing silently, drop the older generation to make
+    // room, and record the failure so the Data Safety screen can report it.
+    persist(key, data) {
+        const json = JSON.stringify(data);
+        try {
+            localStorage.setItem(key, json);
+            localStorage.removeItem(BACKUP_FAILED_KEY);
+            return true;
+        } catch (error) {
+            console.warn('[Backup] Storage full — dropping the older generation to make room');
+            try {
+                localStorage.removeItem(BACKUP_PREVIOUS_KEY);
+                localStorage.setItem(key, json);
+                localStorage.removeItem(BACKUP_FAILED_KEY);
+                return true;
+            } catch (retryError) {
+                localStorage.setItem(BACKUP_FAILED_KEY, new Date().toISOString());
+                console.error('[Backup] Could not save backup:', retryError);
+                return false;
+            }
+        }
+    }
+
+    // What the Data Safety screen reports on.
+    status() {
+        return {
+            current: backupCounts(readBackupSlot(BACKUP_CURRENT_KEY)),
+            previous: backupCounts(readBackupSlot(BACKUP_PREVIOUS_KEY)),
+            failedAt: localStorage.getItem(BACKUP_FAILED_KEY)
+        };
+    }
+
+    getSlot(which) {
+        return readBackupSlot(which === 'previous' ? BACKUP_PREVIOUS_KEY : BACKUP_CURRENT_KEY);
     }
 }
 
 const hybridStorage = new HybridStorage();
 
-// Override saveInstructionDB to also mirror to localStorage
+// Every function that writes to the database also refreshes the backup.
 const originalSaveInstructionDB = saveInstructionDB;
 saveInstructionDB = async function(instruction) {
     const result = await originalSaveInstructionDB(instruction);
@@ -64,11 +178,19 @@ saveInstructionDB = async function(instruction) {
     return result;
 };
 
-// Same mirroring for the other functions that write to IndexedDB directly
 const originalRecordCompletion = recordCompletion;
 recordCompletion = async function(instruction) {
     const result = await originalRecordCompletion(instruction);
     await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
+// Deleting the last instruction is a deliberate act, so it is allowed to leave
+// an empty backup — otherwise the deleted instructions would reappear on restart.
+const originalDeleteInstruction = deleteInstruction;
+deleteInstruction = async function(id) {
+    const result = await originalDeleteInstruction(id);
+    await hybridStorage.mirrorToLocalStorage({ allowEmpty: true });
     return result;
 };
 
@@ -128,9 +250,24 @@ deleteAction = async function(id) {
     return result;
 };
 
-// Initialize on app ready
+// "Clear All Data" is deliberate, so it may empty the backup — but the copy it
+// replaces is rolled into the previous slot first, so it stays undoable from
+// the Data Safety screen.
+const originalClearAllData = clearAllData;
+clearAllData = async function() {
+    const existing = readBackupSlot(BACKUP_CURRENT_KEY);
+    if (!backupIsEmpty(existing)) {
+        hybridStorage.persist(BACKUP_PREVIOUS_KEY, existing);
+    }
+    const result = await originalClearAllData();
+    await hybridStorage.mirrorToLocalStorage({ allowEmpty: true });
+    return result;
+};
+
+// Fallback initialiser. initializeApp() normally does this itself, immediately
+// after opening the database and before any seeding, so the restore always wins
+// the race against the first write. init() is idempotent, so this is harmless.
 document.addEventListener('DOMContentLoaded', async () => {
-    // Wait for DB to be initialized
     const waitForDB = setInterval(async () => {
         if (db) {
             clearInterval(waitForDB);

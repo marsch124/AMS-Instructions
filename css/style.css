@@ -233,6 +233,11 @@ body {
     background-color: var(--color-border);
 }
 
+.nudge-card.backup {
+    border-color: var(--color-accent-warm);
+    border-left-color: var(--color-accent-warm);
+}
+
 .nudge-icon {
     font-size: 1.5rem;
 }
@@ -997,6 +1002,58 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+}
+
+/* Data Safety */
+#dataSafetyScreen {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+}
+
+.backup-slot {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background-color: var(--color-surface);
+    border-radius: 8px;
+}
+
+.backup-slot h3 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-secondary);
+}
+
+.backup-slot.empty {
+    opacity: 0.6;
+}
+
+.backup-date {
+    font-size: 1rem;
+    font-weight: 600;
+}
+
+.backup-counts {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+}
+
+.backup-note {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+}
+
+.backup-warning {
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    background-color: var(--color-surface);
+    border-left: 4px solid var(--color-accent-warm);
+    font-size: 0.85rem;
+    line-height: 1.4;
 }
 
 /* Actions */

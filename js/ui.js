@@ -1,4 +1,4 @@
-const APP_VERSION = '19.0';
+const APP_VERSION = '20.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -282,6 +282,7 @@ async function toggleFavorite() {
 }
 
 async function renderHomeScreen() {
+    await renderBackupNudge();
     await renderActionsNudge();
 
     const favorites = await getFavorites();
@@ -1164,6 +1165,302 @@ async function renderActionsNudge() {
     nudge.style.display = 'flex';
 }
 
+const LAST_EXPORT_KEY = 'ams_last_export_time';
+const BACKUP_NUDGE_AFTER_DAYS = 7;
+
+function backupFileName() {
+    const now = new Date();
+    const stamp = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+        .toISOString().slice(0, 16).replace('T', '-').replace(':', '');
+    return `AMS-Instructions-backup-${stamp}.json`;
+}
+
+function formatBackupDate(value) {
+    if (!value) return null;
+    const date = new Date(typeof value === 'string' ? value : Number(value));
+    if (Number.isNaN(date.getTime())) return null;
+    return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+}
+
+function describeCounts(counts) {
+    if (!counts) return 'Nothing stored';
+    const parts = [
+        counts.instructions + (counts.instructions === 1 ? ' instruction' : ' instructions'),
+        counts.people + (counts.people === 1 ? ' person' : ' people'),
+        counts.audits + (counts.audits === 1 ? ' audit' : ' audits'),
+        counts.actions + (counts.actions === 1 ? ' to-do' : ' to-dos')
+    ];
+    return parts.join('  ·  ');
+}
+
+// iOS only opens the share sheet if navigator.share() is reached directly from
+// the tap that triggered it. Reading the database first is an await, which loses
+// that permission and makes the sheet silently refuse. So the backup is prepared
+// in advance — whenever a screen with a backup button is opened — and the tap
+// itself does no waiting at all.
+let preparedBackup = null;
+const PREPARED_BACKUP_MAX_AGE = 5 * 60 * 1000;
+
+async function prepareBackup() {
+    try {
+        const data = await exportData();
+        preparedBackup = {
+            json: JSON.stringify(data, null, 2),
+            fileName: backupFileName(),
+            at: Date.now(),
+            counts: {
+                instructions: data.instructions.length,
+                people: data.people.length,
+                audits: data.audits.length,
+                actions: data.actions.length
+            }
+        };
+    } catch (error) {
+        console.warn('[Backup] Could not prepare backup in advance:', error);
+        preparedBackup = null;
+    }
+}
+
+// The click handler itself: deliberately NOT async, so the user gesture survives.
+function handleExportTap() {
+    const ready = preparedBackup && (Date.now() - preparedBackup.at) < PREPARED_BACKUP_MAX_AGE;
+    if (!ready) {
+        // Nothing prepared — do it the slow way and accept that iOS may fall
+        // back to a download rather than the share sheet.
+        handleExport();
+        return;
+    }
+
+    const { json, fileName, counts } = preparedBackup;
+
+    let file;
+    try {
+        file = new File([json], fileName, { type: 'application/json' });
+    } catch (error) {
+        handleExport();
+        return;
+    }
+
+    if (!navigator.share || (navigator.canShare && !navigator.canShare({ files: [file] }))) {
+        if (downloadBackupFile(json, fileName)) {
+            afterSuccessfulBackup(counts);
+        } else {
+            showBackupAsText(json);
+        }
+        return;
+    }
+
+    navigator.share({ files: [file], title: 'AMS Instructions Backup' })
+        .then(() => afterSuccessfulBackup(counts))
+        .catch((error) => {
+            if (error && error.name === 'AbortError') return;   // dismissed, not failed
+            console.warn('[Backup] Share failed, falling back:', error);
+            if (downloadBackupFile(json, fileName)) {
+                afterSuccessfulBackup(counts);
+            } else {
+                showBackupAsText(json);
+            }
+        });
+}
+
+async function afterSuccessfulBackup(counts) {
+    localStorage.setItem(LAST_EXPORT_KEY, Date.now());
+    await renderBackupNudge();
+    renderDataSafety();
+    prepareBackup();
+    alert('Backup saved.\n\n' + describeCounts(counts));
+}
+
+// Slow path, used when nothing was prepared in advance.
+async function handleExport() {
+    let data;
+    try {
+        data = await exportData();
+    } catch (error) {
+        alert('Could not read your data to back it up: ' + error.message);
+        return;
+    }
+
+    const json = JSON.stringify(data, null, 2);
+    const fileName = backupFileName();
+    const shared = await shareBackupFile(json, fileName);
+
+    if (shared === 'cancelled') return;
+
+    const counts = {
+        instructions: data.instructions.length,
+        people: data.people.length,
+        audits: data.audits.length,
+        actions: data.actions.length
+    };
+
+    if (shared === true) {
+        await afterSuccessfulBackup(counts);
+        return;
+    }
+
+    // Sharing unavailable — fall back to a download, then to on-screen text.
+    if (downloadBackupFile(json, fileName)) {
+        await afterSuccessfulBackup(counts);
+        return;
+    }
+
+    showBackupAsText(json);
+}
+
+async function shareBackupFile(json, fileName) {
+    try {
+        if (!navigator.share) return false;
+
+        const file = new File([json], fileName, { type: 'application/json' });
+        if (navigator.canShare && !navigator.canShare({ files: [file] })) return false;
+
+        await navigator.share({ files: [file], title: 'AMS Instructions Backup' });
+        return true;
+    } catch (error) {
+        // Dismissing the share sheet is a normal choice, not a failure
+        if (error && error.name === 'AbortError') return 'cancelled';
+        console.warn('[Backup] Share sheet unavailable:', error);
+        return false;
+    }
+}
+
+function downloadBackupFile(json, fileName) {
+    try {
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = fileName;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+        return true;
+    } catch (error) {
+        console.error('[Backup] Download fallback failed:', error);
+        return false;
+    }
+}
+
+function showBackupAsText(json) {
+    const w = window.open();
+    if (!w) {
+        alert('Could not open the backup. Please allow pop-ups, or try again.');
+        return;
+    }
+    w.document.write('<html><head><title>AMS Instructions Backup</title><style>body{font-family:monospace;padding:1rem;white-space:pre-wrap;word-wrap:break-word;background:#0a1f1f;color:#fff;}</style></head><body>');
+    w.document.write('<h2>AMS Instructions Backup</h2>');
+    w.document.write('<p>Date: ' + new Date().toISOString() + '</p>');
+    w.document.write('<p><strong>Tap Share → Save to Files</strong></p><hr>');
+    w.document.write(json.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
+    w.document.write('</body></html>');
+    w.document.close();
+}
+
+async function renderBackupNudge() {
+    const nudge = document.getElementById('backupNudge');
+    const detail = document.getElementById('backupNudgeDetail');
+
+    // Nothing worth backing up yet
+    const instructions = await getAllInstructions();
+    if (instructions.length === 0) {
+        nudge.style.display = 'none';
+        return;
+    }
+
+    const last = localStorage.getItem(LAST_EXPORT_KEY);
+    if (!last) {
+        detail.textContent = 'Never backed up';
+        nudge.style.display = 'flex';
+        prepareBackup();
+        return;
+    }
+
+    const days = Math.floor((Date.now() - Number(last)) / (24 * 60 * 60 * 1000));
+    if (days < BACKUP_NUDGE_AFTER_DAYS) {
+        nudge.style.display = 'none';
+        return;
+    }
+
+    detail.textContent = 'Last backup ' + (days === 1 ? 'yesterday' : days + ' days ago');
+    nudge.style.display = 'flex';
+    prepareBackup();   // the card is a backup button too — keep it gesture-ready
+}
+
+async function renderDataSafety() {
+    const status = hybridStorage.status();
+
+    const warning = document.getElementById('backupWarning');
+    if (status.failedAt) {
+        warning.textContent = '⚠ The last automatic backup could not be saved — storage on this device may be full. Use "Back Up Now" below to keep a copy somewhere safe.';
+        warning.style.display = 'block';
+    } else {
+        warning.style.display = 'none';
+    }
+
+    try {
+        const live = {
+            instructions: (await getAllInstructions()).length,
+            people: (await getAllPeople()).length,
+            audits: (await getAllAudits()).length,
+            actions: (await getAllActions()).length
+        };
+        document.getElementById('liveDataCounts').textContent = describeCounts(live);
+    } catch (error) {
+        document.getElementById('liveDataCounts').textContent = 'Could not read the app data';
+    }
+
+    const slots = [
+        ['current', status.current, 'currentBackupDate', 'currentBackupCounts', 'currentBackupSlot', 'restoreCurrentBtn'],
+        ['previous', status.previous, 'previousBackupDate', 'previousBackupCounts', 'previousBackupSlot', 'restorePreviousBtn']
+    ];
+
+    slots.forEach(([which, counts, dateId, countsId, slotId, buttonId]) => {
+        const slot = document.getElementById(slotId);
+        const button = document.getElementById(buttonId);
+
+        if (!counts) {
+            document.getElementById(dateId).textContent = 'No backup yet';
+            document.getElementById(countsId).textContent = '';
+            button.style.display = 'none';
+            slot.classList.add('empty');
+            return;
+        }
+
+        slot.classList.remove('empty');
+        document.getElementById(dateId).textContent = formatBackupDate(counts.timestamp) || 'Date unknown';
+        document.getElementById(countsId).textContent = describeCounts(counts);
+        button.style.display = counts.instructions > 0 ? 'block' : 'none';
+    });
+
+    document.getElementById('lastExportDate').textContent =
+        formatBackupDate(localStorage.getItem(LAST_EXPORT_KEY)) || 'Never backed up';
+}
+
+function restoreFromSlot(which) {
+    const backup = hybridStorage.getSlot(which);
+    if (!backup) {
+        alert('That backup is no longer available.');
+        return;
+    }
+
+    const count = (backup.instructions || []).length;
+    showModal('Restore Backup',
+        `Put back ${count} ${count === 1 ? 'instruction' : 'instructions'} from ${formatBackupDate(backup.timestamp) || 'this backup'}? Anything currently in the app with the same number will be replaced by the backup's version. Nothing else is deleted.`,
+        async (confirmed) => {
+            if (!confirmed) return;
+            try {
+                await importData(backup);
+                await renderHomeScreen();
+                renderDataSafety();
+                alert('Restored ' + count + (count === 1 ? ' instruction.' : ' instructions.'));
+            } catch (error) {
+                alert('Restore failed: ' + error.message);
+            }
+        });
+}
+
 // Photo upload
 document.addEventListener('DOMContentLoaded', () => {
     const photoInput = document.getElementById('editorPhotoInput');
@@ -1211,7 +1508,10 @@ async function initializeApp() {
     document.getElementById('homeVersion').textContent = 'v' + APP_VERSION;
 
     // Navigation
-    document.getElementById('settingsBtn').addEventListener('click', () => showScreen('settingsScreen'));
+    document.getElementById('settingsBtn').addEventListener('click', () => {
+        prepareBackup();   // so "Back Up Now" can open the share sheet without waiting
+        showScreen('settingsScreen');
+    });
     document.getElementById('backFromSettingsBtn').addEventListener('click', async () => {
         await renderHomeScreen();
         showScreen('homeScreen');
@@ -1399,21 +1699,22 @@ async function initializeApp() {
 
     document.getElementById('saveBtn').addEventListener('click', handleSaveInstruction);
 
-    document.getElementById('exportBtn').addEventListener('click', async () => {
-        const data = await exportData();
-        const json = JSON.stringify(data, null, 2);
-        
-        // iOS-friendly export: open JSON in new window for user to save
-        const w = window.open();
-        w.document.write('<html><head><title>AMS Instructions Backup</title><style>body{font-family:monospace;padding:1rem;white-space:pre-wrap;word-wrap:break-word;background:#0a1f1f;color:#fff;}</style></head><body>');
-        w.document.write('<h2>AMS Instructions Backup</h2>');
-        w.document.write('<p>Date: ' + new Date().toISOString() + '</p>');
-        w.document.write('<p><strong>On iPhone:</strong> Tap Share → Save to Files or Notes</p>');
-        w.document.write('<hr>');
-        w.document.write(json.replace(/</g, '&lt;').replace(/>/g, '&gt;'));
-        w.document.write('</body></html>');
-        w.document.close();
+    document.getElementById('exportBtn').addEventListener('click', handleExportTap);
+    document.getElementById('exportFromSafetyBtn').addEventListener('click', handleExportTap);
+    document.getElementById('backupNudge').addEventListener('click', handleExportTap);
+
+    document.getElementById('dataSafetyBtn').addEventListener('click', () => {
+        renderDataSafety();
+        prepareBackup();
+        showScreen('dataSafetyScreen');
     });
+
+    document.getElementById('backFromDataSafetyBtn').addEventListener('click', () => {
+        showScreen('settingsScreen');
+    });
+
+    document.getElementById('restoreCurrentBtn').addEventListener('click', () => restoreFromSlot('current'));
+    document.getElementById('restorePreviousBtn').addEventListener('click', () => restoreFromSlot('previous'));
 
     document.getElementById('importBtn').addEventListener('click', () => {
         document.getElementById('importFile').click();
@@ -1428,7 +1729,8 @@ async function initializeApp() {
             try {
                 const data = JSON.parse(event.target.result);
                 await importData(data);
-                alert('Data imported successfully');
+                await renderHomeScreen();
+                alert('Backup restored: ' + (data.instructions || []).length + ' instructions');
                 await renderInstructionsList();
                 showScreen('instructionsListScreen');
             } catch (error) {
@@ -1447,7 +1749,7 @@ async function initializeApp() {
     });
 
     document.getElementById('clearDataBtn').addEventListener('click', () => {
-        showModal('Clear All Data', 'This will delete all instructions and settings. This cannot be undone.', async (confirmed) => {
+        showModal('Clear All Data', 'This will delete all instructions, audits and to-dos. Your People list is kept. The backup taken beforehand stays available under Settings → Data Safety, so this can still be undone from there.', async (confirmed) => {
             if (confirmed) {
                 await clearAllData();
                 await renderHomeScreen();
@@ -1459,6 +1761,10 @@ async function initializeApp() {
 
     try {
         await initDB();
+        // Restore BEFORE anything writes. Seeding people used to run first, and
+        // its very first write saved an empty snapshot over the backup that was
+        // about to be restored from — destroying the only copy of the data.
+        await hybridStorage.init(db);
         await seedDefaultPeople();
         await registerServiceWorker();
         await renderHomeScreen();
