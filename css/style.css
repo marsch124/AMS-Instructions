@@ -22,13 +22,26 @@
     --color-text-secondary: #a0b8b8;
     --color-border: #2a5555;
 
-    /* Vibrant category colors that pop */
+    /* Vibrant category colors that pop. The first six are the RV set; the rest
+       cover the other worlds the app now holds. Hues are kept apart on purpose —
+       a category badge is read at a glance, so two greens that need comparing
+       would be two greens too many. */
     --color-general: #7c3aed;
     --color-bedroom: #a855f7;
     --color-driving: #f59e0b;
     --color-water: #0891b2;
     --color-maintenance: #ea580c;
     --color-safety: #dc2626;
+
+    --color-home: #0ea5e9;        /* sky      */
+    --color-diving: #1e40af;      /* deep sea */
+    --color-running: #16a34a;     /* green    */
+    --color-cycling: #84cc16;     /* lime     */
+    --color-swimming: #06b6d4;    /* cyan     */
+    --color-golf: #ca8a04;        /* gold     */
+    --color-strength: #57534e;    /* iron     */
+    --color-mobility: #ec4899;    /* pink     */
+    --color-meditation: #d946ef;  /* fuchsia  */
 
     --color-success: #10b981;
     --color-danger: #dc2626;
@@ -503,6 +516,16 @@ body {
 .instruction-card.safety {
     border-left-color: var(--color-safety);
 }
+
+.instruction-card.home { border-left-color: var(--color-home); }
+.instruction-card.diving { border-left-color: var(--color-diving); }
+.instruction-card.running { border-left-color: var(--color-running); }
+.instruction-card.cycling { border-left-color: var(--color-cycling); }
+.instruction-card.swimming { border-left-color: var(--color-swimming); }
+.instruction-card.golf { border-left-color: var(--color-golf); }
+.instruction-card.strength { border-left-color: var(--color-strength); }
+.instruction-card.mobility { border-left-color: var(--color-mobility); }
+.instruction-card.meditation { border-left-color: var(--color-meditation); }
 
 .instruction-card-number {
     font-size: 1.5rem;
@@ -1026,6 +1049,51 @@ body {
 
 .category-badge.general {
     background-color: var(--color-general);
+    color: white;
+}
+
+.category-badge.home {
+    background-color: var(--color-home);
+    color: #000;
+}
+
+.category-badge.diving {
+    background-color: var(--color-diving);
+    color: white;
+}
+
+.category-badge.running {
+    background-color: var(--color-running);
+    color: white;
+}
+
+.category-badge.cycling {
+    background-color: var(--color-cycling);
+    color: #000;
+}
+
+.category-badge.swimming {
+    background-color: var(--color-swimming);
+    color: #000;
+}
+
+.category-badge.golf {
+    background-color: var(--color-golf);
+    color: #000;
+}
+
+.category-badge.strength {
+    background-color: var(--color-strength);
+    color: white;
+}
+
+.category-badge.mobility {
+    background-color: var(--color-mobility);
+    color: white;
+}
+
+.category-badge.meditation {
+    background-color: var(--color-meditation);
     color: white;
 }
 

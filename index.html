@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786892832-77bbb8d8">
+    <meta name="cache-bust" content="1786894157-e8bb5b3d">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=24.0&t=1786892832-77bbb8d8">
+    <link rel="stylesheet" href="css/style.css?v=25.0&t=1786894157-e8bb5b3d">
 </head>
 <body>
     <!--
@@ -69,7 +69,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v24.0</span>
+                <span class="version-badge" id="homeVersion">v25.0</span>
             </div>
         </header>
 
@@ -637,12 +637,27 @@
                 <div class="form-group">
                     <label for="editorCategory">Category</label>
                     <select id="editorCategory">
-                        <option value="General">General</option>
-                        <option value="Bedroom">Bedroom</option>
-                        <option value="Driving">Driving</option>
-                        <option value="Water">Water Systems</option>
-                        <option value="Maintenance">Maintenance</option>
-                        <option value="Safety">Safety</option>
+                        <optgroup label="RV">
+                            <option value="General">General</option>
+                            <option value="Bedroom">Bedroom</option>
+                            <option value="Driving">Driving</option>
+                            <option value="Water">Water Systems</option>
+                            <option value="Maintenance">Maintenance</option>
+                            <option value="Safety">Safety</option>
+                        </optgroup>
+                        <optgroup label="Life">
+                            <option value="Home">Home</option>
+                        </optgroup>
+                        <optgroup label="Sport">
+                            <option value="Diving">Diving</option>
+                            <option value="Running">Running</option>
+                            <option value="Cycling">Cycling</option>
+                            <option value="Swimming">Swimming</option>
+                            <option value="Golf">Golf</option>
+                            <option value="Strength">Strength</option>
+                            <option value="Mobility">Mobility</option>
+                            <option value="Meditation">Meditation</option>
+                        </optgroup>
                     </select>
                 </div>
             </div>
@@ -704,6 +719,10 @@
                             <option value="Daily">Daily</option>
                             <option value="Weekly">Weekly</option>
                             <option value="Monthly">Monthly</option>
+                            <option value="Seasonally">Seasonally</option>
+                            <option value="Yearly">Yearly</option>
+                            <option value="Before each trip">Before each trip</option>
+                            <option value="Every session">Every session</option>
                             <option value="As-needed">As-needed</option>
                         </select>
                     </div>
@@ -895,13 +914,22 @@
             </section>
 
             <section>
-                <h3>Sample Use Cases</h3>
+                <h3>How the Numbers Are Organised</h3>
+                <p><strong>001–099 is yours.</strong> Nothing else uses those numbers, so your own instructions can live there without ever colliding with anything.</p>
+                <p>The starter library uses 100 upwards, grouped by hundreds so a printed number card tells you which world it belongs to before you even scan it:</p>
                 <ul>
-                    <li><strong>Bedside (001):</strong> Evening wind-down checklist</li>
-                    <li><strong>Driver's seat (002):</strong> Pre-drive vehicle check</li>
-                    <li><strong>Water tank (003):</strong> Filling & maintenance steps</li>
-                    <li><strong>Maintenance (004-009):</strong> Various RV systems</li>
+                    <li><strong>100–149 — RV:</strong> driving, water, gas and power, pitch set-up, living aboard, maintenance and safety</li>
+                    <li><strong>150–169 — Home:</strong> the apartment, cleaning, appliances, and leaving and returning</li>
+                    <li><strong>200–224 — Diving:</strong> kit checks, buddy checks, descent and ascent, drills and care</li>
+                    <li><strong>300–319 — Running:</strong> warm-ups, easy runs, intervals, tempo, long runs, cool-downs</li>
+                    <li><strong>400–419 — Cycling:</strong> the M-check, sessions from Zone 2 to VO2, and bike maintenance</li>
+                    <li><strong>500–519 — Swimming:</strong> warm-ups, drills, threshold sets, open water and kit care</li>
+                    <li><strong>600–619 — Golf:</strong> equipment care, practice drills, and the rules worth knowing on the course</li>
+                    <li><strong>700–709 — Meditation:</strong> from a three-minute reset to a full body scan</li>
+                    <li><strong>800–809 — Mobility:</strong> morning flows, hips, shoulders, and post-run stretching</li>
+                    <li><strong>900–909 — Strength:</strong> full-body sessions, splits, and a bodyweight one for the RV</li>
                 </ul>
+                <p>Every one of them is yours to edit. Open it, tap Edit, and change anything — they are ordinary instructions, not locked templates.</p>
             </section>
 
         </div>
@@ -917,6 +945,18 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v25.0 (2026-08-16) - ROOM FOR THE WHOLE LIBRARY</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🗂️ <strong>Nine new categories</strong> — Home, Diving, Running, Cycling, Swimming, Golf, Strength, Mobility and Meditation, each with its own colour, alongside the six original RV ones. The category picker is now grouped into RV / Life / Sport</li>
+                            <li>📅 <strong>More frequency options</strong> — Seasonally, Yearly, Before each trip and Every session, alongside Daily, Weekly, Monthly and As-needed</li>
+                            <li>📚 <strong>Ready for the starter library:</strong> 205 instructions covering the RV, the apartment, diving, running, cycling, swimming, golf, meditation, mobility and strength — imported through Settings → Restore from a Backup File</li>
+                            <li>🔢 <strong>The library uses numbers 100 and above,</strong> leaving 001–099 completely free for your own instructions. Nothing you already had is touched or renumbered</li>
+                            <li>💯 <strong>Numbering by hundreds:</strong> 1xx RV and Home, 2xx Diving, 3xx Running, 4xx Cycling, 5xx Swimming, 6xx Golf, 7xx Meditation, 8xx Mobility, 9xx Strength — so a printed number card tells you its world at a glance</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v24.0 (2026-08-16) - A COLOUR PER TAB, AND HAND-DRAWN ICONS</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1226,12 +1266,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=24.0&t=1786892832-77bbb8d8"></script>
-    <script src="js/qr.js?v=24.0&t=1786892832-77bbb8d8"></script>
-    <script src="js/version-sync.js?v=24.0&t=1786892832-77bbb8d8"></script>
-    <script src="js/persistence.js?v=24.0&t=1786892832-77bbb8d8"></script>
-    <script src="js/hybrid-storage.js?v=24.0&t=1786892832-77bbb8d8"></script>
-    <script src="js/ui.js?v=24.0&t=1786892832-77bbb8d8"></script>
-    <script src="js/app.js?v=24.0&t=1786892832-77bbb8d8"></script>
+    <script src="js/db.js?v=25.0&t=1786894157-e8bb5b3d"></script>
+    <script src="js/qr.js?v=25.0&t=1786894157-e8bb5b3d"></script>
+    <script src="js/version-sync.js?v=25.0&t=1786894157-e8bb5b3d"></script>
+    <script src="js/persistence.js?v=25.0&t=1786894157-e8bb5b3d"></script>
+    <script src="js/hybrid-storage.js?v=25.0&t=1786894157-e8bb5b3d"></script>
+    <script src="js/ui.js?v=25.0&t=1786894157-e8bb5b3d"></script>
+    <script src="js/app.js?v=25.0&t=1786894157-e8bb5b3d"></script>
 </body>
 </html>
