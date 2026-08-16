@@ -1,4 +1,4 @@
-const APP_VERSION = '18.0';
+const APP_VERSION = '19.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -282,6 +282,8 @@ async function toggleFavorite() {
 }
 
 async function renderHomeScreen() {
+    await renderActionsNudge();
+
     const favorites = await getFavorites();
     const instructions = await getAllInstructions();
     const favoritesList = document.getElementById('favoritesList');
@@ -786,9 +788,7 @@ async function renderAuditLog(instruction) {
             const convertBtn = document.createElement('button');
             convertBtn.className = 'btn-secondary';
             convertBtn.textContent = '→ Convert to Action';
-            // Wired up in Phase 3; inert for now so the placement can be reviewed.
-            convertBtn.disabled = true;
-            convertBtn.title = 'Coming soon';
+            convertBtn.addEventListener('click', () => convertAuditToAction(audit));
             actions.appendChild(convertBtn);
         }
 
@@ -880,6 +880,288 @@ async function handleAddAudit() {
 
     await renderAuditLog(currentInstruction);
     await populateAuditForm();
+}
+
+function formatDueDate(dueDate) {
+    if (!dueDate) return '';
+    // Parse as local midnight, not UTC, so the date shown matches the one picked
+    return new Date(dueDate + 'T00:00:00').toLocaleDateString();
+}
+
+function isOverdue(dueDate) {
+    if (!dueDate) return false;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    return new Date(dueDate + 'T00:00:00').getTime() < today.getTime();
+}
+
+function createActionRow(action, done) {
+    const item = document.createElement('div');
+    item.className = 'list-item action-item' + (done ? ' done' : '');
+
+    const tickBtn = document.createElement('button');
+    tickBtn.className = 'action-tick' + (done ? ' ticked' : '');
+    tickBtn.textContent = done ? '☑' : '☐';
+    tickBtn.setAttribute('aria-label', done ? 'Mark as not done' : 'Mark as done');
+    tickBtn.addEventListener('click', async (e) => {
+        e.stopPropagation();
+        if (done) {
+            await reopenAction(action.id);
+        } else {
+            await completeAction(action.id);
+        }
+        await renderActionsList();
+    });
+
+    const info = document.createElement('div');
+    info.className = 'list-item-info';
+    info.addEventListener('click', () => editAction(action));
+
+    const titleEl = document.createElement('div');
+    titleEl.className = 'list-item-title';
+    titleEl.textContent = action.title;
+    info.appendChild(titleEl);
+
+    const meta = document.createElement('div');
+    meta.className = 'action-meta';
+
+    if (!done && action.priority === 'high') {
+        const chip = document.createElement('span');
+        chip.className = 'action-chip high';
+        chip.textContent = 'High';
+        meta.appendChild(chip);
+    }
+
+    if (action.dueDate) {
+        const chip = document.createElement('span');
+        chip.className = 'action-chip' + (!done && isOverdue(action.dueDate) ? ' overdue' : '');
+        chip.textContent = '📅 ' + formatDueDate(action.dueDate);
+        meta.appendChild(chip);
+    }
+
+    if (action.instructionNumber) {
+        const chip = document.createElement('span');
+        chip.className = 'action-chip link';
+        chip.textContent = '#' + action.instructionNumber;
+        chip.addEventListener('click', (e) => {
+            e.stopPropagation();
+            navigateToInstruction(action.instructionNumber);
+        });
+        meta.appendChild(chip);
+    }
+
+    if (action.sourceAuditId) {
+        const chip = document.createElement('span');
+        chip.className = 'action-chip';
+        chip.textContent = '🔍 From audit';
+        meta.appendChild(chip);
+    }
+
+    if (meta.children.length > 0) {
+        info.appendChild(meta);
+    }
+
+    if (action.notes) {
+        const notesEl = document.createElement('div');
+        notesEl.className = 'list-item-category action-notes';
+        notesEl.textContent = action.notes;
+        info.appendChild(notesEl);
+    }
+
+    const editBtn = document.createElement('button');
+    editBtn.className = 'list-item-edit';
+    editBtn.textContent = '✎';
+    editBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        editAction(action);
+    });
+
+    item.appendChild(tickBtn);
+    item.appendChild(info);
+    item.appendChild(editBtn);
+    return item;
+}
+
+async function renderActionsList() {
+    const openList = document.getElementById('openActionsList');
+    const doneList = document.getElementById('doneActionsList');
+    const doneSection = document.getElementById('doneActionsSection');
+
+    const open = await getOpenActions();
+    const done = await getDoneActions();
+
+    if (open.length === 0) {
+        openList.innerHTML = '<p class="empty-state">Nothing to do. Tap ＋ to add a to-do.</p>';
+    } else {
+        openList.innerHTML = '';
+        open.forEach(action => openList.appendChild(createActionRow(action, false)));
+    }
+
+    if (done.length === 0) {
+        doneSection.style.display = 'none';
+        doneList.innerHTML = '';
+    } else {
+        doneSection.style.display = 'block';
+        doneList.innerHTML = '';
+        done.forEach(action => doneList.appendChild(createActionRow(action, true)));
+    }
+}
+
+async function populateActionInstructionSelect(selectedId) {
+    const select = document.getElementById('actionEditorInstruction');
+    const instructions = await getAllInstructions();
+    instructions.sort((a, b) => a.number.localeCompare(b.number));
+
+    select.innerHTML = '<option value="">-- None (general to-do) --</option>';
+    instructions.forEach(instruction => {
+        const opt = document.createElement('option');
+        opt.value = instruction.id;
+        opt.textContent = instruction.number + ' — ' + instruction.title;
+        select.appendChild(opt);
+    });
+
+    select.value = instructions.some(i => i.id === selectedId) ? selectedId : '';
+}
+
+async function resetActionEditor() {
+    document.getElementById('actionEditorTitle').textContent = 'New Action';
+    document.getElementById('actionEditorTitleInput').value = '';
+    document.getElementById('actionEditorNotes').value = '';
+    document.getElementById('actionEditorPriority').value = 'normal';
+    document.getElementById('actionEditorDueDate').value = '';
+    document.getElementById('deleteActionBtn').style.display = 'none';
+    document.getElementById('actionSourceNote').style.display = 'none';
+    await populateActionInstructionSelect(null);
+    window.currentEditingAction = null;
+}
+
+async function editAction(action) {
+    document.getElementById('actionEditorTitle').textContent = 'Edit Action';
+    document.getElementById('actionEditorTitleInput').value = action.title || '';
+    document.getElementById('actionEditorNotes').value = action.notes || '';
+    document.getElementById('actionEditorPriority').value = action.priority || 'normal';
+    document.getElementById('actionEditorDueDate').value = action.dueDate || '';
+    await populateActionInstructionSelect(action.instructionId);
+
+    const sourceNote = document.getElementById('actionSourceNote');
+    if (action.sourceAuditId) {
+        sourceNote.textContent = 'Created from an audit finding' +
+            (action.instructionNumber ? ' on instruction ' + action.instructionNumber : '') + '.';
+        sourceNote.style.display = 'block';
+    } else {
+        sourceNote.style.display = 'none';
+    }
+
+    const deleteBtn = document.getElementById('deleteActionBtn');
+    deleteBtn.style.display = 'block';
+    deleteBtn.onclick = () => {
+        showModal('Delete Action', `Delete "${action.title}"?`, async (confirmed) => {
+            if (confirmed) {
+                await deleteAction(action.id);
+                await renderActionsList();
+                showScreen('actionsScreen');
+            }
+        });
+    };
+
+    window.currentEditingAction = action;
+    window.actionEditorReturn = 'actions';
+    showScreen('actionEditorScreen');
+}
+
+async function handleSaveAction() {
+    const title = document.getElementById('actionEditorTitleInput').value.trim();
+    if (!title) {
+        alert('Please enter a title');
+        return;
+    }
+
+    const existing = window.currentEditingAction || {};
+    const instructionSelect = document.getElementById('actionEditorInstruction');
+    const instructionId = instructionSelect.value || null;
+
+    let instructionNumber = null;
+    if (instructionId) {
+        const instructions = await getAllInstructions();
+        const linked = instructions.find(i => i.id === instructionId);
+        instructionNumber = linked ? linked.number : null;
+    }
+
+    const action = {
+        id: existing.id || undefined,
+        title,
+        notes: document.getElementById('actionEditorNotes').value.trim(),
+        priority: document.getElementById('actionEditorPriority').value,
+        dueDate: document.getElementById('actionEditorDueDate').value || null,
+        status: existing.status || 'open',
+        instructionId,
+        instructionNumber,
+        sourceAuditId: existing.sourceAuditId || null,
+        createdAt: existing.createdAt || undefined,
+        completedAt: existing.completedAt || null
+    };
+
+    const saved = await saveActionDB(action);
+
+    // Came from an audit finding's "Convert to Action": stamp the audit so the
+    // same finding can't be converted twice, then go back to the instruction.
+    if (window.actionEditorReturn === 'audit' && saved.sourceAuditId) {
+        window.actionEditorReturn = null;
+        await markAuditConverted(saved.sourceAuditId, saved.id);
+        await resetActionEditor();
+        if (currentInstruction) {
+            await renderAuditLog(currentInstruction);
+        }
+        showScreen('instructionScreen');
+        return;
+    }
+
+    window.actionEditorReturn = null;
+    await resetActionEditor();
+    await renderActionsList();
+    showScreen('actionsScreen');
+}
+
+// Pre-fill a new action from an audit finding. The first line becomes the title,
+// the full finding text stays in the notes so nothing is lost.
+async function convertAuditToAction(audit) {
+    await resetActionEditor();
+
+    const firstLine = (audit.findings || '').split('\n')[0].trim();
+    const title = firstLine.length > 60 ? firstLine.slice(0, 57) + '…' : firstLine;
+
+    document.getElementById('actionEditorTitle').textContent = 'New Action from Audit';
+    document.getElementById('actionEditorTitleInput').value = title;
+    document.getElementById('actionEditorNotes').value = audit.findings || '';
+    await populateActionInstructionSelect(audit.instructionId);
+
+    const sourceNote = document.getElementById('actionSourceNote');
+    sourceNote.textContent = 'From the audit by ' + (audit.auditorName || 'Unknown') +
+        ' on ' + new Date(audit.timestamp).toLocaleDateString() + '.';
+    sourceNote.style.display = 'block';
+
+    window.currentEditingAction = {
+        instructionId: audit.instructionId,
+        instructionNumber: audit.instructionNumber,
+        sourceAuditId: audit.id
+    };
+    window.actionEditorReturn = 'audit';
+    showScreen('actionEditorScreen');
+}
+
+async function renderActionsNudge() {
+    const nudge = document.getElementById('actionsNudge');
+    const detail = document.getElementById('actionsNudgeDetail');
+    const open = await getOpenActions();
+
+    if (open.length === 0) {
+        nudge.style.display = 'none';
+        return;
+    }
+
+    const high = open.filter(a => a.priority === 'high').length;
+    detail.textContent = open.length + ' open' + (high ? ' · ' + high + ' high-priority' : '');
+    nudge.style.display = 'flex';
 }
 
 // Photo upload
@@ -1051,6 +1333,56 @@ async function initializeApp() {
     });
 
     document.getElementById('savePersonBtn').addEventListener('click', handleSavePerson);
+
+    // Actions
+    document.getElementById('actionsNudge').addEventListener('click', async () => {
+        window.actionsReturn = 'home';
+        await renderActionsList();
+        showScreen('actionsScreen');
+    });
+
+    document.getElementById('viewActionsBtn').addEventListener('click', async () => {
+        window.actionsReturn = 'settings';
+        await renderActionsList();
+        showScreen('actionsScreen');
+    });
+
+    document.getElementById('addActionBtn').addEventListener('click', async () => {
+        window.actionsReturn = 'settings';
+        await resetActionEditor();
+        window.actionEditorReturn = 'actions';
+        showScreen('actionEditorScreen');
+    });
+
+    document.getElementById('newActionBtn').addEventListener('click', async () => {
+        await resetActionEditor();
+        window.actionEditorReturn = 'actions';
+        showScreen('actionEditorScreen');
+    });
+
+    document.getElementById('backFromActionsBtn').addEventListener('click', async () => {
+        if (window.actionsReturn === 'settings') {
+            showScreen('settingsScreen');
+            return;
+        }
+        await renderHomeScreen();
+        showScreen('homeScreen');
+    });
+
+    document.getElementById('backFromActionEditorBtn').addEventListener('click', async () => {
+        // Came from an audit finding — go back to the instruction, leaving the
+        // audit unconverted since nothing was saved.
+        if (window.actionEditorReturn === 'audit') {
+            window.actionEditorReturn = null;
+            showScreen('instructionScreen');
+            return;
+        }
+        window.actionEditorReturn = null;
+        await renderActionsList();
+        showScreen('actionsScreen');
+    });
+
+    document.getElementById('saveActionBtn').addEventListener('click', handleSaveAction);
 
     document.getElementById('backFromListBtn').addEventListener('click', () => {
         showScreen('settingsScreen');

@@ -366,6 +366,133 @@ async function deleteAudit(id) {
     });
 }
 
+// Link an audit finding to the action it produced, so the same finding can't be
+// converted twice. Read-modify-write in one transaction; a missing audit is a no-op.
+async function markAuditConverted(auditId, actionId) {
+    const tx = db.transaction(STORE_AUDITS, 'readwrite');
+    const store = tx.objectStore(STORE_AUDITS);
+
+    return new Promise((resolve, reject) => {
+        const getRequest = store.get(auditId);
+        getRequest.onsuccess = () => {
+            const audit = getRequest.result;
+            if (!audit) {
+                resolve(null);
+                return;
+            }
+            audit.convertedToActionId = actionId;
+            const putRequest = store.put(audit);
+            putRequest.onsuccess = () => resolve(audit);
+            putRequest.onerror = () => reject(putRequest.error);
+        };
+        getRequest.onerror = () => reject(getRequest.error);
+    });
+}
+
+async function saveActionDB(action) {
+    if (!action.id) {
+        action.id = 'action_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7);
+    }
+    if (!action.createdAt) {
+        action.createdAt = Date.now();
+    }
+    if (!action.status) {
+        action.status = 'open';
+    }
+
+    const tx = db.transaction(STORE_ACTIONS, 'readwrite');
+    const store = tx.objectStore(STORE_ACTIONS);
+
+    return new Promise((resolve, reject) => {
+        const request = store.put(action);
+        request.onsuccess = () => resolve(action);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function getAllActions() {
+    return getAllFromStore(STORE_ACTIONS);
+}
+
+async function getAction(id) {
+    if (!id) return null;
+    const tx = db.transaction(STORE_ACTIONS, 'readonly');
+    const store = tx.objectStore(STORE_ACTIONS);
+
+    return new Promise((resolve, reject) => {
+        const request = store.get(id);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// Open actions, most pressing first: high priority, then soonest due
+// (undated last), then oldest. Client-side like favorites/recent — dozens of rows.
+async function getOpenActions() {
+    const actions = await getAllActions();
+    return actions
+        .filter(a => a.status !== 'done')
+        .sort((a, b) => {
+            const priorityA = a.priority === 'high' ? 0 : 1;
+            const priorityB = b.priority === 'high' ? 0 : 1;
+            if (priorityA !== priorityB) return priorityA - priorityB;
+
+            const dueA = a.dueDate ? new Date(a.dueDate + 'T00:00:00').getTime() : Infinity;
+            const dueB = b.dueDate ? new Date(b.dueDate + 'T00:00:00').getTime() : Infinity;
+            if (dueA !== dueB) return dueA - dueB;
+
+            return a.createdAt - b.createdAt;
+        });
+}
+
+async function getDoneActions() {
+    const actions = await getAllActions();
+    return actions
+        .filter(a => a.status === 'done')
+        .sort((a, b) => (b.completedAt || 0) - (a.completedAt || 0));
+}
+
+async function setActionStatus(id, status) {
+    const tx = db.transaction(STORE_ACTIONS, 'readwrite');
+    const store = tx.objectStore(STORE_ACTIONS);
+
+    return new Promise((resolve, reject) => {
+        const getRequest = store.get(id);
+        getRequest.onsuccess = () => {
+            const action = getRequest.result;
+            if (!action) {
+                resolve(null);
+                return;
+            }
+            action.status = status;
+            action.completedAt = status === 'done' ? Date.now() : null;
+            const putRequest = store.put(action);
+            putRequest.onsuccess = () => resolve(action);
+            putRequest.onerror = () => reject(putRequest.error);
+        };
+        getRequest.onerror = () => reject(getRequest.error);
+    });
+}
+
+async function completeAction(id) {
+    return setActionStatus(id, 'done');
+}
+
+async function reopenAction(id) {
+    return setActionStatus(id, 'open');
+}
+
+async function deleteAction(id) {
+    const tx = db.transaction(STORE_ACTIONS, 'readwrite');
+    const store = tx.objectStore(STORE_ACTIONS);
+
+    return new Promise((resolve, reject) => {
+        const request = store.delete(id);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
 async function getAllFromStore(storeName) {
     const tx = db.transaction(storeName, 'readonly');
     const store = tx.objectStore(storeName);
@@ -468,7 +595,7 @@ async function getDBSize() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786881329-50bd9112', {
+            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786882224-b8735afb', {
                 scope: '/AMS-Instructions/'
             });
         } catch (error) {

@@ -100,6 +100,34 @@ deleteAudit = async function(id) {
     return result;
 };
 
+const originalMarkAuditConverted = markAuditConverted;
+markAuditConverted = async function(auditId, actionId) {
+    const result = await originalMarkAuditConverted(auditId, actionId);
+    await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
+const originalSaveActionDB = saveActionDB;
+saveActionDB = async function(action) {
+    const result = await originalSaveActionDB(action);
+    await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
+const originalSetActionStatus = setActionStatus;
+setActionStatus = async function(id, status) {
+    const result = await originalSetActionStatus(id, status);
+    await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
+const originalDeleteAction = deleteAction;
+deleteAction = async function(id) {
+    const result = await originalDeleteAction(id);
+    await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
 // Initialize on app ready
 document.addEventListener('DOMContentLoaded', async () => {
     // Wait for DB to be initialized
