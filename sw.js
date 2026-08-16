@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ams-instructions-v17';
-const APP_VERSION = '17.0';
+const CACHE_NAME = 'ams-instructions-v18';
+const APP_VERSION = '18.0';
 
 const urlsToCache = [
     '/AMS-Instructions/',
@@ -64,6 +64,15 @@ self.addEventListener('activate', (event) => {
 self.addEventListener('fetch', (event) => {
     // Skip non-GET requests
     if (event.request.method !== 'GET') {
+        return;
+    }
+
+    // The version probe from js/version-sync.js must always reach the network —
+    // answering it from cache would defeat the whole point of asking the server.
+    // It also carries a unique timestamp, so caching every probe would grow the
+    // cache without limit.
+    if (new URL(event.request.url).searchParams.has('vercheck')) {
+        event.respondWith(fetch(event.request));
         return;
     }
 

@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786880466-7a4dc293">
+    <meta name="cache-bust" content="1786881329-50bd9112">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=17.0&t=1786880466-7a4dc293">
+    <link rel="stylesheet" href="css/style.css?v=18.0&t=1786881329-50bd9112">
 </head>
 <body>
     <!-- Home Screen -->
@@ -27,7 +27,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v17.0</span>
+                <span class="version-badge" id="homeVersion">v18.0</span>
             </div>
             <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
         </header>
@@ -711,6 +711,17 @@
             <section class="version-log">
                 <h3>Version Log</h3>
                 <div class="version-entry">
+                    <p><strong>v18.0 (2026-08-16) - CATCHES ITS OWN OLD COPIES</strong></p>
+                    <p><strong>What's New:</strong></p>
+                    <ul>
+                        <li>🔄 On opening, the app now asks the website which version is actually published. If it finds it is running an older saved copy, it throws that copy away and reloads itself to the current one</li>
+                        <li>📲 It checks again each time you switch back to the app, so the Home Screen app picks up an update without needing to be force-quit</li>
+                        <li>🧹 When it does refresh itself, it now clears the saved files too — previously it only stopped the helper that serves them, which left the old files sitting there to be served again</li>
+                    </ul>
+                    <p><strong>Why:</strong> The old check could only spot Safari and the Home Screen app disagreeing with each other. A browser sitting on its own with an old saved copy had nothing to disagree with, so it went unnoticed — which is exactly what happened with Safari on the computer showing an older version than the phone.</p>
+                    <p><strong>Offline is unaffected:</strong> if the website can't be reached, the check quietly does nothing and the app carries on from its saved copy as usual.</p>
+                </div>
+                <div class="version-entry">
                     <p><strong>v17.0 (2026-08-16) - NAMES TO PICK FROM</strong></p>
                     <p><strong>What's New:</strong></p>
                     <ul>
@@ -918,12 +929,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=17.0&t=1786880466-7a4dc293"></script>
-    <script src="js/qr.js?v=17.0&t=1786880466-7a4dc293"></script>
-    <script src="js/version-sync.js?v=17.0&t=1786880466-7a4dc293"></script>
-    <script src="js/persistence.js?v=17.0&t=1786880466-7a4dc293"></script>
-    <script src="js/hybrid-storage.js?v=17.0&t=1786880466-7a4dc293"></script>
-    <script src="js/ui.js?v=17.0&t=1786880466-7a4dc293"></script>
-    <script src="js/app.js?v=17.0&t=1786880466-7a4dc293"></script>
+    <script src="js/db.js?v=18.0&t=1786881329-50bd9112"></script>
+    <script src="js/qr.js?v=18.0&t=1786881329-50bd9112"></script>
+    <script src="js/version-sync.js?v=18.0&t=1786881329-50bd9112"></script>
+    <script src="js/persistence.js?v=18.0&t=1786881329-50bd9112"></script>
+    <script src="js/hybrid-storage.js?v=18.0&t=1786881329-50bd9112"></script>
+    <script src="js/ui.js?v=18.0&t=1786881329-50bd9112"></script>
+    <script src="js/app.js?v=18.0&t=1786881329-50bd9112"></script>
 </body>
 </html>
