@@ -1748,6 +1748,14 @@ async function initializeApp() {
         showScreen('settingsScreen');
     });
 
+    document.getElementById('versionLogBtn').addEventListener('click', () => {
+        showScreen('versionLogScreen');
+    });
+
+    document.getElementById('backFromVersionLogBtn').addEventListener('click', () => {
+        showScreen('settingsScreen');
+    });
+
     document.getElementById('clearDataBtn').addEventListener('click', () => {
         showModal('Clear All Data', 'This will delete all instructions, audits and to-dos. Your People list is kept. The backup taken beforehand stays available under Settings → Data Safety, so this can still be undone from there.', async (confirmed) => {
             if (confirmed) {

@@ -1290,7 +1290,8 @@ body {
 }
 
 /* How It Works Screen */
-#howItWorksScreen {
+#howItWorksScreen,
+#versionLogScreen {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
 }

@@ -120,6 +120,20 @@
                 </div>
             </div>
 
+            <!-- Instructions — deliberately the first section: the steps are what
+                 you opened the instruction for. Everything else follows below. -->
+            <section class="instruction-section">
+                <div class="section-toggle">
+                    <h3>✓ Instructions</h3>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div class="section-content expanded">
+                    <ol id="instructionSteps" class="steps-list">
+                        <li><label><input type="checkbox"> Step 1</label></li>
+                    </ol>
+                </div>
+            </section>
+
             <!-- Quick Info Row -->
             <div class="quick-info-row">
                 <div class="info-item">
@@ -207,18 +221,6 @@
                 </div>
             </section>
 
-            <!-- Instructions -->
-            <section class="instruction-section">
-                <div class="section-toggle">
-                    <h3>✓ Instructions</h3>
-                    <span class="toggle-icon">▼</span>
-                </div>
-                <div class="section-content expanded">
-                    <ol id="instructionSteps" class="steps-list">
-                        <li><label><input type="checkbox"> Step 1</label></li>
-                    </ol>
-                </div>
-            </section>
 
             <!-- After Use -->
             <section class="instruction-section">
@@ -382,6 +384,7 @@
             <div class="settings-section">
                 <h3>About</h3>
                 <button id="howItWorksBtn" class="btn-secondary">How This Works</button>
+                <button id="versionLogBtn" class="btn-secondary">Version Log</button>
                 <p class="app-info">
                     <strong>Version:</strong> <span id="versionNumber">3.0</span><br>
                     <strong>Database:</strong> <span id="dbSize">calculating...</span>
@@ -830,6 +833,7 @@
                                         <li><strong>Share instructions:</strong> When viewing an instruction, tap the "📱 Share via SMS" button at the bottom to send a completion message via text with the task name and location.</li>
                     <li><strong>Favorites:</strong> Tap ★ on any instruction to save it for quick access from the home screen.</li>
                     <li><strong>People:</strong> Add names once under Settings → Manage People, then pick them as Owner or "Revised by" on any instruction instead of retyping — their phone/email shows up automatically in Revision History.</li>
+                    <li><strong>Version Log:</strong> What changed in each release of the app lives on its own screen — Settings → Version Log. This guide is about how to use the app; the Version Log is about what's new.</li>
                     <li><strong>Revision History:</strong> Open an instruction and scroll to the bottom, then tap "📋 Revision History" to expand it. It lists every saved change with the version number, date, and who made it. You choose that person from the "Revised by" dropdown while editing, and the entry appears here after you save. Marking an instruction Done and adding an audit do not create entries — this section is only for changes to the instruction itself.</li>
                     <li><strong>Audit Log:</strong> Open any instruction, tap "🔍 Audit Log" to expand it, then record who checked it, when, and what they found. The dot next to the heading tells you at a glance whether an instruction has been audited. If the person who did the audit isn't in the "Audited by" list, tap "+ Person" beside it to add them on the spot — you'll come back to the same instruction with them selected.</li>
                     <li><strong>Actions (to-dos):</strong> Anything that needs doing goes on the Actions list — reach it from Settings → View Actions, or from the red "🗒️ To-dos to tackle" card that appears on the Home screen whenever something is open. Each to-do can carry a <strong>priority</strong> (Normal or High), an optional <strong>due date</strong>, and a link to an instruction — or none at all, for a general to-do. Open ones are listed first (High before Normal, soonest due first); tap the box to tick one off and it drops into the "✓ Done" group at the bottom, where you can tick it back open if you were too hasty.</li>
@@ -855,240 +859,261 @@
                 </ul>
             </section>
 
-            <section class="version-log">
-                <h3>Version Log</h3>
-                <div class="version-entry">
-                    <p><strong>v20.0 (2026-08-16) - YOUR DATA STOPS DISAPPEARING</strong></p>
-                    <p><strong>What was wrong:</strong> The app kept a single safety copy of your data, and that copy could destroy itself. On starting up, the app adds Anna and Martin to the People list if it finds none — and every change immediately re-saves the safety copy as a snapshot of whatever is in the app <em>at that moment</em>. If the app started up empty, that first write saved an empty snapshot over the good safety copy, a split second before the rescue code went looking for it. The rescue then found nothing. That is how the instructions were lost.</p>
-                    <p><strong>What's Fixed:</strong></p>
-                    <ul>
-                        <li>🛡️ A safety copy holding instructions is <strong>never</strong> replaced by an empty one. An empty app means something went wrong — not that your data is gone</li>
-                        <li>⏪ The rescue now runs <strong>first</strong>, before anything is allowed to write, so it can't be beaten to the punch any more</li>
-                        <li>👯 <strong>Two</strong> safety copies are kept now — a recent one and one at least a day older — so a single bad copy is never all that's left</li>
-                        <li>🔧 A second "auto-backup and recover" safety net turned out to have never run once, on any version: it was triggered by a function nothing ever called, so its backup was never written and its recovery had nothing to read. Both now use the real backups</li>
-                        <li>🩺 A new <strong>Data Safety</strong> screen (in Settings) shows every copy the app can see, with dates and amounts, and restores any of them with one tap</li>
-                        <li>↩️ <strong>"Clear All Data" can now be undone</strong> — the copy from just before it is kept in the older slot</li>
-                    </ul>
-                    <p><strong>Backing up is properly usable now:</strong> "💾 Back Up Now" hands the file to the normal iPhone share sheet, so it goes to Files or iCloud in one tap. The old version opened a page of raw text to save by hand, which in the Home Screen app could be blocked or throw you out into Safari. A 💾 reminder card appears on the Home screen if it's been more than a week.</p>
-                    <p><strong>Also honest about this:</strong> the Home Screen app and Safari keep completely separate data and never shared it. The app no longer pretends otherwise — the Home Screen app on your phone is the real one, and backups are how you keep it safe.</p>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v19.0 (2026-08-16) - TO-DO LIST (ACTIONS)</strong></p>
-                    <p><strong>What's New:</strong></p>
-                    <ul>
-                        <li>🗒️ A proper <strong>to-do list</strong>. Settings → View Actions (or the new red card on the Home screen) opens Actions, where each to-do can have a <strong>priority</strong>, a <strong>due date</strong>, notes, and a link to an instruction — or no link at all, for something general</li>
-                        <li>📌 The Home screen shows a <strong>"To-dos to tackle"</strong> card whenever anything is open, counting how many there are and how many are high-priority. Nothing open, no card</li>
-                        <li>🔍 <strong>"→ Convert to Action" now works</strong> in the Audit Log. Tap it on any finding and a to-do opens ready-filled from what was found, still linked to that instruction. The entry then reads "✓ Already actioned", so one finding can't become two to-dos by accident</li>
-                        <li>✅ Tick a to-do off and it moves to a collapsible <strong>Done</strong> group at the bottom — tick it again to bring it back if you were too quick</li>
-                        <li>📋 Open to-dos are ordered by what's most pressing: high priority first, then soonest due</li>
-                    </ul>
-                    <p><strong>Your data:</strong> To-dos are stored on this device with everything else and are included in Export as JSON. "Clear All Data" removes them along with instructions and audits (the People list is still spared).</p>
-                    <p>This completes the People → Audit Log → Actions set of additions started in v11.0.</p>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v18.0 (2026-08-16) - CATCHES ITS OWN OLD COPIES</strong></p>
-                    <p><strong>What's New:</strong></p>
-                    <ul>
-                        <li>🔄 On opening, the app now asks the website which version is actually published. If it finds it is running an older saved copy, it throws that copy away and reloads itself to the current one</li>
-                        <li>📲 It checks again each time you switch back to the app, so the Home Screen app picks up an update without needing to be force-quit</li>
-                        <li>🧹 When it does refresh itself, it now clears the saved files too — previously it only stopped the helper that serves them, which left the old files sitting there to be served again</li>
-                    </ul>
-                    <p><strong>Why:</strong> The old check could only spot Safari and the Home Screen app disagreeing with each other. A browser sitting on its own with an old saved copy had nothing to disagree with, so it went unnoticed — which is exactly what happened with Safari on the computer showing an older version than the phone.</p>
-                    <p><strong>Offline is unaffected:</strong> if the website can't be reached, the check quietly does nothing and the app carries on from its saved copy as usual.</p>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v17.0 (2026-08-16) - NAMES TO PICK FROM</strong></p>
-                    <p><strong>What's New:</strong></p>
-                    <ul>
-                        <li>👥 Anna and Martin are added to the People list automatically, so "Audited by", "Owner" and "Revised by" have names to choose from right away</li>
-                        <li>➕ A "+ Person" button now sits next to the "Audited by" dropdown — add a new name without leaving the instruction, and you come straight back with that person already selected</li>
-                        <li>📝 Anything you had already typed into the Findings box is kept while you nip out to add the person</li>
-                    </ul>
-                    <p><strong>Note:</strong> The two starter names are added once only. Delete them and they stay deleted. To fill in their phone and email, or to add or remove anyone, go to Settings → Manage People.</p>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v16.0 (2026-08-16) - COLLAPSED SECTIONS FIXED</strong></p>
-                    <p><strong>What's Fixed:</strong></p>
-                    <ul>
-                        <li>🩹 On instructions with little content, every section — Description, Safety Warnings, Instructions, Revision History, Audit Log and the rest — was being squeezed down to a thin empty stripe with no heading, so there was nothing to tap and the page would not scroll</li>
-                        <li>📋 Revision History and the new Audit Log are visible and openable again, at the bottom of any instruction you have opened</li>
-                    </ul>
-                    <p><strong>Why it happened:</strong> The sections were allowed to shrink to nothing to make everything fit on one screen, instead of keeping their full height and letting the page scroll. They now always keep their proper height.</p>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v15.0 (2026-08-16) - AUDIT LOG</strong></p>
-                    <p><strong>What's New:</strong></p>
-                    <ul>
-                        <li>🔍 New "Audit Log" section on every instruction, just below Revision History — record who audited it, when, and what they found</li>
-                        <li>👤 The "Audited by" picker uses your People list and remembers who you picked last; their phone/email shows next to each entry</li>
-                        <li>📅 The date defaults to today, so a quick audit is three taps</li>
-                        <li>🗑️ Any audit entry can be deleted, with a confirmation first</li>
-                        <li>➡️ Each entry has a "Convert to Action" button, greyed out for now — it starts working in the next update, when the Actions to-do list arrives</li>
-                    </ul>
-                    <p><strong>Also fixed:</strong> The version-checker added in v14.0 could, in a rare repeating case, keep tacking extra text onto the web address until the page failed to load. It now replaces that text instead of adding to it, and stops after one attempt rather than retrying forever.</p>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v14.0 (2026-08-13) - FIXED THE AUTO VERSION-SYNC ITSELF</strong></p>
-                    <p><strong>Fixed:</strong> The background check that's supposed to notice when Safari and the Home Screen app fall out of sync and automatically fix it had never actually been running, on any version — Safari staying ahead of Home Screen after an update relied entirely on manually force-closing the Home Screen app.</p>
-                    <p><strong>Cause:</strong> That checker read the app's version number one script file too early, before that file had loaded — which silently crashed it before it ever started watching.</p>
-                    <p><strong>What changed:</strong></p>
-                    <ul>
-                        <li>🔄 The version-sync checker now actually runs, so future updates should reach the Home Screen app on their own within a few seconds of opening it, without a manual force-close</li>
-                    </ul>
-                    <p>If Safari and Home Screen still show different versions after this update, that one time still needs a manual force-close of the Home Screen app to pick up the fix — after that, it should self-correct going forward.</p>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v13.0 (2026-08-13) - PEOPLE & REVISION CONTACT INFO</strong></p>
-                    <p><strong>What's New:</strong></p>
-                    <ul>
-                        <li>👤 New "People" list in Settings — add names with phone/email/other handles once, reuse everywhere</li>
-                        <li>✏️ Owner and a new "Revised by" field on each instruction now pick from People instead of retyping a name — Revised by remembers the last person you picked for one-tap repeat edits</li>
-                        <li>📋 Revision History now shows the reviser's phone/email live next to each entry, looked up from People</li>
-                    </ul>
-                    <p><strong>Fixed:</strong> Editing an instruction (even just fixing a typo) was silently resetting its completion count and wiping its entire revision history down to a single "Created" entry.</p>
-                    <p><strong>Cause:</strong> Saving an edit built a brand-new instruction record from the form fields alone, without carrying forward the existing completion count, last-completed date, or revision history — so every save looked like a fresh instruction to the database.</p>
-                    <p><strong>What changed:</strong></p>
-                    <ul>
-                        <li>🛡️ Editing now preserves completion tracking and full revision history — only "Mark Done" and genuine edits add to it, exactly as intended</li>
-                    </ul>
-                    <p>Existing instructions are unaffected — Owner still shows correctly even before you've added matching People, and old revision history entries display exactly as before.</p>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v12.0 (2026-08-13) - RECENTLY VIEWED FIX & STALE VERSION INFO REMOVED</strong></p>
-                    <p><strong>Fixed:</strong> Tapping an instruction under "Recently Viewed" did nothing if you'd already viewed it once before — the tap was silently swallowed.</p>
-                    <p><strong>Cause:</strong> Re-viewing an instruction tried to re-insert its Recently Viewed entry as if it were brand new, which the database correctly refused (the entry already existed) — but that refusal happened before the instruction screen ever opened, so nothing visibly happened.</p>
-                    <p><strong>What changed:</strong></p>
-                    <ul>
-                        <li>🔁 Re-viewing an instruction now correctly refreshes its "Recently Viewed" position instead of failing silently</li>
-                        <li>🧹 Removed a leftover "Version Info" block on the Settings screen that had been frozen at v3.0 for months — the "How This Works" screen's Version Log (below) is the one place version history is now kept, so it can't go stale again</li>
-                    </ul>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v11.0 (2026-08-13) - FOUNDATION FOR PEOPLE, AUDITS & ACTIONS</strong></p>
-                    <p><strong>What changed:</strong> Behind-the-scenes groundwork only — nothing new to see yet. This prepares storage for three upcoming features: a shared People list (so revision history can show who made a change and how to reach them), an Audit Log per instruction, and Actions (to-dos) that audits can be converted into.</p>
-                    <ul>
-                        <li>🧱 Added storage space for People, Audits, and Actions (empty until the features that use them ship)</li>
-                        <li>💾 Export/Import and Clear Data now cover the new storage areas, so backups stay complete</li>
-                        <li>🔄 Simplified how data mirrors between Safari and the Home Screen app, making future updates less likely to fall out of sync</li>
-                    </ul>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v10.0 (2026-08-13) - REAL SCANNING & HOME SCREEN ICON FIX</strong></p>
-                    <p><strong>Fixed:</strong> The home screen icon looked wrong, and scanning a number never actually worked — it silently always failed and fell back to nothing.</p>
-                    <p><strong>Cause:</strong> The home screen icon was an SVG, which iOS does not support for home screen icons — it was silently falling back to an auto-generated screenshot instead. Separately, the number-scanning code was a leftover placeholder that always returned "not found," so scanning could never succeed.</p>
-                    <p><strong>What changed:</strong></p>
-                    <ul>
-                        <li>🎨 New organic, hand-drawn "#" icon shipped as a real PNG (not SVG) — this is what iOS actually uses for the home screen tile</li>
-                        <li>🔍 Scanning now uses real on-device text recognition (OCR) to read the 3-digit number from the camera</li>
-                        <li>📸 Added a "Capture & Scan" button for a reliable, deliberate scan instead of relying only on continuous auto-detection</li>
-                        <li>🧹 Removed the redundant "Seek the answer" caption below the scan box — status text now only appears when something is actually happening (loading, analyzing, or an error)</li>
-                        <li>⚠️ Scanning needs internet the first time to download the recognition engine (a few MB); manual number entry always works fully offline</li>
-                    </ul>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v8.0 (2026-08-12) - PINK THEME & ICON REFRESH</strong></p>
-                    <p><strong>What's New:</strong></p>
-                    <ul>
-                        <li>✨ Brand color updated to vibrant pink (#FF006E) throughout the app</li>
-                        <li>🎯 Custom pink SVG crosshair scanner icon (replaces generic emoji)</li>
-                        <li>📱 iOS-friendly export: tap Export → Share → Save to Files or Notes</li>
-                        <li>🔢 Simplified 3-digit number scanning (removed QR code library, faster load)</li>
-                    </ul>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v7.0 (2026-08-12) - COLOR POP & LOCATION SHARING</strong></p>
-                    <p><strong>What's New:</strong></p>
-                    <ul>
-                        <li>✨ Vibrant, poppy category colors that pop on dark & light modes</li>
-                        <li>📍 Location tracking: Where task is done + detailed location (drawer, cupboard, etc)</li>
-                        <li>📱 SMS sharing: Share completed tasks via text message with one tap</li>
-                        <li>💬 Share message includes task name, location, and completion count</li>
-                    </ul>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v6.0 (2026-08-12) - ACTIONS FEATURE</strong></p>
-                    <p><strong>What's New:</strong></p>
-                    <ul>
-                        <li>🗒️ Red Actions nav tab for to-do management</li>
-                        <li>☑️ Actions tied to items (permanent, with badge on item rows) or loose/General</li>
-                        <li>⚡ Priority + timing for actions</li>
-                        <li>🏠 Home screen nudge card showing open actions count</li>
-                    </ul>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v5.0 (2026-08-12) - FORCE-PACK WEATHER GEAR</strong></p>
-                    <p><strong>What's New:</strong></p>
-                    <ul>
-                        <li>🌧️ Per-trip force toggles for Rain, Cold, Heat, Wind, Snow</li>
-                        <li>❄️ Pulls in all weather-tagged items regardless of forecast/season</li>
-                        <li>🏔️ Example: force cold kit on summer high-altitude hike</li>
-                    </ul>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v3.0 (2026-08-12) - COLOR POP & LOCATION SHARING</strong></p>
-                    <p><strong>What's New:</strong></p>
-                    <ul>
-                        <li>✨ Vibrant, poppy category colors that pop on dark & light modes</li>
-                        <li>📍 Location tracking: Where task is done + detailed location (drawer, cupboard, etc)</li>
-                        <li>📱 SMS sharing: Share completed tasks via text message with one tap</li>
-                        <li>🧮 Icon & colour refresh: coloured weather glyphs, travel-emoji on packing-list headers</li>
-                        <li>🎨 Brand color: teal → vivid teal #0a92a6, Care → warm amber #dd7324</li>
-                    </ul>
-                </div>
+        </div>
+    </div>
 
-                <div class="version-entry">
-                    <p><strong>v4.0 (2026-08-12) - HOME SCREEN FIX</strong></p>
-                    <p><strong>Fixed:</strong> Saving the app to the iPhone home screen opened a 404 error page instead of the app.</p>
-                    <p><strong>Cause:</strong> The app is published in a sub-folder (<code>/AMS-Instructions/</code>), but every internal address pointed at the top level of the website instead. Opening the app in Safari worked because Safari already knew where you were; the home screen icon had only the (wrong) stored address to go on.</p>
-                    <p><strong>What changed:</strong></p>
-                    <ul>
-                        <li>App start address and boundary corrected to the <code>/AMS-Instructions/</code> sub-folder</li>
-                        <li>Both home screen quick actions (Scan, View All) re-pointed to the sub-folder</li>
-                        <li>Offline file list and offline fallback page corrected to the sub-folder, so offline use works from the home screen icon</li>
-                        <li>Offline storage version raised to v4 to clear the stale files from your phone</li>
-                    </ul>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v2.0 (2026-08-12, 18:00 UTC) - MAJOR UPDATE</strong></p>
-                    <p><strong>New in v2.0:</strong></p>
-                    <ul>
-                        <li>Comprehensive instruction properties: owner, status, frequency, time estimate, difficulty</li>
-                        <li>Multiple content sections with smart toggles (Warnings, Equipment, Preparations, After Use, Maintenance, Notes)</li>
-                        <li>Collapsible sections show preview indicators (empty/filled status)</li>
-                        <li>Photo storage (up to 5 per instruction, upload/delete)</li>
-                        <li>External links management</li>
-                        <li>Related instructions cross-linking</li>
-                        <li>Auto-tracked revision history with timestamps</li>
-                        <li>Auto-populated status based on completeness</li>
-                        <li>Checkboxes on instruction steps</li>
-                        <li>Completion counter & last completed tracking</li>
-                        <li>Tags/keywords for better search</li>
-                    </ul>
-                </div>
-                <div class="version-entry">
-                    <p><strong>v1.0 (2026-08-12, 14:30 UTC)</strong></p>
-                    <p><strong>Content:</strong></p>
-                    <ul>
-                        <li>3-digit number scanning with fallback manual number entry</li>
-                        <li>Create, edit, and delete instructions</li>
-                        <li>Organize instructions by 6 categories (General, Bedroom, Driving, Water, Maintenance, Safety)</li>
-                        <li>Favorites system for quick access to frequently-used instructions</li>
-                        <li>Recently viewed history</li>
-                        <li>Search and browse all instructions</li>
-                        <li>Import/export data as JSON for backup</li>
-                        <li>Offline-first with service worker caching</li>
-                    </ul>
-                    <p><strong>Main Benefits:</strong></p>
-                    <ul>
-                        <li>📱 Mobile-first design optimized for RV use</li>
-                        <li>🌙 Dark mode for bedside/night use</li>
-                        <li>📡 Fully offline capable — no internet required</li>
-                        <li>🎯 Quick scanning instead of manual lookups</li>
-                        <li>⭐ Favorites for instant access to critical tasks</li>
-                        <li>💾 Local data storage — privacy-first</li>
-                    </ul>
-                </div>
-            </section>
+    <!-- Version Log Screen -->
+    <div id="versionLogScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromVersionLogBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2>Version Log</h2>
+            <div></div>
+        </header>
+
+        <div class="how-it-works-content">
+                <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v21.0 (2026-08-16) - STEPS FIRST, AND A TIDIER GUIDE</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>✓ <strong>The Instructions now come first.</strong> Open any instruction and step one, step two, step three are right there at the top — no scrolling past Description, Warnings and Equipment to reach the thing you actually opened it for</li>
+                            <li>📋 Owner, Frequency, Time, Completed and Last Done have moved down below the steps. Still there, just no longer in the way</li>
+                            <li>📖 <strong>The Version Log has its own screen.</strong> It used to sit at the bottom of "How This Works", which mixed a how-to guide with a change history. Settings → About now offers both separately: <strong>How This Works</strong> for the guide, <strong>Version Log</strong> for what changed in each release</li>
+                        </ul>
+                        <p><strong>Note on safety warnings:</strong> ⚠️ Safety Warnings now sit below the steps rather than above them. If you'd rather they stayed above — so they're read before starting — that's a one-line change, just say.</p>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v20.0 (2026-08-16) - YOUR DATA STOPS DISAPPEARING</strong></p>
+                        <p><strong>What was wrong:</strong> The app kept a single safety copy of your data, and that copy could destroy itself. On starting up, the app adds Anna and Martin to the People list if it finds none — and every change immediately re-saves the safety copy as a snapshot of whatever is in the app <em>at that moment</em>. If the app started up empty, that first write saved an empty snapshot over the good safety copy, a split second before the rescue code went looking for it. The rescue then found nothing. That is how the instructions were lost.</p>
+                        <p><strong>What's Fixed:</strong></p>
+                        <ul>
+                            <li>🛡️ A safety copy holding instructions is <strong>never</strong> replaced by an empty one. An empty app means something went wrong — not that your data is gone</li>
+                            <li>⏪ The rescue now runs <strong>first</strong>, before anything is allowed to write, so it can't be beaten to the punch any more</li>
+                            <li>👯 <strong>Two</strong> safety copies are kept now — a recent one and one at least a day older — so a single bad copy is never all that's left</li>
+                            <li>🔧 A second "auto-backup and recover" safety net turned out to have never run once, on any version: it was triggered by a function nothing ever called, so its backup was never written and its recovery had nothing to read. Both now use the real backups</li>
+                            <li>🩺 A new <strong>Data Safety</strong> screen (in Settings) shows every copy the app can see, with dates and amounts, and restores any of them with one tap</li>
+                            <li>↩️ <strong>"Clear All Data" can now be undone</strong> — the copy from just before it is kept in the older slot</li>
+                        </ul>
+                        <p><strong>Backing up is properly usable now:</strong> "💾 Back Up Now" hands the file to the normal iPhone share sheet, so it goes to Files or iCloud in one tap. The old version opened a page of raw text to save by hand, which in the Home Screen app could be blocked or throw you out into Safari. A 💾 reminder card appears on the Home screen if it's been more than a week.</p>
+                        <p><strong>Also honest about this:</strong> the Home Screen app and Safari keep completely separate data and never shared it. The app no longer pretends otherwise — the Home Screen app on your phone is the real one, and backups are how you keep it safe.</p>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v19.0 (2026-08-16) - TO-DO LIST (ACTIONS)</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🗒️ A proper <strong>to-do list</strong>. Settings → View Actions (or the new red card on the Home screen) opens Actions, where each to-do can have a <strong>priority</strong>, a <strong>due date</strong>, notes, and a link to an instruction — or no link at all, for something general</li>
+                            <li>📌 The Home screen shows a <strong>"To-dos to tackle"</strong> card whenever anything is open, counting how many there are and how many are high-priority. Nothing open, no card</li>
+                            <li>🔍 <strong>"→ Convert to Action" now works</strong> in the Audit Log. Tap it on any finding and a to-do opens ready-filled from what was found, still linked to that instruction. The entry then reads "✓ Already actioned", so one finding can't become two to-dos by accident</li>
+                            <li>✅ Tick a to-do off and it moves to a collapsible <strong>Done</strong> group at the bottom — tick it again to bring it back if you were too quick</li>
+                            <li>📋 Open to-dos are ordered by what's most pressing: high priority first, then soonest due</li>
+                        </ul>
+                        <p><strong>Your data:</strong> To-dos are stored on this device with everything else and are included in Export as JSON. "Clear All Data" removes them along with instructions and audits (the People list is still spared).</p>
+                        <p>This completes the People → Audit Log → Actions set of additions started in v11.0.</p>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v18.0 (2026-08-16) - CATCHES ITS OWN OLD COPIES</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🔄 On opening, the app now asks the website which version is actually published. If it finds it is running an older saved copy, it throws that copy away and reloads itself to the current one</li>
+                            <li>📲 It checks again each time you switch back to the app, so the Home Screen app picks up an update without needing to be force-quit</li>
+                            <li>🧹 When it does refresh itself, it now clears the saved files too — previously it only stopped the helper that serves them, which left the old files sitting there to be served again</li>
+                        </ul>
+                        <p><strong>Why:</strong> The old check could only spot Safari and the Home Screen app disagreeing with each other. A browser sitting on its own with an old saved copy had nothing to disagree with, so it went unnoticed — which is exactly what happened with Safari on the computer showing an older version than the phone.</p>
+                        <p><strong>Offline is unaffected:</strong> if the website can't be reached, the check quietly does nothing and the app carries on from its saved copy as usual.</p>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v17.0 (2026-08-16) - NAMES TO PICK FROM</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>👥 Anna and Martin are added to the People list automatically, so "Audited by", "Owner" and "Revised by" have names to choose from right away</li>
+                            <li>➕ A "+ Person" button now sits next to the "Audited by" dropdown — add a new name without leaving the instruction, and you come straight back with that person already selected</li>
+                            <li>📝 Anything you had already typed into the Findings box is kept while you nip out to add the person</li>
+                        </ul>
+                        <p><strong>Note:</strong> The two starter names are added once only. Delete them and they stay deleted. To fill in their phone and email, or to add or remove anyone, go to Settings → Manage People.</p>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v16.0 (2026-08-16) - COLLAPSED SECTIONS FIXED</strong></p>
+                        <p><strong>What's Fixed:</strong></p>
+                        <ul>
+                            <li>🩹 On instructions with little content, every section — Description, Safety Warnings, Instructions, Revision History, Audit Log and the rest — was being squeezed down to a thin empty stripe with no heading, so there was nothing to tap and the page would not scroll</li>
+                            <li>📋 Revision History and the new Audit Log are visible and openable again, at the bottom of any instruction you have opened</li>
+                        </ul>
+                        <p><strong>Why it happened:</strong> The sections were allowed to shrink to nothing to make everything fit on one screen, instead of keeping their full height and letting the page scroll. They now always keep their proper height.</p>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v15.0 (2026-08-16) - AUDIT LOG</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🔍 New "Audit Log" section on every instruction, just below Revision History — record who audited it, when, and what they found</li>
+                            <li>👤 The "Audited by" picker uses your People list and remembers who you picked last; their phone/email shows next to each entry</li>
+                            <li>📅 The date defaults to today, so a quick audit is three taps</li>
+                            <li>🗑️ Any audit entry can be deleted, with a confirmation first</li>
+                            <li>➡️ Each entry has a "Convert to Action" button, greyed out for now — it starts working in the next update, when the Actions to-do list arrives</li>
+                        </ul>
+                        <p><strong>Also fixed:</strong> The version-checker added in v14.0 could, in a rare repeating case, keep tacking extra text onto the web address until the page failed to load. It now replaces that text instead of adding to it, and stops after one attempt rather than retrying forever.</p>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v14.0 (2026-08-13) - FIXED THE AUTO VERSION-SYNC ITSELF</strong></p>
+                        <p><strong>Fixed:</strong> The background check that's supposed to notice when Safari and the Home Screen app fall out of sync and automatically fix it had never actually been running, on any version — Safari staying ahead of Home Screen after an update relied entirely on manually force-closing the Home Screen app.</p>
+                        <p><strong>Cause:</strong> That checker read the app's version number one script file too early, before that file had loaded — which silently crashed it before it ever started watching.</p>
+                        <p><strong>What changed:</strong></p>
+                        <ul>
+                            <li>🔄 The version-sync checker now actually runs, so future updates should reach the Home Screen app on their own within a few seconds of opening it, without a manual force-close</li>
+                        </ul>
+                        <p>If Safari and Home Screen still show different versions after this update, that one time still needs a manual force-close of the Home Screen app to pick up the fix — after that, it should self-correct going forward.</p>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v13.0 (2026-08-13) - PEOPLE & REVISION CONTACT INFO</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>👤 New "People" list in Settings — add names with phone/email/other handles once, reuse everywhere</li>
+                            <li>✏️ Owner and a new "Revised by" field on each instruction now pick from People instead of retyping a name — Revised by remembers the last person you picked for one-tap repeat edits</li>
+                            <li>📋 Revision History now shows the reviser's phone/email live next to each entry, looked up from People</li>
+                        </ul>
+                        <p><strong>Fixed:</strong> Editing an instruction (even just fixing a typo) was silently resetting its completion count and wiping its entire revision history down to a single "Created" entry.</p>
+                        <p><strong>Cause:</strong> Saving an edit built a brand-new instruction record from the form fields alone, without carrying forward the existing completion count, last-completed date, or revision history — so every save looked like a fresh instruction to the database.</p>
+                        <p><strong>What changed:</strong></p>
+                        <ul>
+                            <li>🛡️ Editing now preserves completion tracking and full revision history — only "Mark Done" and genuine edits add to it, exactly as intended</li>
+                        </ul>
+                        <p>Existing instructions are unaffected — Owner still shows correctly even before you've added matching People, and old revision history entries display exactly as before.</p>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v12.0 (2026-08-13) - RECENTLY VIEWED FIX & STALE VERSION INFO REMOVED</strong></p>
+                        <p><strong>Fixed:</strong> Tapping an instruction under "Recently Viewed" did nothing if you'd already viewed it once before — the tap was silently swallowed.</p>
+                        <p><strong>Cause:</strong> Re-viewing an instruction tried to re-insert its Recently Viewed entry as if it were brand new, which the database correctly refused (the entry already existed) — but that refusal happened before the instruction screen ever opened, so nothing visibly happened.</p>
+                        <p><strong>What changed:</strong></p>
+                        <ul>
+                            <li>🔁 Re-viewing an instruction now correctly refreshes its "Recently Viewed" position instead of failing silently</li>
+                            <li>🧹 Removed a leftover "Version Info" block on the Settings screen that had been frozen at v3.0 for months — the "How This Works" screen's Version Log (below) is the one place version history is now kept, so it can't go stale again</li>
+                        </ul>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v11.0 (2026-08-13) - FOUNDATION FOR PEOPLE, AUDITS & ACTIONS</strong></p>
+                        <p><strong>What changed:</strong> Behind-the-scenes groundwork only — nothing new to see yet. This prepares storage for three upcoming features: a shared People list (so revision history can show who made a change and how to reach them), an Audit Log per instruction, and Actions (to-dos) that audits can be converted into.</p>
+                        <ul>
+                            <li>🧱 Added storage space for People, Audits, and Actions (empty until the features that use them ship)</li>
+                            <li>💾 Export/Import and Clear Data now cover the new storage areas, so backups stay complete</li>
+                            <li>🔄 Simplified how data mirrors between Safari and the Home Screen app, making future updates less likely to fall out of sync</li>
+                        </ul>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v10.0 (2026-08-13) - REAL SCANNING & HOME SCREEN ICON FIX</strong></p>
+                        <p><strong>Fixed:</strong> The home screen icon looked wrong, and scanning a number never actually worked — it silently always failed and fell back to nothing.</p>
+                        <p><strong>Cause:</strong> The home screen icon was an SVG, which iOS does not support for home screen icons — it was silently falling back to an auto-generated screenshot instead. Separately, the number-scanning code was a leftover placeholder that always returned "not found," so scanning could never succeed.</p>
+                        <p><strong>What changed:</strong></p>
+                        <ul>
+                            <li>🎨 New organic, hand-drawn "#" icon shipped as a real PNG (not SVG) — this is what iOS actually uses for the home screen tile</li>
+                            <li>🔍 Scanning now uses real on-device text recognition (OCR) to read the 3-digit number from the camera</li>
+                            <li>📸 Added a "Capture & Scan" button for a reliable, deliberate scan instead of relying only on continuous auto-detection</li>
+                            <li>🧹 Removed the redundant "Seek the answer" caption below the scan box — status text now only appears when something is actually happening (loading, analyzing, or an error)</li>
+                            <li>⚠️ Scanning needs internet the first time to download the recognition engine (a few MB); manual number entry always works fully offline</li>
+                        </ul>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v8.0 (2026-08-12) - PINK THEME & ICON REFRESH</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>✨ Brand color updated to vibrant pink (#FF006E) throughout the app</li>
+                            <li>🎯 Custom pink SVG crosshair scanner icon (replaces generic emoji)</li>
+                            <li>📱 iOS-friendly export: tap Export → Share → Save to Files or Notes</li>
+                            <li>🔢 Simplified 3-digit number scanning (removed QR code library, faster load)</li>
+                        </ul>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v7.0 (2026-08-12) - COLOR POP & LOCATION SHARING</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>✨ Vibrant, poppy category colors that pop on dark & light modes</li>
+                            <li>📍 Location tracking: Where task is done + detailed location (drawer, cupboard, etc)</li>
+                            <li>📱 SMS sharing: Share completed tasks via text message with one tap</li>
+                            <li>💬 Share message includes task name, location, and completion count</li>
+                        </ul>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v6.0 (2026-08-12) - ACTIONS FEATURE</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🗒️ Red Actions nav tab for to-do management</li>
+                            <li>☑️ Actions tied to items (permanent, with badge on item rows) or loose/General</li>
+                            <li>⚡ Priority + timing for actions</li>
+                            <li>🏠 Home screen nudge card showing open actions count</li>
+                        </ul>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v5.0 (2026-08-12) - FORCE-PACK WEATHER GEAR</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🌧️ Per-trip force toggles for Rain, Cold, Heat, Wind, Snow</li>
+                            <li>❄️ Pulls in all weather-tagged items regardless of forecast/season</li>
+                            <li>🏔️ Example: force cold kit on summer high-altitude hike</li>
+                        </ul>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v3.0 (2026-08-12) - COLOR POP & LOCATION SHARING</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>✨ Vibrant, poppy category colors that pop on dark & light modes</li>
+                            <li>📍 Location tracking: Where task is done + detailed location (drawer, cupboard, etc)</li>
+                            <li>📱 SMS sharing: Share completed tasks via text message with one tap</li>
+                            <li>🧮 Icon & colour refresh: coloured weather glyphs, travel-emoji on packing-list headers</li>
+                            <li>🎨 Brand color: teal → vivid teal #0a92a6, Care → warm amber #dd7324</li>
+                        </ul>
+                    </div>
+
+                    <div class="version-entry">
+                        <p><strong>v4.0 (2026-08-12) - HOME SCREEN FIX</strong></p>
+                        <p><strong>Fixed:</strong> Saving the app to the iPhone home screen opened a 404 error page instead of the app.</p>
+                        <p><strong>Cause:</strong> The app is published in a sub-folder (<code>/AMS-Instructions/</code>), but every internal address pointed at the top level of the website instead. Opening the app in Safari worked because Safari already knew where you were; the home screen icon had only the (wrong) stored address to go on.</p>
+                        <p><strong>What changed:</strong></p>
+                        <ul>
+                            <li>App start address and boundary corrected to the <code>/AMS-Instructions/</code> sub-folder</li>
+                            <li>Both home screen quick actions (Scan, View All) re-pointed to the sub-folder</li>
+                            <li>Offline file list and offline fallback page corrected to the sub-folder, so offline use works from the home screen icon</li>
+                            <li>Offline storage version raised to v4 to clear the stale files from your phone</li>
+                        </ul>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v2.0 (2026-08-12, 18:00 UTC) - MAJOR UPDATE</strong></p>
+                        <p><strong>New in v2.0:</strong></p>
+                        <ul>
+                            <li>Comprehensive instruction properties: owner, status, frequency, time estimate, difficulty</li>
+                            <li>Multiple content sections with smart toggles (Warnings, Equipment, Preparations, After Use, Maintenance, Notes)</li>
+                            <li>Collapsible sections show preview indicators (empty/filled status)</li>
+                            <li>Photo storage (up to 5 per instruction, upload/delete)</li>
+                            <li>External links management</li>
+                            <li>Related instructions cross-linking</li>
+                            <li>Auto-tracked revision history with timestamps</li>
+                            <li>Auto-populated status based on completeness</li>
+                            <li>Checkboxes on instruction steps</li>
+                            <li>Completion counter & last completed tracking</li>
+                            <li>Tags/keywords for better search</li>
+                        </ul>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v1.0 (2026-08-12, 14:30 UTC)</strong></p>
+                        <p><strong>Content:</strong></p>
+                        <ul>
+                            <li>3-digit number scanning with fallback manual number entry</li>
+                            <li>Create, edit, and delete instructions</li>
+                            <li>Organize instructions by 6 categories (General, Bedroom, Driving, Water, Maintenance, Safety)</li>
+                            <li>Favorites system for quick access to frequently-used instructions</li>
+                            <li>Recently viewed history</li>
+                            <li>Search and browse all instructions</li>
+                            <li>Import/export data as JSON for backup</li>
+                            <li>Offline-first with service worker caching</li>
+                        </ul>
+                        <p><strong>Main Benefits:</strong></p>
+                        <ul>
+                            <li>📱 Mobile-first design optimized for RV use</li>
+                            <li>🌙 Dark mode for bedside/night use</li>
+                            <li>📡 Fully offline capable — no internet required</li>
+                            <li>🎯 Quick scanning instead of manual lookups</li>
+                            <li>⭐ Favorites for instant access to critical tasks</li>
+                            <li>💾 Local data storage — privacy-first</li>
+                        </ul>
+                    </div>
+                </section>
         </div>
     </div>
 
