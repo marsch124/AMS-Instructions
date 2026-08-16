@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786887992-41ea1a74">
+    <meta name="cache-bust" content="1786892832-77bbb8d8">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,15 +19,57 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=23.0&t=1786887992-41ea1a74">
+    <link rel="stylesheet" href="css/style.css?v=24.0&t=1786892832-77bbb8d8">
 </head>
 <body>
+    <!--
+      Hand-drawn icon set. Every path is deliberately a little off-true — walls
+      that lean, a tick that overshoots its box, knobs that aren't quite round —
+      so they read as drawn rather than downloaded. Single stroke, no fill, and
+      stroke="currentColor" so each one picks up the colour of whatever it sits in.
+    -->
+    <svg class="icon-sprite" aria-hidden="true" focusable="false">
+        <symbol id="icon-home" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M2.9 11.1C5.9 8.5 8.8 6 11.8 3.6c3.1 2.3 6.2 4.8 9.3 7.3"/>
+            <path d="M5 9.7c-.2 3.5-.1 6.9.1 10.2 4.4.3 9.2.2 13.8 0 .2-3.4.3-6.8.1-10.4"/>
+            <path d="M9.6 19.9c-.1-2.4 0-4 .2-5.5 1.5-.3 2.9-.2 4.4 0 .2 1.7.2 3.6.1 5.5"/>
+        </symbol>
+
+        <symbol id="icon-instructions" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.7 4.6c-.3 5-.2 10 0 14.9 5 .3 9.8.2 14.7 0 .3-5 .2-10 0-14.9-4.9-.3-9.8-.3-14.7 0Z"/>
+            <path d="M7.6 8.9h.01M7.6 12.4h.01M7.6 15.8h.01"/>
+            <path d="M10.4 8.8c1.9-.2 3.7-.1 5.5.1"/>
+            <path d="M10.4 12.3c1.9-.2 3.7-.1 5.5.1"/>
+            <path d="M10.4 15.7c1.2-.2 2.4-.1 3.6.1"/>
+        </symbol>
+
+        <symbol id="icon-actions" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.4 7.9c-2.4-.1-4.8 0-7.1.2-.3 3.4-.2 6.8 0 10.1 4 .3 8 .2 12 0 .1-1.6.2-3.1.2-4.7"/>
+            <path d="M8.4 12.9c1 1.1 1.9 2.2 2.8 3.5 2.3-4 5.2-8 8.5-11.4"/>
+        </symbol>
+
+        <symbol id="icon-settings" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.2 7.3c.9-.1 1.8-.2 2.7-.2M11.5 7.1c2.8-.1 5.5 0 8.3.2"/>
+            <path d="M7.05 7.2C7 6 7.95 5.05 9.2 5.05c1.3 0 2.15.95 2.15 2.15 0 1.3-.95 2.2-2.15 2.15C7.9 9.3 7.05 8.4 7.05 7.2Z"/>
+            <path d="M4.2 12.1c2.7-.2 5.4-.2 8.5-.2M17.3 11.9c.9 0 1.8.1 2.7.2"/>
+            <path d="M12.85 12c-.05-1.25.9-2.15 2.15-2.15 1.3 0 2.15.95 2.15 2.15 0 1.3-.95 2.2-2.15 2.15-1.3-.05-2.15-.95-2.15-2.15Z"/>
+            <path d="M4.2 16.9c.5-.1 1-.1 1.5-.1M10.5 16.7c3.1-.1 6.2 0 9.3.2"/>
+            <path d="M6.05 16.8C6 15.55 6.95 14.65 8.2 14.65c1.3 0 2.15.95 2.15 2.15 0 1.3-.95 2.2-2.15 2.15-1.3-.05-2.15-.95-2.15-2.15Z"/>
+        </symbol>
+
+        <symbol id="icon-backup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.8 4.7c-.3 4.9-.2 9.8 0 14.7 4.8.3 9.6.2 14.4 0 .2-4 .2-7.9 0-11.9-1-1.1-2-2.1-3.1-3-3.8-.2-7.6-.2-11.3.2Z"/>
+            <path d="M8.6 4.8c-.1 1.4-.1 2.8 0 4.2 2.1.2 4.2.2 6.3 0 .1-1.4.1-2.8 0-4.2"/>
+            <path d="M8.2 19.3c-.1-1.9-.1-3.7 0-5.5 2.5-.2 5-.2 7.5 0 .1 1.8.1 3.6 0 5.5"/>
+        </symbol>
+    </svg>
+
     <!-- Home Screen -->
     <div id="homeScreen" class="screen active">
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v23.0</span>
+                <span class="version-badge" id="homeVersion">v24.0</span>
             </div>
         </header>
 
@@ -38,7 +80,7 @@
             </button>
 
             <button id="backupNudge" class="nudge-card backup" style="display: none;">
-                <span class="nudge-icon">💾</span>
+                <svg class="nudge-glyph" aria-hidden="true"><use href="#icon-backup"/></svg>
                 <span class="nudge-text">
                     <span class="nudge-title">Back up your instructions</span>
                     <span class="nudge-detail" id="backupNudgeDetail">Never backed up</span>
@@ -46,8 +88,8 @@
                 <span class="nudge-chevron">›</span>
             </button>
 
-            <button id="actionsNudge" class="nudge-card" style="display: none;">
-                <span class="nudge-icon">🗒️</span>
+            <button id="actionsNudge" class="nudge-card actions" style="display: none;">
+                <svg class="nudge-glyph" aria-hidden="true"><use href="#icon-actions"/></svg>
                 <span class="nudge-text">
                     <span class="nudge-title">To-dos to tackle</span>
                     <span class="nudge-detail" id="actionsNudgeDetail">0 open</span>
@@ -808,14 +850,15 @@
 
             <section>
                 <h3>Getting Around</h3>
-                <p>Four tabs along the bottom of the screen, always one tap away:</p>
+                <p>Four tabs along the bottom of the screen, always one tap away — <strong>and each one has its own colour</strong>. The whole screen takes that colour, so you can tell where you are out of the corner of your eye, before you have read a single word:</p>
                 <ul>
-                    <li><strong>🏠 Home</strong> — the big Scan button, your Favourites and Recently Viewed, plus any nudge cards (to-dos waiting, backup overdue).</li>
-                    <li><strong>📋 Instructions</strong> — every instruction you have, searchable. Tap ＋ in the top right to write a new one.</li>
-                    <li><strong>🗒️ Actions</strong> — your to-do list. A pink number on the tab tells you how many are still open, so you can see it without going there.</li>
-                    <li><strong>⚙️ Settings</strong> — the housekeeping: People, backups and Data Safety, this guide, and the Version Log.</li>
+                    <li><strong>Home — pink.</strong> The big Scan button, your Favourites and Recently Viewed, plus any nudge cards (to-dos waiting, backup overdue).</li>
+                    <li><strong>Instructions — green.</strong> Every instruction you have, searchable. Tap ＋ in the top right to write a new one.</li>
+                    <li><strong>Actions — red.</strong> Your to-do list. A red number on the tab tells you how many are still open, so you can see it without going there.</li>
+                    <li><strong>Settings — blue.</strong> The housekeeping: People, backups and Data Safety, this guide, and the Version Log.</li>
                 </ul>
-                <p>Anything you open <em>from</em> a tab — an instruction, an editor, the People list — hides the tabs and gives you a ← Back button instead, so you always know whether you are on a main screen or inside something.</p>
+                <p>Anything you open <em>from</em> a tab — an instruction, an editor, the People list — hides the tabs and gives you a ← Back button instead, so you always know whether you are on a main screen or inside something. It <em>keeps</em> the colour of the tab you came from, so a green instruction screen is one you reached from Instructions and Back will take you there.</p>
+                <p><strong>Two colours mean the same thing everywhere, whatever tab you are on:</strong> a <strong>filled</strong> button is the thing you came to do (Save, Back Up Now), and an <strong>outlined red</strong> button is a destructive one (Delete, Clear All Data). If a button is outlined in red, read it twice.</p>
             </section>
 
             <section>
@@ -838,7 +881,7 @@
                     <li><strong>Version Log:</strong> What changed in each release of the app lives on its own screen — Settings → Version Log. This guide is about how to use the app; the Version Log is about what's new.</li>
                     <li><strong>Revision History:</strong> Open an instruction and scroll to the bottom, then tap "📋 Revision History" to expand it. It lists every saved change with the version number, date, and who made it. You choose that person from the "Revised by" dropdown while editing, and the entry appears here after you save. Marking an instruction Done and adding an audit do not create entries — this section is only for changes to the instruction itself.</li>
                     <li><strong>Audit Log:</strong> Open any instruction, tap "🔍 Audit Log" to expand it, then record who checked it, when, and what they found. The dot next to the heading tells you at a glance whether an instruction has been audited. If the person who did the audit isn't in the "Audited by" list, tap "+ Person" beside it to add them on the spot — you'll come back to the same instruction with them selected.</li>
-                    <li><strong>Actions (to-dos):</strong> Anything that needs doing goes on the Actions list — the 🗒️ Actions tab at the bottom, or the red "🗒️ To-dos to tackle" card that appears on the Home screen whenever something is open. The pink number on the Actions tab counts what is still open, so an unfinished job stays visible from wherever you are. Tap ＋ in the top right to add one. Each to-do can carry a <strong>priority</strong> (Normal or High), an optional <strong>due date</strong>, and a link to an instruction — or none at all, for a general to-do. Open ones are listed first (High before Normal, soonest due first); tap the box to tick one off and it drops into the "✓ Done" group at the bottom, where you can tick it back open if you were too hasty.</li>
+                    <li><strong>Actions (to-dos):</strong> Anything that needs doing goes on the Actions list — the 🗒️ Actions tab at the bottom, or the red "🗒️ To-dos to tackle" card that appears on the Home screen whenever something is open. The red number on the Actions tab counts what is still open, so an unfinished job stays visible from wherever you are. Tap ＋ in the top right to add one. Each to-do can carry a <strong>priority</strong> (Normal or High), an optional <strong>due date</strong>, and a link to an instruction — or none at all, for a general to-do. Open ones are listed first (High before Normal, soonest due first); tap the box to tick one off and it drops into the "✓ Done" group at the bottom, where you can tick it back open if you were too hasty.</li>
                     <li><strong>Turning an audit finding into a to-do:</strong> In an instruction's Audit Log, tap "→ Convert to Action" on any entry. The finding's first line becomes the to-do's title, the full text goes into its notes, and it stays linked to that instruction — so you can jump back to it from the Actions list by tapping the #number. Once converted, the audit entry shows "✓ Already actioned" instead of the button, so the same finding can't quietly become two separate to-dos. Backing out without saving leaves the audit entry untouched, ready to convert later.</li>
                     <li><strong>Scanning a number:</strong> Point the box at the printed number and hold steady, or tap "📸 Capture & Scan" for a deliberate one-shot read. Good, even lighting helps a lot.</li>
                     <li><strong>Manual entry:</strong> Can't scan the number card? Just enter the 3-digit number manually in the number input field — always fast and 100% reliable.</li>
@@ -874,6 +917,19 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v24.0 (2026-08-16) - A COLOUR PER TAB, AND HAND-DRAWN ICONS</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🎨 <strong>Every tab has its own colour, and the whole screen wears it</strong> — Home pink, Instructions green, Actions red, Settings blue. Buttons, numbers, headings and highlights all follow, so you feel which tab you are in before you read anything</li>
+                            <li>🧵 <strong>Detail screens keep the colour they came from.</strong> An instruction opened from the green Instructions tab stays green all the way down — the colour is a thread back to where you started</li>
+                            <li>✏️ <strong>All-new hand-drawn icons</strong> — a leaning little house, a dotted list card, a tick that overshoots its box, three tilted sliders, a chunky floppy disk. Drawn for this app, not picked off a shelf, and each one takes its tab's colour</li>
+                            <li>🔴 <strong>Every tab colours its icon, even the ones you are not on</strong> (just dimmed), so the colour-to-tab association is always in view</li>
+                            <li>⚠️ <strong>Delete buttons are now outlined instead of filled.</strong> Once Actions turned red, a filled red "Save" sat right on top of a filled red "Delete" — one mis-tap apart. Now the rule holds everywhere: filled = the thing you came to do, outlined red = the destructive one</li>
+                            <li>🌗 <strong>Deeper shades in light mode.</strong> The bright jade, red and blue sing against the dark teal but wash out on white, so light mode uses richer versions of the same three colours</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v23.0 (2026-08-16) - TABS AT THE BOTTOM</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1144,17 +1200,17 @@
     <!-- Tab Bar — only shown on the four root screens (see TAB_SCREENS in ui.js) -->
     <nav id="tabbar" class="tabbar" hidden>
         <button class="tab" data-tab="home" aria-label="Home">
-            <span class="tab-icon">🏠</span><span class="tab-label">Home</span>
+            <svg class="tab-glyph" aria-hidden="true"><use href="#icon-home"/></svg><span class="tab-label">Home</span>
         </button>
         <button class="tab" data-tab="instructions" aria-label="Instructions">
-            <span class="tab-icon">📋</span><span class="tab-label">Instructions</span>
+            <svg class="tab-glyph" aria-hidden="true"><use href="#icon-instructions"/></svg><span class="tab-label">Instructions</span>
         </button>
         <button class="tab" data-tab="actions" aria-label="Actions">
-            <span class="tab-icon">🗒️</span><span class="tab-label">Actions</span>
+            <svg class="tab-glyph" aria-hidden="true"><use href="#icon-actions"/></svg><span class="tab-label">Actions</span>
             <span class="tab-badge" id="tabActionsBadge" hidden>0</span>
         </button>
         <button class="tab" data-tab="settings" aria-label="Settings">
-            <span class="tab-icon">⚙️</span><span class="tab-label">Settings</span>
+            <svg class="tab-glyph" aria-hidden="true"><use href="#icon-settings"/></svg><span class="tab-label">Settings</span>
         </button>
     </nav>
 
@@ -1170,12 +1226,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=23.0&t=1786887992-41ea1a74"></script>
-    <script src="js/qr.js?v=23.0&t=1786887992-41ea1a74"></script>
-    <script src="js/version-sync.js?v=23.0&t=1786887992-41ea1a74"></script>
-    <script src="js/persistence.js?v=23.0&t=1786887992-41ea1a74"></script>
-    <script src="js/hybrid-storage.js?v=23.0&t=1786887992-41ea1a74"></script>
-    <script src="js/ui.js?v=23.0&t=1786887992-41ea1a74"></script>
-    <script src="js/app.js?v=23.0&t=1786887992-41ea1a74"></script>
+    <script src="js/db.js?v=24.0&t=1786892832-77bbb8d8"></script>
+    <script src="js/qr.js?v=24.0&t=1786892832-77bbb8d8"></script>
+    <script src="js/version-sync.js?v=24.0&t=1786892832-77bbb8d8"></script>
+    <script src="js/persistence.js?v=24.0&t=1786892832-77bbb8d8"></script>
+    <script src="js/hybrid-storage.js?v=24.0&t=1786892832-77bbb8d8"></script>
+    <script src="js/ui.js?v=24.0&t=1786892832-77bbb8d8"></script>
+    <script src="js/app.js?v=24.0&t=1786892832-77bbb8d8"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const APP_VERSION = '23.0';
+const APP_VERSION = '24.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -76,6 +76,13 @@ function updateTabBar(screenId) {
 
     const activeTab = TAB_SCREENS[screenId];
     tabbar.hidden = !activeTab;
+
+    // Paint the whole app in the current tab's colour. Only root screens set it:
+    // a detail screen keeps the colour of the tab it was opened from, so the
+    // accent stays a thread back to where you came from.
+    if (activeTab) {
+        document.body.dataset.tab = activeTab;
+    }
 
     tabbar.querySelectorAll('.tab').forEach(tab => {
         const isActive = tab.dataset.tab === activeTab;
