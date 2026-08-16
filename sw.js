@@ -1,5 +1,5 @@
-const CACHE_NAME = 'ams-instructions-v22';
-const APP_VERSION = '22.0';
+const CACHE_NAME = 'ams-instructions-v23';
+const APP_VERSION = '23.0';
 
 const urlsToCache = [
     '/AMS-Instructions/',

@@ -1,4 +1,4 @@
-const APP_VERSION = '22.0';
+const APP_VERSION = '23.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -50,6 +50,15 @@ function shareViaSMS(instruction) {
     }
 }
 
+// The four root screens that carry the bottom tab bar. Every other screen is a
+// detail screen: the bar hides and its own ← Back button does the navigating.
+const TAB_SCREENS = {
+    homeScreen: 'home',
+    instructionsListScreen: 'instructions',
+    actionsScreen: 'actions',
+    settingsScreen: 'settings'
+};
+
 function showScreen(screenId) {
     document.querySelectorAll('.screen').forEach(screen => {
         screen.classList.remove('active');
@@ -57,6 +66,64 @@ function showScreen(screenId) {
     const screen = document.getElementById(screenId);
     if (screen) {
         screen.classList.add('active');
+    }
+    updateTabBar(screenId);
+}
+
+function updateTabBar(screenId) {
+    const tabbar = document.getElementById('tabbar');
+    if (!tabbar) return;
+
+    const activeTab = TAB_SCREENS[screenId];
+    tabbar.hidden = !activeTab;
+
+    tabbar.querySelectorAll('.tab').forEach(tab => {
+        const isActive = tab.dataset.tab === activeTab;
+        tab.classList.toggle('active', isActive);
+        if (isActive) {
+            tab.setAttribute('aria-current', 'page');
+        } else {
+            tab.removeAttribute('aria-current');
+        }
+    });
+}
+
+async function openTab(tabName) {
+    switch (tabName) {
+        case 'home':
+            await renderHomeScreen();
+            showScreen('homeScreen');
+            break;
+        case 'instructions':
+            // Clear the box too, or it claims to be filtering a list that isn't
+            document.getElementById('searchInput').value = '';
+            await renderInstructionsList();
+            showScreen('instructionsListScreen');
+            break;
+        case 'actions':
+            await renderActionsList();
+            showScreen('actionsScreen');
+            break;
+        case 'settings':
+            prepareBackup();   // so "Back Up Now" can open the share sheet without waiting
+            showScreen('settingsScreen');
+            break;
+    }
+}
+
+// Open-to-do count on the Actions tab. Kept in step with the Home nudge card so
+// the two can never disagree about how much is outstanding.
+async function updateActionsBadge() {
+    const badge = document.getElementById('tabActionsBadge');
+    if (!badge) return;
+
+    try {
+        const open = (await getOpenActions()).length;
+        badge.textContent = open > 99 ? '99+' : open;
+        badge.hidden = open === 0;
+    } catch (error) {
+        console.warn('[Tabs] Could not count open actions:', error);
+        badge.hidden = true;
     }
 }
 
@@ -1014,6 +1081,8 @@ async function renderActionsList() {
         doneList.innerHTML = '';
         done.forEach(action => doneList.appendChild(createActionRow(action, true)));
     }
+
+    await updateActionsBadge();
 }
 
 async function populateActionInstructionSelect(selectedId) {
@@ -1162,6 +1231,8 @@ async function renderActionsNudge() {
     const nudge = document.getElementById('actionsNudge');
     const detail = document.getElementById('actionsNudgeDetail');
     const open = await getOpenActions();
+
+    await updateActionsBadge();
 
     if (open.length === 0) {
         nudge.style.display = 'none';
@@ -1515,14 +1586,10 @@ async function initializeApp() {
     document.getElementById('versionNumber').textContent = APP_VERSION;
     document.getElementById('homeVersion').textContent = 'v' + APP_VERSION;
 
-    // Navigation
-    document.getElementById('settingsBtn').addEventListener('click', () => {
-        prepareBackup();   // so "Back Up Now" can open the share sheet without waiting
-        showScreen('settingsScreen');
-    });
-    document.getElementById('backFromSettingsBtn').addEventListener('click', async () => {
-        await renderHomeScreen();
-        showScreen('homeScreen');
+    // Bottom tab bar — the app's main navigation. Each tab re-renders its screen
+    // on the way in, so a tab never shows a stale list.
+    document.querySelectorAll('#tabbar .tab').forEach(tab => {
+        tab.addEventListener('click', () => openTab(tab.dataset.tab));
     });
 
     document.getElementById('scanBtn').addEventListener('click', async () => {
@@ -1595,13 +1662,8 @@ async function initializeApp() {
 
     document.getElementById('addAuditBtn').addEventListener('click', handleAddAudit);
 
-    // Settings
-    document.getElementById('allInstructionsBtn').addEventListener('click', async () => {
-        await renderInstructionsList();
-        showScreen('instructionsListScreen');
-    });
-
-    document.getElementById('addInstructionBtn').addEventListener('click', async () => {
+    // Instructions tab
+    document.getElementById('newInstructionBtn').addEventListener('click', async () => {
         resetEditor();
         await populateOwnerAndRevisedBySelects();
         showScreen('editorScreen');
@@ -1643,38 +1705,12 @@ async function initializeApp() {
     document.getElementById('savePersonBtn').addEventListener('click', handleSavePerson);
 
     // Actions
-    document.getElementById('actionsNudge').addEventListener('click', async () => {
-        window.actionsReturn = 'home';
-        await renderActionsList();
-        showScreen('actionsScreen');
-    });
-
-    document.getElementById('viewActionsBtn').addEventListener('click', async () => {
-        window.actionsReturn = 'settings';
-        await renderActionsList();
-        showScreen('actionsScreen');
-    });
-
-    document.getElementById('addActionBtn').addEventListener('click', async () => {
-        window.actionsReturn = 'settings';
-        await resetActionEditor();
-        window.actionEditorReturn = 'actions';
-        showScreen('actionEditorScreen');
-    });
+    document.getElementById('actionsNudge').addEventListener('click', () => openTab('actions'));
 
     document.getElementById('newActionBtn').addEventListener('click', async () => {
         await resetActionEditor();
         window.actionEditorReturn = 'actions';
         showScreen('actionEditorScreen');
-    });
-
-    document.getElementById('backFromActionsBtn').addEventListener('click', async () => {
-        if (window.actionsReturn === 'settings') {
-            showScreen('settingsScreen');
-            return;
-        }
-        await renderHomeScreen();
-        showScreen('homeScreen');
     });
 
     document.getElementById('backFromActionEditorBtn').addEventListener('click', async () => {
@@ -1691,10 +1727,6 @@ async function initializeApp() {
     });
 
     document.getElementById('saveActionBtn').addEventListener('click', handleSaveAction);
-
-    document.getElementById('backFromListBtn').addEventListener('click', () => {
-        showScreen('settingsScreen');
-    });
 
     document.getElementById('searchInput').addEventListener('input', (e) => {
         renderInstructionsList(e.target.value);

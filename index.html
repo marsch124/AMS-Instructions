@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786887260-fcb7edb5">
+    <meta name="cache-bust" content="1786887992-41ea1a74">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=22.0&t=1786887260-fcb7edb5">
+    <link rel="stylesheet" href="css/style.css?v=23.0&t=1786887992-41ea1a74">
 </head>
 <body>
     <!-- Home Screen -->
@@ -27,9 +27,8 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v22.0</span>
+                <span class="version-badge" id="homeVersion">v23.0</span>
             </div>
-            <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
         </header>
 
         <div class="home-content">
@@ -352,28 +351,16 @@
     <!-- Settings Screen -->
     <div id="settingsScreen" class="screen">
         <header class="app-header">
-            <button id="backFromSettingsBtn" class="back-btn" aria-label="Back">← Back</button>
+            <div class="header-spacer"></div>
             <h2>Settings</h2>
-            <div></div>
+            <div class="header-spacer"></div>
         </header>
 
         <div class="settings-content">
             <div class="settings-section">
-                <h3>Instructions</h3>
-                <button id="allInstructionsBtn" class="btn-secondary">View All Instructions</button>
-                <button id="addInstructionBtn" class="btn-secondary">+ Add New Instruction</button>
-            </div>
-
-            <div class="settings-section">
                 <h3>People</h3>
                 <button id="managePeopleBtn" class="btn-secondary">Manage People</button>
                 <button id="addPersonBtn" class="btn-secondary">+ Add Person</button>
-            </div>
-
-            <div class="settings-section">
-                <h3>Actions</h3>
-                <button id="viewActionsBtn" class="btn-secondary">View Actions</button>
-                <button id="addActionBtn" class="btn-secondary">+ Add Action</button>
             </div>
 
             <div class="settings-section">
@@ -403,9 +390,9 @@
     <!-- Instructions List Screen -->
     <div id="instructionsListScreen" class="screen">
         <header class="app-header">
-            <button id="backFromListBtn" class="back-btn" aria-label="Back">← Back</button>
+            <div class="header-spacer"></div>
             <h2>All Instructions</h2>
-            <div></div>
+            <button id="newInstructionBtn" class="icon-btn" aria-label="New instruction">＋</button>
         </header>
 
         <div class="list-content">
@@ -509,7 +496,7 @@
     <!-- Actions List Screen -->
     <div id="actionsScreen" class="screen">
         <header class="app-header">
-            <button id="backFromActionsBtn" class="back-btn" aria-label="Back">← Back</button>
+            <div class="header-spacer"></div>
             <h2>Actions</h2>
             <button id="newActionBtn" class="icon-btn" aria-label="New action">＋</button>
         </header>
@@ -820,13 +807,25 @@
             </section>
 
             <section>
+                <h3>Getting Around</h3>
+                <p>Four tabs along the bottom of the screen, always one tap away:</p>
+                <ul>
+                    <li><strong>🏠 Home</strong> — the big Scan button, your Favourites and Recently Viewed, plus any nudge cards (to-dos waiting, backup overdue).</li>
+                    <li><strong>📋 Instructions</strong> — every instruction you have, searchable. Tap ＋ in the top right to write a new one.</li>
+                    <li><strong>🗒️ Actions</strong> — your to-do list. A pink number on the tab tells you how many are still open, so you can see it without going there.</li>
+                    <li><strong>⚙️ Settings</strong> — the housekeeping: People, backups and Data Safety, this guide, and the Version Log.</li>
+                </ul>
+                <p>Anything you open <em>from</em> a tab — an instruction, an editor, the People list — hides the tabs and gives you a ← Back button instead, so you always know whether you are on a main screen or inside something.</p>
+            </section>
+
+            <section>
                 <h3>Getting Started</h3>
                 <ol>
-                    <li><strong>Create instructions:</strong> Go to Settings → Add New Instruction. Assign a 3-digit number (001-999) to each task. Fill in title, steps, warnings, and any other details you need.</li>
+                    <li><strong>Create instructions:</strong> Open the 📋 Instructions tab and tap ＋ in the top right. Assign a 3-digit number (001-999) to each task. Fill in title, steps, warnings, and any other details you need.</li>
                     <li><strong>Print the numbers:</strong> Create cards or labels with 3-digit numbers (001-999). You can print just the digits, or use a free QR generator (qr-server.com) to embed the number for backup scanning.</li>
                     <li><strong>Attach to locations:</strong> Use Duro tape or adhesive to attach number cards to the relevant locations in your RV (bed, steering wheel, water tank, etc).</li>
-                    <li><strong>Scan & follow:</strong> Tap the pink scanner icon (🔢 crosshair) or go to Settings → View All Instructions, enter the 3-digit number, and follow the step-by-step guide.</li>
-                    <li><strong>Backup your data:</strong> Go to Settings → Export as JSON to create a backup. On iPhone, tap Share → Save to Files or Notes to keep your instructions safe.</li>
+                    <li><strong>Scan & follow:</strong> Tap the pink scanner icon (🔢 crosshair) on the Home tab, or browse the 📋 Instructions tab, enter the 3-digit number, and follow the step-by-step guide.</li>
+                    <li><strong>Backup your data:</strong> Go to Settings → 💾 Back Up Now to create a backup. On iPhone, tap Share → Save to Files or Notes to keep your instructions safe.</li>
                 </ol>
             </section>
 
@@ -839,7 +838,7 @@
                     <li><strong>Version Log:</strong> What changed in each release of the app lives on its own screen — Settings → Version Log. This guide is about how to use the app; the Version Log is about what's new.</li>
                     <li><strong>Revision History:</strong> Open an instruction and scroll to the bottom, then tap "📋 Revision History" to expand it. It lists every saved change with the version number, date, and who made it. You choose that person from the "Revised by" dropdown while editing, and the entry appears here after you save. Marking an instruction Done and adding an audit do not create entries — this section is only for changes to the instruction itself.</li>
                     <li><strong>Audit Log:</strong> Open any instruction, tap "🔍 Audit Log" to expand it, then record who checked it, when, and what they found. The dot next to the heading tells you at a glance whether an instruction has been audited. If the person who did the audit isn't in the "Audited by" list, tap "+ Person" beside it to add them on the spot — you'll come back to the same instruction with them selected.</li>
-                    <li><strong>Actions (to-dos):</strong> Anything that needs doing goes on the Actions list — reach it from Settings → View Actions, or from the red "🗒️ To-dos to tackle" card that appears on the Home screen whenever something is open. Each to-do can carry a <strong>priority</strong> (Normal or High), an optional <strong>due date</strong>, and a link to an instruction — or none at all, for a general to-do. Open ones are listed first (High before Normal, soonest due first); tap the box to tick one off and it drops into the "✓ Done" group at the bottom, where you can tick it back open if you were too hasty.</li>
+                    <li><strong>Actions (to-dos):</strong> Anything that needs doing goes on the Actions list — the 🗒️ Actions tab at the bottom, or the red "🗒️ To-dos to tackle" card that appears on the Home screen whenever something is open. The pink number on the Actions tab counts what is still open, so an unfinished job stays visible from wherever you are. Tap ＋ in the top right to add one. Each to-do can carry a <strong>priority</strong> (Normal or High), an optional <strong>due date</strong>, and a link to an instruction — or none at all, for a general to-do. Open ones are listed first (High before Normal, soonest due first); tap the box to tick one off and it drops into the "✓ Done" group at the bottom, where you can tick it back open if you were too hasty.</li>
                     <li><strong>Turning an audit finding into a to-do:</strong> In an instruction's Audit Log, tap "→ Convert to Action" on any entry. The finding's first line becomes the to-do's title, the full text goes into its notes, and it stays linked to that instruction — so you can jump back to it from the Actions list by tapping the #number. Once converted, the audit entry shows "✓ Already actioned" instead of the button, so the same finding can't quietly become two separate to-dos. Backing out without saving leaves the audit entry untouched, ready to convert later.</li>
                     <li><strong>Scanning a number:</strong> Point the box at the printed number and hold steady, or tap "📸 Capture & Scan" for a deliberate one-shot read. Good, even lighting helps a lot.</li>
                     <li><strong>Manual entry:</strong> Can't scan the number card? Just enter the 3-digit number manually in the number input field — always fast and 100% reliable.</li>
@@ -848,7 +847,7 @@
                     <li><strong>One phone, one copy:</strong> The app keeps its data on the device it's running on — the Home Screen app and Safari each have their own separate copy and do not share. Treat the Home Screen app on your phone as the real one, and use backups rather than expecting the two to match.</li>
                     <li><strong>Offline:</strong> Your instructions are stored locally and everything works offline, including manual number entry. Camera scanning needs internet the very first time to download its recognition engine (a few MB) — after that it works normally.</li>
                     <li><strong>Dark mode:</strong> The app defaults to dark mode, perfect for bedside use at night. Custom pink accents help tasks pop even in low light.</li>
-                    <li><strong>Search:</strong> Use Settings → View All Instructions to search or browse all your tasks by category.</li>
+                    <li><strong>Search:</strong> Use the 📋 Instructions tab to search or browse all your tasks by category. The search box clears itself each time you come back to the tab, so you never land on a filtered list wondering where everything went.</li>
                 </ul>
             </section>
 
@@ -875,6 +874,19 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v23.0 (2026-08-16) - TABS AT THE BOTTOM</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🧭 <strong>A tab bar along the bottom</strong> — 🏠 Home · 📋 Instructions · 🗒️ Actions · ⚙️ Settings. Everything you use daily is now one tap away instead of three</li>
+                            <li>📋 <strong>Instructions and Actions are no longer buried in Settings.</strong> They were never settings — they are the content of the app, and they now have their own tabs</li>
+                            <li>🔢 <strong>The Actions tab carries a pink count</strong> of how many to-dos are still open, so an unfinished job is visible from any screen — not just from the Home card</li>
+                            <li>➕ <strong>New instructions start from the Instructions tab</strong> — tap ＋ in the top right, the same as the Actions tab already worked</li>
+                            <li>⚙️ <strong>Settings is housekeeping only now:</strong> People, Data &amp; backups, How This Works, Version Log. The gear button in the Home header is gone — the Settings tab replaces it</li>
+                            <li>↩️ <strong>Detail screens still behave as before.</strong> Open an instruction, an editor or the People list and the tabs step out of the way, leaving the ← Back button in charge</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v22.0 (2026-08-16) - WARNINGS BEFORE STEPS</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1129,6 +1141,23 @@
         </div>
     </div>
 
+    <!-- Tab Bar — only shown on the four root screens (see TAB_SCREENS in ui.js) -->
+    <nav id="tabbar" class="tabbar" hidden>
+        <button class="tab" data-tab="home" aria-label="Home">
+            <span class="tab-icon">🏠</span><span class="tab-label">Home</span>
+        </button>
+        <button class="tab" data-tab="instructions" aria-label="Instructions">
+            <span class="tab-icon">📋</span><span class="tab-label">Instructions</span>
+        </button>
+        <button class="tab" data-tab="actions" aria-label="Actions">
+            <span class="tab-icon">🗒️</span><span class="tab-label">Actions</span>
+            <span class="tab-badge" id="tabActionsBadge" hidden>0</span>
+        </button>
+        <button class="tab" data-tab="settings" aria-label="Settings">
+            <span class="tab-icon">⚙️</span><span class="tab-label">Settings</span>
+        </button>
+    </nav>
+
     <!-- Modals -->
     <div id="modal" class="modal" hidden>
         <div class="modal-content">
@@ -1141,12 +1170,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=22.0&t=1786887260-fcb7edb5"></script>
-    <script src="js/qr.js?v=22.0&t=1786887260-fcb7edb5"></script>
-    <script src="js/version-sync.js?v=22.0&t=1786887260-fcb7edb5"></script>
-    <script src="js/persistence.js?v=22.0&t=1786887260-fcb7edb5"></script>
-    <script src="js/hybrid-storage.js?v=22.0&t=1786887260-fcb7edb5"></script>
-    <script src="js/ui.js?v=22.0&t=1786887260-fcb7edb5"></script>
-    <script src="js/app.js?v=22.0&t=1786887260-fcb7edb5"></script>
+    <script src="js/db.js?v=23.0&t=1786887992-41ea1a74"></script>
+    <script src="js/qr.js?v=23.0&t=1786887992-41ea1a74"></script>
+    <script src="js/version-sync.js?v=23.0&t=1786887992-41ea1a74"></script>
+    <script src="js/persistence.js?v=23.0&t=1786887992-41ea1a74"></script>
+    <script src="js/hybrid-storage.js?v=23.0&t=1786887992-41ea1a74"></script>
+    <script src="js/ui.js?v=23.0&t=1786887992-41ea1a74"></script>
+    <script src="js/app.js?v=23.0&t=1786887992-41ea1a74"></script>
 </body>
 </html>
