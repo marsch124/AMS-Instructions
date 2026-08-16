@@ -700,6 +700,40 @@ body {
     margin-top: 0.125rem;
 }
 
+.audit-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.audit-findings {
+    margin-top: 0.25rem;
+    color: var(--color-text);
+    white-space: pre-wrap;
+}
+
+.audit-entry-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.audit-entry-actions .btn-secondary,
+.audit-entry-actions .btn-danger {
+    padding: 0.4rem 0.75rem;
+    font-size: 0.85rem;
+    min-height: 36px;
+}
+
+.audit-converted-badge {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    align-self: center;
+}
+
 .history-changes {
     margin-top: 0.25rem;
     color: var(--color-text);

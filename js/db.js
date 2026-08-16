@@ -307,6 +307,46 @@ async function deletePerson(id) {
     });
 }
 
+async function saveAuditDB(audit) {
+    if (!audit.id) {
+        audit.id = 'audit_' + Date.now();
+    }
+    if (!audit.createdAt) {
+        audit.createdAt = Date.now();
+    }
+
+    const tx = db.transaction(STORE_AUDITS, 'readwrite');
+    const store = tx.objectStore(STORE_AUDITS);
+
+    return new Promise((resolve, reject) => {
+        const request = store.put(audit);
+        request.onsuccess = () => resolve(audit);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function getAllAudits() {
+    return getAllFromStore(STORE_AUDITS);
+}
+
+async function getAuditsForInstruction(instructionId) {
+    const audits = await getAllAudits();
+    return audits
+        .filter(a => a.instructionId === instructionId)
+        .sort((a, b) => b.timestamp - a.timestamp);
+}
+
+async function deleteAudit(id) {
+    const tx = db.transaction(STORE_AUDITS, 'readwrite');
+    const store = tx.objectStore(STORE_AUDITS);
+
+    return new Promise((resolve, reject) => {
+        const request = store.delete(id);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
 async function getAllFromStore(storeName) {
     const tx = db.transaction(storeName, 'readonly');
     const store = tx.objectStore(storeName);
@@ -409,7 +449,7 @@ async function getDBSize() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786615962-724b9ce8', {
+            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786878252-7f354eea', {
                 scope: '/AMS-Instructions/'
             });
         } catch (error) {

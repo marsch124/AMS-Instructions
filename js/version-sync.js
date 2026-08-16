@@ -1,5 +1,6 @@
 // Version Sync - Detects cache mismatches and forces reload
 const VERSION_SYNC_KEY = 'ams_current_version';
+const RELOAD_GUARD_KEY = 'ams_version_reloaded';
 const CHECK_INTERVAL = 5000; // Check every 5 seconds
 
 class VersionSync {
@@ -13,12 +14,18 @@ class VersionSync {
         // must not be read until the 'load' event, once every script has run.
         this.currentVersion = APP_VERSION;
 
+        // Arriving already in sync means any earlier corrective reload worked,
+        // so clear the guard and let a future genuine mismatch trigger again.
+        if (localStorage.getItem(VERSION_SYNC_KEY) === this.currentVersion) {
+            sessionStorage.removeItem(RELOAD_GUARD_KEY);
+        }
+
         // Store version on load
         this.updateStoredVersion();
-        
+
         // Check for version mismatch periodically
         setInterval(() => this.checkForMismatch(), CHECK_INTERVAL);
-        
+
         console.log(`[VersionSync] Initialized with v${this.currentVersion}`);
     }
 
@@ -35,24 +42,39 @@ class VersionSync {
         }
     }
 
+    // Builds the reload URL by REPLACING any existing cache-bust param.
+    // Appending instead would grow the URL on every cycle (?t=1?t=2?t=3…) until
+    // the server rejects it with 414 and the app looks broken.
+    reloadUrl() {
+        const url = new URL(window.location.href);
+        url.searchParams.set('t', Date.now());
+        return url.toString();
+    }
+
     forceReload() {
+        // Guard against a reload loop: if the mismatch somehow survives a reload
+        // (e.g. a cache that keeps serving stale files), stop rather than spin.
+        // Showing a stale version beats leaving the app stuck on an error page.
+        if (sessionStorage.getItem(RELOAD_GUARD_KEY)) {
+            console.warn('[VersionSync] Version mismatch persists after reload — not reloading again.');
+            return;
+        }
+        sessionStorage.setItem(RELOAD_GUARD_KEY, '1');
+
         console.log('[VersionSync] Forcing reload to sync version...');
-        
-        // Clear service worker and reload
+
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations().then((registrations) => {
                 registrations.forEach((reg) => {
                     reg.unregister();
                 });
-                
-                // Hard reload after unregistering
+
                 setTimeout(() => {
-                    window.location.href = window.location.href + '?t=' + Date.now();
+                    window.location.replace(this.reloadUrl());
                 }, 500);
             });
         } else {
-            // Fallback: just hard reload
-            window.location.href = window.location.href + '?t=' + Date.now();
+            window.location.replace(this.reloadUrl());
         }
     }
 }

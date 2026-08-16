@@ -1,4 +1,4 @@
-const APP_VERSION = '14.0';
+const APP_VERSION = '15.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -237,6 +237,10 @@ function displayInstruction(instruction) {
             });
         }
     });
+
+    // Audit log
+    renderAuditLog(instruction);
+    populateAuditForm();
 
     // Favorites
     isFavorited(instruction.id).then(favorited => {
@@ -709,6 +713,153 @@ async function handleSavePerson() {
     showScreen('peopleScreen');
 }
 
+async function renderAuditLog(instruction) {
+    const list = document.getElementById('instructionAudits');
+    const audits = await getAuditsForInstruction(instruction.id);
+
+    updatePreviewIndicator('auditPreview', audits.length > 0);
+
+    if (audits.length === 0) {
+        list.innerHTML = '<p class="empty-state">No audits recorded yet.</p>';
+        return;
+    }
+
+    list.innerHTML = '';
+    audits.forEach(audit => {
+        const div = document.createElement('div');
+        div.className = 'history-entry';
+
+        const date = new Date(audit.timestamp).toLocaleDateString();
+        const auditorName = audit.auditorName || 'Unknown';
+
+        const dateEl = document.createElement('div');
+        dateEl.className = 'history-date';
+        dateEl.textContent = date;
+
+        const authorEl = document.createElement('div');
+        authorEl.className = 'history-author';
+        authorEl.textContent = 'Audited by: ' + auditorName;
+
+        const contactEl = document.createElement('div');
+        contactEl.className = 'history-contact';
+
+        const findingsEl = document.createElement('div');
+        findingsEl.className = 'audit-findings';
+        findingsEl.textContent = audit.findings || '--';
+
+        div.appendChild(dateEl);
+        div.appendChild(authorEl);
+        div.appendChild(contactEl);
+        div.appendChild(findingsEl);
+
+        const actions = document.createElement('div');
+        actions.className = 'audit-entry-actions';
+
+        if (audit.convertedToActionId) {
+            const badge = document.createElement('span');
+            badge.className = 'audit-converted-badge';
+            badge.textContent = '✓ Already actioned';
+            actions.appendChild(badge);
+        } else {
+            const convertBtn = document.createElement('button');
+            convertBtn.className = 'btn-secondary';
+            convertBtn.textContent = '→ Convert to Action';
+            // Wired up in Phase 3; inert for now so the placement can be reviewed.
+            convertBtn.disabled = true;
+            convertBtn.title = 'Coming soon';
+            actions.appendChild(convertBtn);
+        }
+
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'btn-danger';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', () => {
+            showModal('Delete Audit Entry', `Delete this audit entry by ${auditorName}?`, async (confirmed) => {
+                if (confirmed) {
+                    await deleteAudit(audit.id);
+                    await renderAuditLog(instruction);
+                }
+            });
+        });
+        actions.appendChild(deleteBtn);
+
+        div.appendChild(actions);
+        list.appendChild(div);
+
+        if (audit.auditorId) {
+            getPerson(audit.auditorId).then(person => {
+                if (!person) return;
+                const parts = [];
+                if (person.phone) parts.push('📞 ' + person.phone);
+                if (person.email) parts.push('✉️ ' + person.email);
+                contactEl.textContent = parts.join('  ·  ');
+            });
+        }
+    });
+}
+
+async function populateAuditForm() {
+    const people = await getAllPeople();
+    people.sort((a, b) => a.name.localeCompare(b.name));
+
+    const select = document.getElementById('auditAuditor');
+    select.innerHTML = '<option value="">-- Select --</option>';
+    people.forEach(person => {
+        const opt = document.createElement('option');
+        opt.value = person.id;
+        opt.textContent = person.name;
+        select.appendChild(opt);
+    });
+
+    const lastUsed = localStorage.getItem(LAST_REVISED_BY_KEY);
+    select.value = people.some(p => p.id === lastUsed) ? lastUsed : '';
+
+    // Default the date to today, in the yyyy-mm-dd form the date input expects
+    const now = new Date();
+    const localToday = new Date(now.getTime() - now.getTimezoneOffset() * 60000)
+        .toISOString().slice(0, 10);
+    document.getElementById('auditDate').value = localToday;
+
+    document.getElementById('auditFindings').value = '';
+}
+
+async function handleAddAudit() {
+    if (!currentInstruction) return;
+
+    const auditorSelect = document.getElementById('auditAuditor');
+    const auditorId = auditorSelect.value || null;
+    const auditorName = auditorId ? auditorSelect.options[auditorSelect.selectedIndex].textContent : '';
+    const dateValue = document.getElementById('auditDate').value;
+    const findings = document.getElementById('auditFindings').value.trim();
+
+    if (!auditorId) {
+        alert('Please select who did the audit');
+        return;
+    }
+    if (!findings) {
+        alert('Please enter what the audit found');
+        return;
+    }
+
+    // Parse as local midnight rather than UTC, so the date shown back matches what was picked
+    const timestamp = dateValue ? new Date(dateValue + 'T00:00:00').getTime() : Date.now();
+
+    await saveAuditDB({
+        instructionId: currentInstruction.id,
+        instructionNumber: currentInstruction.number,
+        auditorId,
+        auditorName,
+        timestamp,
+        findings,
+        convertedToActionId: null
+    });
+
+    localStorage.setItem(LAST_REVISED_BY_KEY, auditorId);
+
+    await renderAuditLog(currentInstruction);
+    await populateAuditForm();
+}
+
 // Photo upload
 document.addEventListener('DOMContentLoaded', () => {
     const photoInput = document.getElementById('editorPhotoInput');
@@ -829,6 +980,8 @@ async function initializeApp() {
     });
 
     document.getElementById('favoriteBtn').addEventListener('click', toggleFavorite);
+
+    document.getElementById('addAuditBtn').addEventListener('click', handleAddAudit);
 
     // Settings
     document.getElementById('allInstructionsBtn').addEventListener('click', async () => {

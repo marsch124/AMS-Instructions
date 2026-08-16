@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786615962-724b9ce8">
+    <meta name="cache-bust" content="1786878252-7f354eea">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=14.0&t=1786615962-724b9ce8">
+    <link rel="stylesheet" href="css/style.css?v=15.0&t=1786878252-7f354eea">
 </head>
 <body>
     <!-- Home Screen -->
@@ -27,7 +27,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v14.0</span>
+                <span class="version-badge" id="homeVersion">v15.0</span>
             </div>
             <button id="settingsBtn" class="icon-btn" aria-label="Settings">⚙️</button>
         </header>
@@ -281,6 +281,36 @@
                 </div>
                 <div id="historyContent" class="section-content">
                     <div id="instructionHistory" class="history-list"></div>
+                </div>
+            </section>
+
+            <!-- Audit Log -->
+            <section class="instruction-section">
+                <div id="auditToggle" class="section-toggle">
+                    <h3>🔍 Audit Log</h3>
+                    <span class="preview-indicator" id="auditPreview"></span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="auditContent" class="section-content">
+                    <div id="instructionAudits" class="history-list"></div>
+
+                    <div class="audit-form">
+                        <div class="form-group">
+                            <label for="auditAuditor">Audited by</label>
+                            <select id="auditAuditor">
+                                <option value="">-- Select --</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="auditDate">Date</label>
+                            <input id="auditDate" type="date">
+                        </div>
+                        <div class="form-group">
+                            <label for="auditFindings">Findings</label>
+                            <textarea id="auditFindings" rows="3" placeholder="What did you find?"></textarea>
+                        </div>
+                        <button id="addAuditBtn" class="btn-secondary">+ Add Audit Entry</button>
+                    </div>
                 </div>
             </section>
 
@@ -654,6 +684,7 @@
                                         <li><strong>Share instructions:</strong> When viewing an instruction, tap the "📱 Share via SMS" button at the bottom to send a completion message via text with the task name and location.</li>
                     <li><strong>Favorites:</strong> Tap ★ on any instruction to save it for quick access from the home screen.</li>
                     <li><strong>People:</strong> Add names once under Settings → Manage People, then pick them as Owner or "Revised by" on any instruction instead of retyping — their phone/email shows up automatically in Revision History.</li>
+                    <li><strong>Audit Log:</strong> Open any instruction, tap "🔍 Audit Log" to expand it, then record who checked it, when, and what they found. The dot next to the heading tells you at a glance whether an instruction has been audited.</li>
                     <li><strong>Scanning a number:</strong> Point the box at the printed number and hold steady, or tap "📸 Capture & Scan" for a deliberate one-shot read. Good, even lighting helps a lot.</li>
                     <li><strong>Manual entry:</strong> Can't scan the number card? Just enter the 3-digit number manually in the number input field — always fast and 100% reliable.</li>
                     <li><strong>Export/Backup:</strong> Go to Settings → Export as JSON regularly to back up all your instructions. On iPhone, use Share to save to Files, Notes, or email.</li>
@@ -675,6 +706,18 @@
 
             <section class="version-log">
                 <h3>Version Log</h3>
+                <div class="version-entry">
+                    <p><strong>v15.0 (2026-08-16) - AUDIT LOG</strong></p>
+                    <p><strong>What's New:</strong></p>
+                    <ul>
+                        <li>🔍 New "Audit Log" section on every instruction, just below Revision History — record who audited it, when, and what they found</li>
+                        <li>👤 The "Audited by" picker uses your People list and remembers who you picked last; their phone/email shows next to each entry</li>
+                        <li>📅 The date defaults to today, so a quick audit is three taps</li>
+                        <li>🗑️ Any audit entry can be deleted, with a confirmation first</li>
+                        <li>➡️ Each entry has a "Convert to Action" button, greyed out for now — it starts working in the next update, when the Actions to-do list arrives</li>
+                    </ul>
+                    <p><strong>Also fixed:</strong> The version-checker added in v14.0 could, in a rare repeating case, keep tacking extra text onto the web address until the page failed to load. It now replaces that text instead of adding to it, and stops after one attempt rather than retrying forever.</p>
+                </div>
                 <div class="version-entry">
                     <p><strong>v14.0 (2026-08-13) - FIXED THE AUTO VERSION-SYNC ITSELF</strong></p>
                     <p><strong>Fixed:</strong> The background check that's supposed to notice when Safari and the Home Screen app fall out of sync and automatically fix it had never actually been running, on any version — Safari staying ahead of Home Screen after an update relied entirely on manually force-closing the Home Screen app.</p>
@@ -852,12 +895,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=14.0&t=1786615962-724b9ce8"></script>
-    <script src="js/qr.js?v=14.0&t=1786615962-724b9ce8"></script>
-    <script src="js/version-sync.js?v=14.0&t=1786615962-724b9ce8"></script>
-    <script src="js/persistence.js?v=14.0&t=1786615962-724b9ce8"></script>
-    <script src="js/hybrid-storage.js?v=14.0&t=1786615962-724b9ce8"></script>
-    <script src="js/ui.js?v=14.0&t=1786615962-724b9ce8"></script>
-    <script src="js/app.js?v=14.0&t=1786615962-724b9ce8"></script>
+    <script src="js/db.js?v=15.0&t=1786878252-7f354eea"></script>
+    <script src="js/qr.js?v=15.0&t=1786878252-7f354eea"></script>
+    <script src="js/version-sync.js?v=15.0&t=1786878252-7f354eea"></script>
+    <script src="js/persistence.js?v=15.0&t=1786878252-7f354eea"></script>
+    <script src="js/hybrid-storage.js?v=15.0&t=1786878252-7f354eea"></script>
+    <script src="js/ui.js?v=15.0&t=1786878252-7f354eea"></script>
+    <script src="js/app.js?v=15.0&t=1786878252-7f354eea"></script>
 </body>
 </html>

@@ -86,6 +86,20 @@ deletePerson = async function(id) {
     return result;
 };
 
+const originalSaveAuditDB = saveAuditDB;
+saveAuditDB = async function(audit) {
+    const result = await originalSaveAuditDB(audit);
+    await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
+const originalDeleteAudit = deleteAudit;
+deleteAudit = async function(id) {
+    const result = await originalDeleteAudit(id);
+    await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
 // Initialize on app ready
 document.addEventListener('DOMContentLoaded', async () => {
     // Wait for DB to be initialized
