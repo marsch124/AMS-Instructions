@@ -397,6 +397,13 @@ body {
     gap: 0.75rem;
 }
 
+/* Keep children at their natural height so the column scrolls instead of
+   squashing them. Needed because .instruction-section sets overflow: hidden,
+   which drops its automatic minimum size to 0 and lets flex shrink it away. */
+.instruction-content > * {
+    flex-shrink: 0;
+}
+
 .instruction-header {
     display: flex;
     flex-direction: column;

@@ -1,4 +1,4 @@
-const APP_VERSION = '15.0';
+const APP_VERSION = '16.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
