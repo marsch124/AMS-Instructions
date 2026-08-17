@@ -430,10 +430,21 @@ body {
     border-left-color: var(--accent-actions);
 }
 
+/* Due Now opens a list of instructions, so by the same rule it wears the jade
+   of the Instructions tab. */
+.nudge-card.due {
+    border-color: var(--accent-instructions);
+    border-left-color: var(--accent-instructions);
+}
+
 .nudge-glyph {
     width: 1.6rem;
     height: 1.6rem;
     flex-shrink: 0;
+}
+
+.nudge-card.due .nudge-glyph {
+    color: var(--accent-instructions);
 }
 
 .nudge-card.actions .nudge-glyph {
@@ -783,6 +794,12 @@ body {
     color: var(--color-text);
 }
 
+/* An instruction that has fallen due says so in the same red the app uses
+   everywhere else for "this one wants your attention". */
+.info-value.is-due {
+    color: var(--color-danger-text);
+}
+
 /* Instruction Sections */
 .instruction-section {
     display: flex;
@@ -863,12 +880,56 @@ body {
     white-space: pre-wrap;
 }
 
+/* "3 of 12 done · Reset", above the steps once you are part-way through. */
+.step-progress {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid var(--color-border);
+}
+
+.step-progress[hidden] {
+    display: none;
+}
+
+.step-progress-text {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--accent);
+}
+
+.step-progress-btn {
+    background: none;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-text-secondary);
+    cursor: pointer;
+}
+
+.step-progress-btn:active {
+    color: var(--color-text);
+}
+
 .steps-list {
     list-style: none;
     padding: 0;
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
+}
+
+/* A ticked step steps back rather than disappearing — you still need to be able
+   to read what you just did, but the eye should land on what's left. */
+.steps-list li.step-done label {
+    color: var(--color-text-secondary);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
 }
 
 .steps-list li {
@@ -1378,6 +1439,14 @@ body {
 .list-item-category {
     font-size: 0.875rem;
     color: var(--color-text-secondary);
+    margin-top: 0.25rem;
+}
+
+/* "Monthly · 34 days late" under a row on the Due Now list. */
+.list-item-due {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--color-danger-text);
     margin-top: 0.25rem;
 }
 

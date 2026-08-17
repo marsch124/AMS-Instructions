@@ -151,6 +151,51 @@ async function recordCompletion(instruction) {
     });
 }
 
+// How long an instruction stays done before it comes round again.
+//
+// Only the frequencies that describe a clock appear here. "Before each trip",
+// "Every session" and "As-needed" are triggered by an event, not by a date, so
+// they can never fall due and are deliberately absent rather than guessed at.
+const FREQUENCY_DAYS = {
+    'Daily': 1,
+    'Weekly': 7,
+    'Monthly': 30,
+    'Seasonally': 91,
+    'Yearly': 365
+};
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+// When an instruction next falls due, or null if it never can.
+//
+// An instruction that has never been marked Done has no clock to start from, so
+// it is NOT due. That is a deliberate choice: the starter library is 205
+// instructions with frequencies and no completions, and treating those as
+// overdue would bury the Home screen under a hundred red items on day one.
+// Never-done instructions are still worth surfacing, but somewhere quieter.
+function nextDueAt(instruction) {
+    if (!instruction || !instruction.lastCompleted) return null;
+    if (instruction.status === 'Archived') return null;
+
+    const days = FREQUENCY_DAYS[instruction.frequency];
+    if (!days) return null;
+
+    return instruction.lastCompleted + days * DAY_MS;
+}
+
+// Everything that has fallen due, most overdue first. Filtered in memory like
+// getOpenActions() — a couple of hundred rows is nothing to sift through here,
+// and it avoids an index that would have to be kept in step with completions.
+async function getDueInstructions() {
+    const instructions = await getAllInstructions();
+    const now = Date.now();
+
+    return instructions
+        .map(instruction => ({ instruction, dueAt: nextDueAt(instruction) }))
+        .filter(entry => entry.dueAt !== null && entry.dueAt <= now)
+        .sort((a, b) => a.dueAt - b.dueAt);
+}
+
 function calculateStatus(instruction) {
     const hasCore = instruction.title && instruction.description && instruction.steps?.length > 0;
     const hasDetails = instruction.frequency && instruction.timeEstimate && instruction.owner;
@@ -595,7 +640,7 @@ async function getDBSize() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786938041-dd03151d', {
+            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786970225-059fc7c9', {
                 scope: '/AMS-Instructions/'
             });
         } catch (error) {

@@ -1,4 +1,4 @@
-const APP_VERSION = '27.0';
+const APP_VERSION = '28.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -27,6 +27,76 @@ function formatRelativeTime(timestamp) {
 
     const date = new Date(timestamp);
     return date.toLocaleDateString();
+}
+
+// How late something is, in whole days. An instruction that came due at 3pm
+// rather than at 9am is not a distinction worth putting on screen.
+function overdueBy(dueAt) {
+    const days = Math.floor((Date.now() - dueAt) / DAY_MS);
+
+    if (days <= 0) return 'due today';
+    if (days === 1) return '1 day late';
+    if (days < 60) return days + ' days late';
+    return Math.round(days / 30) + ' months late';
+}
+
+function dueInText(dueAt) {
+    const days = Math.ceil((dueAt - Date.now()) / DAY_MS);
+
+    if (days <= 1) return 'Tomorrow';
+    if (days < 60) return 'In ' + days + ' days';
+    return 'In ' + Math.round(days / 30) + ' months';
+}
+
+// The Next Due line on an instruction. Where there is no date it says WHY, not
+// just "--": "no frequency set" and "never been done" are different situations
+// with different fixes, and a dash tells you neither.
+function describeNextDue(instruction) {
+    if (instruction.status === 'Archived') return 'Archived';
+    if (!FREQUENCY_DAYS[instruction.frequency]) return '--';
+    if (!instruction.lastCompleted) return 'After 1st Done';
+
+    const dueAt = nextDueAt(instruction);
+    return dueAt <= Date.now() ? overdueBy(dueAt) : dueInText(dueAt);
+}
+
+// Which steps you have ticked, per instruction.
+//
+// Deliberately in localStorage and deliberately NOT in the backup: this is where
+// you are in a job right now, not something worth carrying to another phone.
+const STEP_PROGRESS_KEY = 'ams_step_progress';
+
+function allStepProgress() {
+    try {
+        return JSON.parse(localStorage.getItem(STEP_PROGRESS_KEY) || '{}');
+    } catch (error) {
+        return {};
+    }
+}
+
+// Ticks are stored as step POSITIONS, so they would quietly point at the wrong
+// lines if the steps were rewritten in the meantime. Keeping the step count
+// alongside them lets us spot that and drop the stale ticks instead.
+function stepProgressFor(instruction) {
+    const entry = allStepProgress()[instruction.id];
+    if (!entry || entry.count !== (instruction.steps || []).length) return [];
+    return entry.ticked || [];
+}
+
+function saveStepProgress(instruction, ticked) {
+    const all = allStepProgress();
+
+    if (ticked.length === 0) {
+        delete all[instruction.id];
+    } else {
+        all[instruction.id] = { count: (instruction.steps || []).length, ticked };
+    }
+
+    localStorage.setItem(STEP_PROGRESS_KEY, JSON.stringify(all));
+}
+
+function clearStepProgress(instruction) {
+    saveStepProgress(instruction, []);
 }
 
 function shareViaSMS(instruction) {
@@ -205,6 +275,8 @@ function displayInstruction(instruction) {
         document.getElementById('instructionLastCompleted').textContent = 'Never';
     }
 
+    updateNextDueLine(instruction);
+
     // Location display
     const locationRow = document.getElementById('locationRow');
     if (instruction.where) {
@@ -232,13 +304,7 @@ function displayInstruction(instruction) {
     setupSection('notes', instruction.notes);
 
     // Instructions with checkboxes
-    const stepsList = document.getElementById('instructionSteps');
-    stepsList.innerHTML = '';
-    (instruction.steps || []).forEach((step, i) => {
-        const li = document.createElement('li');
-        li.innerHTML = `<label><input type="checkbox" data-step="${i}"> ${step}</label>`;
-        stepsList.appendChild(li);
-    });
+    renderSteps(instruction);
 
     // Photos
     if (instruction.photos && instruction.photos.length > 0) {
@@ -337,6 +403,68 @@ function displayInstruction(instruction) {
     });
 }
 
+// The steps, with your place in them kept. Tick three of twelve, walk away, lock
+// the phone, come back — the three are still ticked. Losing your place halfway
+// through a job you are doing with wet hands is the whole reason this exists.
+function renderSteps(instruction) {
+    const stepsList = document.getElementById('instructionSteps');
+    const steps = instruction.steps || [];
+    const ticked = new Set(stepProgressFor(instruction));
+
+    stepsList.innerHTML = '';
+
+    steps.forEach((step, i) => {
+        const li = document.createElement('li');
+        li.classList.toggle('step-done', ticked.has(i));
+
+        const label = document.createElement('label');
+        const box = document.createElement('input');
+        box.type = 'checkbox';
+        box.dataset.step = i;
+        box.checked = ticked.has(i);
+
+        box.addEventListener('change', () => {
+            if (box.checked) {
+                ticked.add(i);
+            } else {
+                ticked.delete(i);
+            }
+            li.classList.toggle('step-done', box.checked);
+            saveStepProgress(instruction, [...ticked].sort((a, b) => a - b));
+            updateStepProgressLine(instruction);
+        });
+
+        label.appendChild(box);
+        // textContent rather than innerHTML: a step is text someone typed, and
+        // an apostrophe or a "<" in it should read as itself.
+        label.appendChild(document.createTextNode(' ' + step));
+        li.appendChild(label);
+        stepsList.appendChild(li);
+    });
+
+    updateStepProgressLine(instruction);
+}
+
+function updateStepProgressLine(instruction) {
+    const line = document.getElementById('stepProgress');
+    const text = document.getElementById('stepProgressText');
+    const total = (instruction.steps || []).length;
+    const done = stepProgressFor(instruction).length;
+
+    // Only appears once you are actually part-way through. "0 of 12 done" on an
+    // instruction you just opened is a line of noise above every set of steps.
+    line.hidden = done === 0;
+    text.textContent = done + ' of ' + total + ' done';
+}
+
+function updateNextDueLine(instruction) {
+    const el = document.getElementById('instructionNextDue');
+    const dueAt = nextDueAt(instruction);
+
+    el.textContent = describeNextDue(instruction);
+    el.classList.toggle('is-due', dueAt !== null && dueAt <= Date.now());
+}
+
 function setupSection(sectionId, content) {
     const contentEl = document.getElementById(sectionId.charAt(0).toUpperCase() + sectionId.slice(1) + 'Content');
     const contentText = document.getElementById('instruction' + sectionId.charAt(0).toUpperCase() + sectionId.slice(1));
@@ -365,6 +493,7 @@ async function toggleFavorite() {
 
 async function renderHomeScreen() {
     await renderBackupNudge();
+    await renderDueNudge();
     await renderActionsNudge();
 
     const favorites = await getFavorites();
@@ -1504,6 +1633,48 @@ async function renderActionsNudge() {
     nudge.style.display = 'flex';
 }
 
+// The "Due now" card. The app has always known an instruction's frequency and
+// when it was last done, and never once put the two together — this is that
+// arithmetic, on the Home screen, where it can actually change what you do next.
+async function renderDueNudge() {
+    const nudge = document.getElementById('dueNudge');
+    const detail = document.getElementById('dueNudgeDetail');
+    const due = await getDueInstructions();
+
+    if (due.length === 0) {
+        nudge.style.display = 'none';
+        return;
+    }
+
+    // getDueInstructions sorts most overdue first, so the worst one is the head.
+    const worst = due[0];
+    detail.textContent = due.length + ' due · oldest ' + overdueBy(worst.dueAt);
+    nudge.style.display = 'flex';
+}
+
+async function renderDueList() {
+    const list = document.getElementById('dueList');
+    const due = await getDueInstructions();
+
+    list.innerHTML = '';
+
+    if (due.length === 0) {
+        list.innerHTML = '<p class="empty-state">Nothing is due. An instruction starts its clock the first time you mark it Done.</p>';
+        return;
+    }
+
+    due.forEach(entry => {
+        const row = createInstructionRow(entry.instruction);
+
+        const note = document.createElement('div');
+        note.className = 'list-item-due';
+        note.textContent = entry.instruction.frequency + ' · ' + overdueBy(entry.dueAt);
+        row.querySelector('.list-item-info').appendChild(note);
+
+        list.appendChild(row);
+    });
+}
+
 const LAST_EXPORT_KEY = 'ams_last_export_time';
 const BACKUP_NUDGE_AFTER_DAYS = 7;
 
@@ -1936,6 +2107,13 @@ async function initializeApp() {
             document.getElementById('instructionCompletionCount').textContent =
                 currentInstruction.completionCount === 1 ? '1 time' : currentInstruction.completionCount + ' times';
             document.getElementById('instructionLastCompleted').textContent = 'Just now';
+
+            // The job is finished, so the ticks have done their work — clearing
+            // them now means the next run starts from a clean list rather than
+            // one that looks already complete.
+            clearStepProgress(currentInstruction);
+            renderSteps(currentInstruction);
+            updateNextDueLine(currentInstruction);
         }
 
         document.getElementById('doneBtn').textContent = '✓ Done!';
@@ -2001,6 +2179,23 @@ async function initializeApp() {
     });
 
     document.getElementById('savePersonBtn').addEventListener('click', handleSavePerson);
+
+    // Due now
+    document.getElementById('dueNudge').addEventListener('click', async () => {
+        await renderDueList();
+        showScreen('dueScreen');
+    });
+
+    document.getElementById('backFromDueBtn').addEventListener('click', async () => {
+        await renderHomeScreen();
+        showScreen('homeScreen');
+    });
+
+    document.getElementById('stepResetBtn').addEventListener('click', () => {
+        if (!currentInstruction) return;
+        clearStepProgress(currentInstruction);
+        renderSteps(currentInstruction);
+    });
 
     // Actions
     document.getElementById('actionsNudge').addEventListener('click', () => openTab('actions'));

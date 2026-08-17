@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786938041-dd03151d">
+    <meta name="cache-bust" content="1786970225-059fc7c9">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=27.0&t=1786938041-dd03151d">
+    <link rel="stylesheet" href="css/style.css?v=28.0&t=1786970225-059fc7c9">
 </head>
 <body>
     <!--
@@ -57,6 +57,11 @@
             <path d="M6.05 16.8C6 15.55 6.95 14.65 8.2 14.65c1.3 0 2.15.95 2.15 2.15 0 1.3-.95 2.2-2.15 2.15-1.3-.05-2.15-.95-2.15-2.15Z"/>
         </symbol>
 
+        <symbol id="icon-due" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12.2 3.5c4.7-.1 8.5 3.6 8.4 8.4-.1 4.6-3.8 8.3-8.4 8.3-4.7 0-8.5-3.8-8.4-8.5.1-4.5 3.8-8.1 8.4-8.2Z"/>
+            <path d="M11.9 6.9c-.1 1.8-.1 3.5.1 5.3 1.4.1 2.8.1 4.2 0"/>
+        </symbol>
+
         <symbol id="icon-backup" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
             <path d="M4.8 4.7c-.3 4.9-.2 9.8 0 14.7 4.8.3 9.6.2 14.4 0 .2-4 .2-7.9 0-11.9-1-1.1-2-2.1-3.1-3-3.8-.2-7.6-.2-11.3.2Z"/>
             <path d="M8.6 4.8c-.1 1.4-.1 2.8 0 4.2 2.1.2 4.2.2 6.3 0 .1-1.4.1-2.8 0-4.2"/>
@@ -69,7 +74,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v27.0</span>
+                <span class="version-badge" id="homeVersion">v28.0</span>
             </div>
         </header>
 
@@ -84,6 +89,18 @@
                 <span class="nudge-text">
                     <span class="nudge-title" id="backupNudgeTitle">Back up your instructions</span>
                     <span class="nudge-detail" id="backupNudgeDetail">Never backed up</span>
+                </span>
+                <span class="nudge-chevron">›</span>
+            </button>
+
+            <!-- Everything whose frequency says it should have come round again by
+                 now. Sits above the to-dos because an overdue safety check is a
+                 heavier thing than a to-do you wrote yourself. -->
+            <button id="dueNudge" class="nudge-card due" style="display: none;">
+                <svg class="nudge-glyph" aria-hidden="true"><use href="#icon-due"/></svg>
+                <span class="nudge-text">
+                    <span class="nudge-title">Due now</span>
+                    <span class="nudge-detail" id="dueNudgeDetail">0 due</span>
                 </span>
                 <span class="nudge-chevron">›</span>
             </button>
@@ -184,6 +201,13 @@
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div class="section-content expanded">
+                    <!-- Your place in the job. Hidden until something is ticked —
+                         "0 of 12 done" above every untouched set of steps would be
+                         a line of noise on every instruction in the app. -->
+                    <div id="stepProgress" class="step-progress" hidden>
+                        <span id="stepProgressText" class="step-progress-text">0 of 0 done</span>
+                        <button id="stepResetBtn" class="step-progress-btn">Reset</button>
+                    </div>
                     <ol id="instructionSteps" class="steps-list">
                         <li><label><input type="checkbox"> Step 1</label></li>
                     </ol>
@@ -215,6 +239,10 @@
                 <div class="info-item">
                     <span class="info-label">Last Done:</span>
                     <span id="instructionLastCompleted" class="info-value">Never</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Next Due:</span>
+                    <span id="instructionNextDue" class="info-value">--</span>
                 </div>
             </div>
 
@@ -445,6 +473,21 @@
             </div>
             <div id="instructionsList" class="full-instructions-list">
                 <p class="empty-state">No instructions yet.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Due Now Screen -->
+    <div id="dueScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromDueBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2>Due Now</h2>
+            <div></div>
+        </header>
+
+        <div class="list-content">
+            <div id="dueList" class="full-instructions-list">
+                <p class="empty-state">Nothing is due.</p>
             </div>
         </div>
     </div>
@@ -875,7 +918,7 @@
                 <h3>Getting Around</h3>
                 <p>Four tabs along the bottom of the screen, always one tap away — <strong>and each one has its own colour</strong>. The whole screen takes that colour, so you can tell where you are out of the corner of your eye, before you have read a single word:</p>
                 <ul>
-                    <li><strong>Home — pink.</strong> The big Scan button, your Favourites and Recently Viewed, plus any nudge cards (to-dos waiting, backup overdue).</li>
+                    <li><strong>Home — pink.</strong> The big Scan button, your Favourites and Recently Viewed, plus any nudge cards (something due, to-dos waiting, backup overdue).</li>
                     <li><strong>Instructions — green.</strong> Every instruction you have, searchable. Tap ＋ in the top right to write a new one.</li>
                     <li><strong>Actions — red.</strong> Your to-do list. A red number on the tab tells you how many are still open, so you can see it without going there.</li>
                     <li><strong>Settings — blue.</strong> The housekeeping: People, backups and Data Safety, this guide, and the Version Log.</li>
@@ -899,6 +942,8 @@
                 <h3>Tips</h3>
                 <ul>
                                         <li><strong>Share instructions:</strong> When viewing an instruction, tap the "📱 Share via SMS" button at the bottom to send a completion message via text with the task name and location.</li>
+                    <li><strong>What's due:</strong> A green "Due now" card appears on the Home screen whenever something has come round again — tap it for the full list, most overdue first. This is worked out from two things the instruction already carries: its <strong>Frequency</strong> and when you last marked it <strong>Done</strong>. So the clock only starts once you have marked an instruction Done for the first time; before that it shows "After 1st Done" and stays off the list. That is deliberate, and it is why importing the starter library doesn't fill your Home screen with two hundred overdue items. Frequencies that describe an event rather than a date — "Before each trip", "Every session", "As-needed" — never fall due, and neither does anything Archived.</li>
+                    <li><strong>Keeping your place in a job:</strong> Tick the steps as you go and they stay ticked. Leave the instruction, lock the phone, come back tomorrow — you pick up where you left off. A "3 of 12 done · Reset" line appears above the steps once you have started, and <strong>Reset</strong> clears them if you want to begin again. Marking the instruction <strong>Done</strong> clears them for you, so the next time you open it the list is clean. These ticks live only on this phone and are not part of your backup — they are where you are right now, not something worth keeping.</li>
                     <li><strong>Favorites:</strong> Tap ★ on any instruction to save it for quick access from the home screen.</li>
                     <li><strong>People:</strong> Add names once under Settings → Manage People, then pick them as Owner or "Revised by" on any instruction instead of retyping — their phone/email shows up automatically in Revision History.</li>
                     <li><strong>Version Log:</strong> What changed in each release of the app lives on its own screen — Settings → Version Log. This guide is about how to use the app; the Version Log is about what's new.</li>
@@ -951,6 +996,22 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v28.0 (2026-08-17) - DUE NOW &amp; STICKY STEPS</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🕐 <strong>The app now tells you what needs doing.</strong> A green "Due now" card appears on the Home screen listing everything whose frequency says it should have come round again — "3 due · oldest 35 days late". Tap it for the full list, worst first. Every instruction has always carried a frequency and a last-done date; until now nothing ever put the two together</li>
+                            <li>▶️ <strong>The clock starts the first time you mark something Done.</strong> Nothing in the starter library counts as overdue just because it has "Monthly" on it — otherwise this update would have greeted you with a hundred red items on day one. Mark an instruction Done once and it starts keeping time from there</li>
+                            <li>📅 <strong>Every instruction now shows its own "Next Due"</strong> beside Completed and Last Done. It reads "In 12 days", or "4 days late" in red — and where there is no date it says why, either "After 1st Done" or nothing at all if the frequency has no clock</li>
+                            <li>🚫 <strong>Some frequencies never fall due, on purpose.</strong> "Before each trip", "Every session" and "As-needed" are triggered by an event, not by a date, so they stay out of the Due list rather than being guessed at. Archived instructions stay out too</li>
+                            <li>✅ <strong>Your place in a job is now kept.</strong> Tick five of twelve steps, back out to check something, let the phone lock, come back — the five are still ticked. Previously every tick was thrown away the moment you left the screen, which is exactly when you most need them: outdoors, hands full, halfway through</li>
+                            <li>🔢 <strong>A "3 of 12 done · Reset" line</strong> sits above the steps once you're part-way through, and disappears again when you're not. Reset clears the ticks deliberately</li>
+                            <li>🧹 <strong>Marking an instruction Done clears its ticks</strong>, so the next run starts from a clean list instead of one that already looks finished — and the Due card updates on the spot</li>
+                            <li>✏️ <strong>Rewrite an instruction's steps and its old ticks are dropped</strong> rather than left pointing at whichever lines now happen to sit in those positions</li>
+                            <li>💾 <strong>Ticks are not part of your backup</strong>, deliberately. They are where you are in a job right now, not something worth carrying to another phone. Everything that <em>is</em> your data — including how many times you've done a thing and when — backs up exactly as before</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v27.0 (2026-08-17) - PHOTO THUMBNAILS</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1298,12 +1359,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=27.0&t=1786938041-dd03151d"></script>
-    <script src="js/qr.js?v=27.0&t=1786938041-dd03151d"></script>
-    <script src="js/version-sync.js?v=27.0&t=1786938041-dd03151d"></script>
-    <script src="js/persistence.js?v=27.0&t=1786938041-dd03151d"></script>
-    <script src="js/hybrid-storage.js?v=27.0&t=1786938041-dd03151d"></script>
-    <script src="js/ui.js?v=27.0&t=1786938041-dd03151d"></script>
-    <script src="js/app.js?v=27.0&t=1786938041-dd03151d"></script>
+    <script src="js/db.js?v=28.0&t=1786970225-059fc7c9"></script>
+    <script src="js/qr.js?v=28.0&t=1786970225-059fc7c9"></script>
+    <script src="js/version-sync.js?v=28.0&t=1786970225-059fc7c9"></script>
+    <script src="js/persistence.js?v=28.0&t=1786970225-059fc7c9"></script>
+    <script src="js/hybrid-storage.js?v=28.0&t=1786970225-059fc7c9"></script>
+    <script src="js/ui.js?v=28.0&t=1786970225-059fc7c9"></script>
+    <script src="js/app.js?v=28.0&t=1786970225-059fc7c9"></script>
 </body>
 </html>
