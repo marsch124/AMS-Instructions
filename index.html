@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786896251-c7abdb72">
+    <meta name="cache-bust" content="1786938041-dd03151d">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=26.0&t=1786896251-c7abdb72">
+    <link rel="stylesheet" href="css/style.css?v=27.0&t=1786938041-dd03151d">
 </head>
 <body>
     <!--
@@ -69,7 +69,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v26.0</span>
+                <span class="version-badge" id="homeVersion">v27.0</span>
             </div>
         </header>
 
@@ -82,7 +82,7 @@
             <button id="backupNudge" class="nudge-card backup" style="display: none;">
                 <svg class="nudge-glyph" aria-hidden="true"><use href="#icon-backup"/></svg>
                 <span class="nudge-text">
-                    <span class="nudge-title">Back up your instructions</span>
+                    <span class="nudge-title" id="backupNudgeTitle">Back up your instructions</span>
                     <span class="nudge-detail" id="backupNudgeDetail">Never backed up</span>
                 </span>
                 <span class="nudge-chevron">›</span>
@@ -914,6 +914,7 @@
                     <li><strong>Offline:</strong> Your instructions are stored locally and everything works offline, including manual number entry. Camera scanning needs internet the very first time to download its recognition engine (a few MB) — after that it works normally.</li>
                     <li><strong>Dark mode:</strong> The app defaults to dark mode, perfect for bedside use at night. Custom pink accents help tasks pop even in low light.</li>
                     <li><strong>Browsing by category:</strong> The 📋 Instructions tab is grouped into folding sections — one per category, each with a coloured dot and a count. Tap a header to open it, tap again to close. It remembers what you left open, and "Expand all" / "Collapse all" beside the count line does the lot at once. This is the way to find something when you do not know what to search for.</li>
+                    <li><strong>Photos:</strong> An instruction can hold up to 5 photos — add them while editing, under 📷 Photos. The first one shows up as a small thumbnail beside that instruction everywhere it's listed (the Instructions tab, Favourites, Recently Viewed), which is often the fastest way to recognise the right one. Instructions with no photo simply don't show a thumbnail. Photos are shrunk automatically when you add them — the editor shows the stored size next to each one, and what it came in at. They are still the biggest thing in your data, so if you ever add a great many, watch for the red "Safety copy on this phone has stopped" card on the Home screen and back up to Files.</li>
                     <li><strong>Search:</strong> Type in the search box and the groups drop away, giving you a plain list of every match across all categories, with the category shown on each result. Searching by number works too. The box clears itself each time you come back to the tab, so you never land on a filtered list wondering where everything went.</li>
                 </ul>
             </section>
@@ -950,6 +951,20 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v27.0 (2026-08-17) - PHOTO THUMBNAILS</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🖼️ <strong>Instructions with a photo now show it as a thumbnail</strong> in the All Instructions list and on the Home cards (Favourites and Recently Viewed). You can spot the one you mean by the picture instead of the wording</li>
+                            <li>⭕ <strong>Instructions without a photo show nothing extra</strong> — no grey placeholder box. The thumbnail is itself the sign that there's a picture worth opening</li>
+                            <li>📉 <strong>Photos are now shrunk when you add them.</strong> Straight off the iPhone camera a photo is several megabytes; it's now saved at a size that's still plenty to read a label or see a valve position, typically a twentieth of the original</li>
+                            <li>🛟 <strong>This one mattered for your backup.</strong> The safety copy the app keeps on the phone has a size ceiling of a few MB, and a single full-size camera photo was enough to fill it on its own. A photo is now roughly a twentieth of that, so a good number of them fit — but photos are still by far the biggest thing in your data, and a great many of them would eventually fill it again</li>
+                            <li>🚨 <strong>And if it ever does fill up, the Home screen now says so</strong> — a red "Safety copy on this phone has stopped" card. That warning previously appeared only on the Data Safety screen, which you have to go looking for, so the safety net could quietly stop working without ever telling you. Your instructions are never at risk from this on their own; it means the automatic on-phone copy has stopped, so make a proper backup to Files</li>
+                            <li>🔍 <strong>The editor's photo list shows the real stored size</strong> and what the photo came in at, so you can see the saving. The old figure was overstated by about a third</li>
+                            <li>📷 <strong>Photos you added before this update still work</strong> exactly as they did and still appear in the lists. Nothing needs re-adding. If you want an old one shrunk, delete it and add it again</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v26.0 (2026-08-16) - FOLDABLE CATEGORY GROUPS</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1283,12 +1298,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=26.0&t=1786896251-c7abdb72"></script>
-    <script src="js/qr.js?v=26.0&t=1786896251-c7abdb72"></script>
-    <script src="js/version-sync.js?v=26.0&t=1786896251-c7abdb72"></script>
-    <script src="js/persistence.js?v=26.0&t=1786896251-c7abdb72"></script>
-    <script src="js/hybrid-storage.js?v=26.0&t=1786896251-c7abdb72"></script>
-    <script src="js/ui.js?v=26.0&t=1786896251-c7abdb72"></script>
-    <script src="js/app.js?v=26.0&t=1786896251-c7abdb72"></script>
+    <script src="js/db.js?v=27.0&t=1786938041-dd03151d"></script>
+    <script src="js/qr.js?v=27.0&t=1786938041-dd03151d"></script>
+    <script src="js/version-sync.js?v=27.0&t=1786938041-dd03151d"></script>
+    <script src="js/persistence.js?v=27.0&t=1786938041-dd03151d"></script>
+    <script src="js/hybrid-storage.js?v=27.0&t=1786938041-dd03151d"></script>
+    <script src="js/ui.js?v=27.0&t=1786938041-dd03151d"></script>
+    <script src="js/app.js?v=27.0&t=1786938041-dd03151d"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const APP_VERSION = '26.0';
+const APP_VERSION = '27.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -393,8 +393,13 @@ async function renderHomeScreen() {
     } else {
         recentList.innerHTML = '';
         recent.forEach(item => {
-            const card = createInstructionCard(item);
-            card.addEventListener('click', () => navigateToInstruction(item.number));
+            // The recent store only keeps a snapshot — number, title, category — so
+            // it has no photos to make a thumbnail from, and its title goes stale if
+            // the instruction is renamed. Use the live instruction where there is
+            // one, and fall back to the snapshot only if it has since been deleted.
+            const live = instructions.find(i => i.id === item.id) || item;
+            const card = createInstructionCard(live);
+            card.addEventListener('click', () => navigateToInstruction(live.number));
             recentList.appendChild(card);
         });
     }
@@ -423,6 +428,18 @@ function createInstructionCard(instruction) {
 
     textDiv.appendChild(title);
     textDiv.appendChild(category);
+
+    // v27.0: same rule as the list rows — a thumbnail only where there is a photo.
+    const thumb = photoThumb(instruction);
+    if (thumb) {
+        const img = document.createElement('img');
+        img.className = 'instruction-card-thumb';
+        img.src = thumb;
+        img.alt = '';
+        img.loading = 'lazy';
+        card.appendChild(img);
+    }
+
     card.appendChild(number);
     card.appendChild(textDiv);
 
@@ -463,6 +480,20 @@ function createInstructionRow(instr) {
     info.className = 'list-item-info';
     info.addEventListener('click', () => navigateToInstruction(instr.number));
 
+    // Only instructions that actually have a photo get one. A placeholder on the
+    // couple of hundred that do not would be noise, and the thumbnail doubles as
+    // a signal that there is a picture worth opening.
+    const thumb = photoThumb(instr);
+    let thumbEl = null;
+    if (thumb) {
+        thumbEl = document.createElement('img');
+        thumbEl.className = 'list-item-thumb';
+        thumbEl.src = thumb;
+        thumbEl.alt = '';
+        thumbEl.loading = 'lazy';
+        thumbEl.addEventListener('click', () => navigateToInstruction(instr.number));
+    }
+
     const numberEl = document.createElement('div');
     numberEl.className = 'list-item-number';
     numberEl.textContent = instr.number;
@@ -487,6 +518,7 @@ function createInstructionRow(instr) {
         editInstruction(instr);
     });
 
+    if (thumbEl) { item.appendChild(thumbEl); }
     item.appendChild(info);
     item.appendChild(editBtn);
     return item;
@@ -703,19 +735,123 @@ function resetEditor() {
     window.currentEditingInstruction = null;
 }
 
+// Photos used to be stored exactly as the camera produced them. A single iPhone
+// photo is 4-7 MB once base64-encoded, five of those is 30 MB on one instruction,
+// and the localStorage backup mirror tops out around 5 MB — so one photo was
+// enough to stop the backup working. Every photo is now downscaled on the way in,
+// and carries a small thumbnail for the lists.
+const PHOTO_MAX_EDGE = 1400;   // plenty for reading a label or a valve position
+const PHOTO_QUALITY = 0.8;
+const THUMB_MAX_EDGE = 240;
+const THUMB_QUALITY = 0.7;
+
+function resizeToDataUrl(img, maxEdge, quality) {
+    const scale = Math.min(1, maxEdge / Math.max(img.width, img.height));
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(1, Math.round(img.width * scale));
+    canvas.height = Math.max(1, Math.round(img.height * scale));
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+    return {
+        data: canvas.toDataURL('image/jpeg', quality),
+        width: canvas.width,
+        height: canvas.height
+    };
+}
+
+// A data URL is base64, where 4 characters carry 3 bytes. The old size line
+// counted the characters instead, which overstated every photo by a third.
+function dataUrlBytes(dataUrl) {
+    if (!dataUrl) return 0;
+    const body = dataUrl.slice(dataUrl.indexOf(',') + 1);
+    const padding = body.endsWith('==') ? 2 : (body.endsWith('=') ? 1 : 0);
+    return Math.max(0, Math.round(body.length * 3 / 4) - padding);
+}
+
+function formatBytes(bytes) {
+    if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    return Math.round(bytes / 1024) + ' KB';
+}
+
+function preparePhoto(file) {
+    return new Promise((resolve, reject) => {
+        if (!file.type.startsWith('image/')) {
+            reject(new Error('that file is not an image'));
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onerror = () => reject(new Error('could not read the file'));
+        reader.onload = (event) => {
+            const img = new Image();
+            img.onerror = () => reject(new Error('could not read that image'));
+            img.onload = () => {
+                try {
+                    const full = resizeToDataUrl(img, PHOTO_MAX_EDGE, PHOTO_QUALITY);
+                    const small = resizeToDataUrl(img, THUMB_MAX_EDGE, THUMB_QUALITY);
+                    resolve({
+                        name: file.name,
+                        data: full.data,
+                        thumb: small.data,
+                        // The dimensions of what is actually stored, not of the original.
+                        width: full.width,
+                        height: full.height,
+                        originalSize: file.size,
+                        addedAt: Date.now()
+                    });
+                } catch (error) {
+                    reject(error);
+                }
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// Photos added before v27.0 have no thumbnail, so fall back to the full image.
+function photoThumb(instruction) {
+    const photo = instruction.photos && instruction.photos[0];
+    return photo ? (photo.thumb || photo.data) : null;
+}
+
 function renderPhotosList() {
     const list = document.getElementById('editorPhotosList');
     list.innerHTML = '';
     currentPhotos.forEach((photo, i) => {
         const div = document.createElement('div');
         div.className = 'photo-item';
-        div.innerHTML = `
-            <img src="${photo.data}">
-            <div class="photo-item-info">
-                <div class="photo-item-name">${photo.name}</div>
-                <div class="photo-item-size">${(photo.data.length / 1024).toFixed(1)} KB</div>
-            </div>
-        `;
+
+        const img = document.createElement('img');
+        // The thumbnail is enough for a 60px preview; the full photo would be
+        // decoded five times over on a screen that never shows it that big.
+        img.src = photo.thumb || photo.data;
+
+        const info = document.createElement('div');
+        info.className = 'photo-item-info';
+
+        const name = document.createElement('div');
+        name.className = 'photo-item-name';
+        name.textContent = photo.name;
+
+        const size = document.createElement('div');
+        size.className = 'photo-item-size';
+        const stored = dataUrlBytes(photo.data) + dataUrlBytes(photo.thumb);
+        let sizeText = formatBytes(stored);
+        if (photo.width && photo.height) {
+            sizeText = photo.width + ' × ' + photo.height + ' · ' + sizeText;
+        }
+        // Only photos added from v27.0 on know what they came from.
+        if (photo.originalSize && photo.originalSize > stored) {
+            sizeText += ' (was ' + formatBytes(photo.originalSize) + ')';
+        }
+        size.textContent = sizeText;
+
+        info.appendChild(name);
+        info.appendChild(size);
+        div.appendChild(img);
+        div.appendChild(info);
+
         const delBtn = document.createElement('button');
         delBtn.className = 'photo-item-delete';
         delBtn.textContent = '✕';
@@ -1564,11 +1700,27 @@ function showBackupAsText(json) {
 async function renderBackupNudge() {
     const nudge = document.getElementById('backupNudge');
     const detail = document.getElementById('backupNudgeDetail');
+    const title = document.getElementById('backupNudgeTitle');
+    title.textContent = 'Back up your instructions';
+    nudge.classList.remove('urgent');
 
     // Nothing worth backing up yet
     const instructions = await getAllInstructions();
     if (instructions.length === 0) {
         nudge.style.display = 'none';
+        return;
+    }
+
+    // A failed automatic backup means the safety copy on this phone is not being
+    // kept any more. That used to be reported only on the Data Safety screen, which
+    // you have to go looking for — so a dead safety net stayed quiet. It comes first,
+    // ahead of "it has been a while", because it is the more serious of the two.
+    if (hybridStorage.status().failedAt) {
+        title.textContent = 'Safety copy on this phone has stopped';
+        detail.textContent = 'Storage is full — back up to Files now';
+        nudge.classList.add('urgent');
+        nudge.style.display = 'flex';
+        prepareBackup();
         return;
     }
 
@@ -1674,22 +1826,24 @@ document.addEventListener('DOMContentLoaded', () => {
             photoInput.click();
         });
 
-        photoInput.addEventListener('change', (e) => {
+        photoInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
-            if (file && currentPhotos.length < 5) {
-                const reader = new FileReader();
-                reader.onload = (event) => {
-                    currentPhotos.push({
-                        name: file.name,
-                        data: event.target.result
-                    });
-                    renderPhotosList();
-                    photoInput.value = '';
-                };
-                reader.readAsDataURL(file);
-            } else if (currentPhotos.length >= 5) {
+            if (!file) return;
+
+            if (currentPhotos.length >= 5) {
                 alert('Maximum 5 photos per instruction');
+                photoInput.value = '';
+                return;
             }
+
+            try {
+                currentPhotos.push(await preparePhoto(file));
+                renderPhotosList();
+            } catch (error) {
+                console.error('[Photos] Could not process photo:', error);
+                alert('Could not add that photo: ' + error.message);
+            }
+            photoInput.value = '';
         });
     }
 });

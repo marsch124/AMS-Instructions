@@ -444,6 +444,16 @@ body {
     color: var(--color-accent-warm);
 }
 
+/* The backup nudge is normally a reminder, in warm amber. When the automatic
+   safety copy has actually stopped working it is a warning, so it goes red —
+   the same red the app uses everywhere else for "read this twice". */
+.nudge-card.backup.urgent,
+.nudge-card.backup.urgent .nudge-glyph {
+    border-color: var(--color-danger-text);
+    border-left-color: var(--color-danger-text);
+    color: var(--color-danger-text);
+}
+
 .nudge-text {
     display: flex;
     flex-direction: column;
@@ -527,6 +537,16 @@ body {
 .instruction-card.mobility { border-left-color: var(--color-mobility); }
 .instruction-card.meditation { border-left-color: var(--color-meditation); }
 
+/* v27.0: the card already has a 1rem gap, so no margin of its own here. */
+.instruction-card-thumb {
+    width: 44px;
+    height: 44px;
+    flex-shrink: 0;
+    border-radius: 8px;
+    object-fit: cover;
+    background-color: var(--color-border);
+}
+
 .instruction-card-number {
     font-size: 1.5rem;
     font-weight: bold;
@@ -536,6 +556,7 @@ body {
 
 .instruction-card-text {
     flex: 1;
+    min-width: 0;
 }
 
 .instruction-card-title {
@@ -1326,6 +1347,21 @@ body {
 
 .list-item-info {
     flex: 1;
+    min-width: 0;
+}
+
+/* v27.0: only rows whose instruction has a photo carry one, so the thumbnail
+   itself is the signal that there is a picture. flex-shrink keeps it square
+   however long the title is. */
+.list-item-thumb {
+    width: 48px;
+    height: 48px;
+    flex-shrink: 0;
+    margin-right: 0.75rem;
+    border-radius: 8px;
+    object-fit: cover;
+    background-color: var(--color-border);
+    cursor: pointer;
 }
 
 .list-item-number {
