@@ -1,4 +1,4 @@
-const APP_VERSION = '28.0';
+const APP_VERSION = '29.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -348,9 +348,33 @@ function displayInstruction(instruction) {
         instruction.related.forEach(relNum => {
             const div = document.createElement('div');
             div.className = 'related-item';
-            div.innerHTML = `<span class="related-number">${relNum}</span> - Related instruction`;
-            div.addEventListener('click', () => navigateToInstruction(relNum));
+
+            const numberEl = document.createElement('span');
+            numberEl.className = 'related-number';
+            numberEl.textContent = relNum;
+
+            const titleEl = document.createElement('span');
+            titleEl.className = 'related-title';
+
+            div.appendChild(numberEl);
+            div.appendChild(titleEl);
             relList.appendChild(div);
+
+            // Looked up rather than stored alongside the number, so renaming an
+            // instruction updates every instruction that points at it — without
+            // any of them needing to be re-saved.
+            getInstruction(relNum).then(related => {
+                if (related) {
+                    titleEl.textContent = related.title;
+                    div.addEventListener('click', () => navigateToInstruction(relNum));
+                    return;
+                }
+
+                // A number that no longer exists is worth saying out loud. A row
+                // that quietly does nothing when tapped just looks broken.
+                titleEl.textContent = 'No longer exists';
+                div.classList.add('is-missing');
+            });
         });
     } else {
         document.getElementById('relatedSection').style.display = 'none';
@@ -653,17 +677,66 @@ function createInstructionRow(instr) {
     return item;
 }
 
+// Everything a search reads, and what to call each one on screen.
+//
+// Number, title and category are searched too but are deliberately absent from
+// this list: they are already printed on the row, so "matched in Title" would
+// only ever state the obvious.
+const SEARCHABLE_FIELDS = [
+    { key: 'description', label: 'Description' },
+    { key: 'steps', label: 'Steps' },
+    { key: 'warnings', label: 'Warnings' },
+    { key: 'equipment', label: 'Equipment' },
+    { key: 'preparations', label: 'Preparations' },
+    { key: 'afterUse', label: 'After use' },
+    { key: 'maintenance', label: 'Maintenance' },
+    { key: 'notes', label: 'Notes' },
+    { key: 'tags', label: 'Tags' },
+    { key: 'where', label: 'Location' },
+    { key: 'whereDetailed', label: 'Location' },
+    { key: 'owner', label: 'Owner' }
+];
+
+// Steps are an array, everything else is a string, and a missing field is ''.
+function searchableText(value) {
+    if (!value) return '';
+    return Array.isArray(value) ? value.join('\n') : String(value);
+}
+
+// Does this instruction match — and if the hit is somewhere you cannot see from
+// the list, where. Naming the field is what stops a match on hidden text looking
+// like the search has misfired.
+function matchInstruction(instruction, term) {
+    const onRow = [instruction.title, instruction.number, instruction.category]
+        .map(part => searchableText(part).toLowerCase())
+        .some(part => part.includes(term));
+
+    const fields = [];
+    SEARCHABLE_FIELDS.forEach(field => {
+        if (!searchableText(instruction[field.key]).toLowerCase().includes(term)) return;
+        // 'where' and 'whereDetailed' both read as Location — say it once.
+        if (!fields.includes(field.label)) fields.push(field.label);
+    });
+
+    return { matched: onRow || fields.length > 0, fields };
+}
+
 async function renderInstructionsList(filter = '') {
     const list = document.getElementById('instructionsList');
     const summary = document.getElementById('listSummary');
     const instructions = await getAllInstructions();
 
     const term = filter.trim().toLowerCase();
-    const filtered = instructions.filter(i =>
-        i.title.toLowerCase().includes(term) ||
-        i.number.includes(term) ||
-        i.category.toLowerCase().includes(term)
-    );
+
+    // Where each result was found, so the rows can say so without matching twice.
+    const matchedFields = new Map();
+    const filtered = instructions.filter(instruction => {
+        if (!term) return true;
+
+        const result = matchInstruction(instruction, term);
+        if (result.matched) matchedFields.set(instruction.id, result.fields);
+        return result.matched;
+    });
 
     list.innerHTML = '';
 
@@ -677,7 +750,19 @@ async function renderInstructionsList(filter = '') {
     // behind folded headers, which is the opposite of what a search is for.
     if (term) {
         filtered.sort((a, b) => a.number.localeCompare(b.number));
-        filtered.forEach(instr => list.appendChild(createInstructionRow(instr)));
+        filtered.forEach(instr => {
+            const row = createInstructionRow(instr);
+
+            const fields = matchedFields.get(instr.id) || [];
+            if (fields.length > 0) {
+                const note = document.createElement('div');
+                note.className = 'list-item-match';
+                note.textContent = 'matched in ' + fields.join(', ');
+                row.querySelector('.list-item-info').appendChild(note);
+            }
+
+            list.appendChild(row);
+        });
         if (summary) {
             summary.hidden = false;
             summary.querySelector('.list-summary-text').textContent =

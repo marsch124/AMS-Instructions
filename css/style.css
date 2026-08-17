@@ -1020,6 +1020,21 @@ body {
     color: var(--accent);
 }
 
+.related-title {
+    margin-left: 0.5rem;
+}
+
+/* A related number whose instruction has since been deleted. Not tappable, and
+   it says so rather than looking like a link that does nothing. */
+.related-item.is-missing {
+    cursor: default;
+    opacity: 0.6;
+}
+
+.related-item.is-missing .related-title {
+    font-style: italic;
+}
+
 .history-list {
     display: flex;
     flex-direction: column;
@@ -1439,6 +1454,15 @@ body {
 .list-item-category {
     font-size: 0.875rem;
     color: var(--color-text-secondary);
+    margin-top: 0.25rem;
+}
+
+/* "matched in Steps" under a search result, when the hit is somewhere the row
+   itself doesn't show. */
+.list-item-match {
+    font-size: 0.8rem;
+    font-style: italic;
+    color: var(--accent);
     margin-top: 0.25rem;
 }
 

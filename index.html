@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786970225-059fc7c9">
+    <meta name="cache-bust" content="1786970960-5361d73b">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=28.0&t=1786970225-059fc7c9">
+    <link rel="stylesheet" href="css/style.css?v=29.0&t=1786970960-5361d73b">
 </head>
 <body>
     <!--
@@ -74,7 +74,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v28.0</span>
+                <span class="version-badge" id="homeVersion">v29.0</span>
             </div>
         </header>
 
@@ -961,6 +961,8 @@
                     <li><strong>Browsing by category:</strong> The 📋 Instructions tab is grouped into folding sections — one per category, each with a coloured dot and a count. Tap a header to open it, tap again to close. It remembers what you left open, and "Expand all" / "Collapse all" beside the count line does the lot at once. This is the way to find something when you do not know what to search for.</li>
                     <li><strong>Photos:</strong> An instruction can hold up to 5 photos — add them while editing, under 📷 Photos. The first one shows up as a small thumbnail beside that instruction everywhere it's listed (the Instructions tab, Favourites, Recently Viewed), which is often the fastest way to recognise the right one. Instructions with no photo simply don't show a thumbnail. Photos are shrunk automatically when you add them — the editor shows the stored size next to each one, and what it came in at. They are still the biggest thing in your data, so if you ever add a great many, watch for the red "Safety copy on this phone has stopped" card on the Home screen and back up to Files.</li>
                     <li><strong>Search:</strong> Type in the search box and the groups drop away, giving you a plain list of every match across all categories, with the category shown on each result. Searching by number works too. The box clears itself each time you come back to the tab, so you never land on a filtered list wondering where everything went.</li>
+                    <li><strong>Search looks inside everything:</strong> not just titles, but steps, description, warnings, equipment, preparations, after-use, maintenance, notes, location and owner. So a tyre pressure you once typed into step 4 is findable by typing the number, and searching a person's name brings back everything they own. Where the match is somewhere you cannot see from the list, the result says so underneath — "matched in Steps" — so a hit on hidden text never looks like a mistake.</li>
+                    <li><strong>Related instructions:</strong> If an instruction lists related numbers, they appear at the bottom with their real titles, and tapping one takes you straight there. Rename an instruction and it updates itself everywhere it's referenced. If a related number has been deleted, the row says "No longer exists" rather than looking like a link that does nothing.</li>
                 </ul>
             </section>
 
@@ -996,6 +998,19 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v29.0 (2026-08-17) - FIND ANYTHING</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🔍 <strong>Search now reads the whole instruction, not just its title.</strong> Steps, description, warnings, equipment, preparations, after-use, maintenance, notes, location and owner are all searched. Until now the box only looked at the title, number and category — so a tyre pressure written into step 4 was, in practice, lost the moment you forgot which instruction it was in</li>
+                            <li>📍 <strong>Every result says where it was found</strong> — "matched in Steps", "matched in Warnings". Without that, a search for a word you cannot see anywhere on the row just looks like the app has gone wrong. Matches on the title, number or category say nothing extra, because you can already see those</li>
+                            <li>👤 <strong>Searching an owner's name</strong> now brings back everything that person is responsible for</li>
+                            <li>🔗 <strong>Related instructions finally show their titles.</strong> That section used to list the number followed by the literal words "Related instruction", the same for every entry, so it told you nothing you could act on without tapping through</li>
+                            <li>🚫 <strong>A related number whose instruction has been deleted now says "No longer exists"</strong> and stops pretending to be tappable, instead of looking like a link that does nothing</li>
+                            <li>♻️ <strong>Titles are looked up fresh each time,</strong> so renaming an instruction updates it everywhere it is referenced — nothing needs re-saving</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v28.0 (2026-08-17) - DUE NOW &amp; STICKY STEPS</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1359,12 +1374,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=28.0&t=1786970225-059fc7c9"></script>
-    <script src="js/qr.js?v=28.0&t=1786970225-059fc7c9"></script>
-    <script src="js/version-sync.js?v=28.0&t=1786970225-059fc7c9"></script>
-    <script src="js/persistence.js?v=28.0&t=1786970225-059fc7c9"></script>
-    <script src="js/hybrid-storage.js?v=28.0&t=1786970225-059fc7c9"></script>
-    <script src="js/ui.js?v=28.0&t=1786970225-059fc7c9"></script>
-    <script src="js/app.js?v=28.0&t=1786970225-059fc7c9"></script>
+    <script src="js/db.js?v=29.0&t=1786970960-5361d73b"></script>
+    <script src="js/qr.js?v=29.0&t=1786970960-5361d73b"></script>
+    <script src="js/version-sync.js?v=29.0&t=1786970960-5361d73b"></script>
+    <script src="js/persistence.js?v=29.0&t=1786970960-5361d73b"></script>
+    <script src="js/hybrid-storage.js?v=29.0&t=1786970960-5361d73b"></script>
+    <script src="js/ui.js?v=29.0&t=1786970960-5361d73b"></script>
+    <script src="js/app.js?v=29.0&t=1786970960-5361d73b"></script>
 </body>
 </html>
