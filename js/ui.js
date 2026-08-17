@@ -1,4 +1,4 @@
-const APP_VERSION = '30.0';
+const APP_VERSION = '31.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -593,6 +593,7 @@ async function toggleFavorite() {
 
 async function renderHomeScreen() {
     await renderBackupNudge();
+    await renderRunNudge();
     await renderDueNudge();
     await renderActionsNudge();
 
@@ -1836,6 +1837,24 @@ async function renderActionsNudge() {
     nudge.style.display = 'flex';
 }
 
+// A run in progress, offered back from the Home screen. Top of the pile: you
+// are in the middle of it, and a half-finished departure checklist is the most
+// urgent thing the app can be holding.
+async function renderRunNudge() {
+    const nudge = document.getElementById('runNudge');
+    const run = currentRun();
+
+    if (!run) {
+        nudge.style.display = 'none';
+        return;
+    }
+
+    document.getElementById('runNudgeTitle').textContent = run.name;
+    document.getElementById('runNudgeDetail').textContent =
+        run.ticked.length + ' of ' + run.numbers.length + ' done · tap to carry on';
+    nudge.style.display = 'flex';
+}
+
 // The "Due now" card. The app has always known an instruction's frequency and
 // when it was last done, and never once put the two together — this is that
 // arithmetic, on the Home screen, where it can actually change what you do next.
@@ -1875,6 +1894,345 @@ async function renderDueList() {
         row.querySelector('.list-item-info').appendChild(note);
 
         list.appendChild(row);
+    });
+}
+
+// ---------------------------------------------------------------------------
+// Run a Set — working through several instructions as one checklist.
+// ---------------------------------------------------------------------------
+
+// One run at a time, kept on this phone. A departure checklist gets interrupted
+// constantly, so a run has to survive the app being closed — but like the step
+// ticks, it is where you are right now rather than data worth backing up.
+const RUN_KEY = 'ams_current_run';
+
+function currentRun() {
+    try {
+        return JSON.parse(localStorage.getItem(RUN_KEY) || 'null');
+    } catch (error) {
+        return null;
+    }
+}
+
+function saveRun(run) {
+    if (run) {
+        localStorage.setItem(RUN_KEY, JSON.stringify(run));
+    } else {
+        localStorage.removeItem(RUN_KEY);
+    }
+}
+
+// The sets you can run, each resolved to the instructions in it.
+//
+// Membership is worked out fresh here, but a started run keeps its own snapshot
+// of the numbers — otherwise "Due now" would shrink under you as you ticked
+// things off, and you would never see the run finish.
+async function availableSets() {
+    const instructions = await getAllInstructions();
+    const byNumber = (a, b) => a.number.localeCompare(b.number);
+    const sets = [];
+
+    const beforeTrip = instructions.filter(i => i.frequency === 'Before each trip').sort(byNumber);
+    if (beforeTrip.length) {
+        sets.push({ id: 'trip', name: 'Before each trip', instructions: beforeTrip });
+    }
+
+    const due = (await getDueInstructions()).map(entry => entry.instruction);
+    if (due.length) {
+        sets.push({ id: 'due', name: 'Everything due now', instructions: due });
+    }
+
+    const favouriteIds = await getFavorites();
+    const favourites = instructions.filter(i => favouriteIds.includes(i.id)).sort(byNumber);
+    if (favourites.length) {
+        sets.push({ id: 'favourites', name: 'Favourites', instructions: favourites });
+    }
+
+    const byCategory = new Map();
+    instructions.forEach(instruction => {
+        const category = instruction.category || 'General';
+        if (!byCategory.has(category)) byCategory.set(category, []);
+        byCategory.get(category).push(instruction);
+    });
+
+    const ordered = [
+        ...CATEGORY_ORDER.filter(c => byCategory.has(c)),
+        ...[...byCategory.keys()].filter(c => !CATEGORY_ORDER.includes(c)).sort()
+    ];
+
+    ordered.forEach(category => {
+        sets.push({
+            id: 'category:' + category,
+            name: category,
+            instructions: byCategory.get(category).sort(byNumber)
+        });
+    });
+
+    return sets;
+}
+
+async function renderRunPicker() {
+    const list = document.getElementById('runPickerList');
+    const resume = document.getElementById('resumeRunCard');
+    const sets = await availableSets();
+    const run = currentRun();
+
+    // An unfinished run is offered back before anything else. Starting a second
+    // one would silently throw the first away.
+    if (run) {
+        resume.hidden = false;
+        document.getElementById('resumeRunName').textContent = run.name;
+        document.getElementById('resumeRunDetail').textContent =
+            run.ticked.length + ' of ' + run.numbers.length + ' done';
+    } else {
+        resume.hidden = true;
+    }
+
+    list.innerHTML = '';
+    sets.forEach(set => {
+        const row = document.createElement('button');
+        row.className = 'set-row';
+
+        const name = document.createElement('span');
+        name.className = 'set-row-name';
+        name.textContent = set.name;
+
+        const count = document.createElement('span');
+        count.className = 'set-row-count';
+        count.textContent = set.instructions.length;
+
+        row.appendChild(name);
+        row.appendChild(count);
+        row.addEventListener('click', () => startRun(set));
+        list.appendChild(row);
+    });
+}
+
+function startRun(set) {
+    saveRun({
+        id: set.id,
+        name: set.name,
+        numbers: set.instructions.map(i => i.number),
+        ticked: []
+    });
+    openRun();
+}
+
+async function openRun() {
+    await renderRun();
+    showScreen('runScreen');
+}
+
+async function renderRun() {
+    const run = currentRun();
+    if (!run) {
+        showScreen('runPickerScreen');
+        return;
+    }
+
+    document.getElementById('runTitle').textContent = run.name;
+    document.getElementById('runProgress').textContent =
+        run.ticked.length + ' of ' + run.numbers.length + ' done';
+
+    const list = document.getElementById('runList');
+    list.innerHTML = '';
+
+    for (const number of run.numbers) {
+        const instruction = await getInstruction(number);
+        // An instruction deleted mid-run is skipped rather than left as a row
+        // that cannot be opened.
+        if (!instruction) continue;
+
+        const done = run.ticked.includes(number);
+        const item = document.createElement('div');
+        item.className = 'list-item run-item' + (done ? ' done' : '');
+
+        const tick = document.createElement('button');
+        tick.className = 'action-tick' + (done ? ' ticked' : '');
+        tick.textContent = done ? '☑' : '☐';
+        tick.setAttribute('aria-label', done ? 'Mark as not done' : 'Mark as done');
+        tick.addEventListener('click', (event) => {
+            event.stopPropagation();
+            const latest = currentRun();
+            latest.ticked = done
+                ? latest.ticked.filter(n => n !== number)
+                : [...latest.ticked, number];
+            saveRun(latest);
+            renderRun();
+        });
+
+        const info = document.createElement('div');
+        info.className = 'list-item-info';
+        info.addEventListener('click', () => {
+            // Opening an instruction from a run has to come back to the run —
+            // dropping you on the Home screen mid-checklist would lose your place.
+            window.instructionReturn = 'run';
+            navigateToInstruction(number);
+        });
+
+        const numberEl = document.createElement('div');
+        numberEl.className = 'list-item-number';
+        numberEl.textContent = instruction.number;
+
+        const titleEl = document.createElement('div');
+        titleEl.className = 'list-item-title';
+        titleEl.textContent = instruction.title;
+
+        info.appendChild(numberEl);
+        info.appendChild(titleEl);
+        item.appendChild(tick);
+        item.appendChild(info);
+        list.appendChild(item);
+    }
+
+    // Finishing records a completion for each instruction you actually ticked,
+    // which is what feeds the Due card. Untouched ones are left alone.
+    const finish = document.getElementById('finishRunBtn');
+    finish.disabled = run.ticked.length === 0;
+    finish.textContent = run.ticked.length === 0
+        ? '✓ Finish run'
+        : '✓ Finish — mark ' + run.ticked.length + ' as Done';
+}
+
+async function finishRun() {
+    const run = currentRun();
+    if (!run) return;
+
+    for (const number of run.ticked) {
+        const instruction = await getInstruction(number);
+        if (instruction) await recordCompletion(instruction);
+    }
+
+    const count = run.ticked.length;
+    saveRun(null);
+    await renderHomeScreen();
+    showScreen('homeScreen');
+
+    // A toast rather than showModal: finishing is an acknowledgement, and
+    // showModal is a Cancel/Confirm dialog — offering "Cancel" on something
+    // that has already happened would be nonsense.
+    showToast(count === 1
+        ? '✓ Run finished — 1 marked as Done'
+        : '✓ Run finished — ' + count + ' marked as Done');
+}
+
+// Brief confirmation that slides up from the bottom and goes away on its own.
+function showToast(message) {
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.textContent = message;
+    document.body.appendChild(toast);
+
+    setTimeout(() => {
+        toast.classList.add('leaving');
+        setTimeout(() => toast.remove(), 300);
+    }, 2400);
+}
+
+// ---------------------------------------------------------------------------
+// Library Health — what the library itself needs, rather than what the RV does.
+// ---------------------------------------------------------------------------
+
+async function healthGroups() {
+    const instructions = await getAllInstructions();
+    const due = await getDueInstructions();
+
+    return [
+        {
+            key: 'overdue',
+            title: 'Overdue',
+            blurb: 'Past the date their frequency implies.',
+            items: due.map(entry => entry.instruction)
+        },
+        {
+            key: 'never',
+            title: 'Never done',
+            blurb: 'They have a frequency but have never been marked Done, so their clock has never started.',
+            items: instructions.filter(i =>
+                FREQUENCY_DAYS[i.frequency] && !i.lastCompleted && i.status !== 'Archived')
+        },
+        {
+            key: 'noowner',
+            title: 'No owner',
+            blurb: 'Nobody is named as responsible.',
+            items: instructions.filter(i => !i.owner || !String(i.owner).trim())
+        },
+        {
+            key: 'unfinished',
+            title: 'Draft or Review Needed',
+            blurb: 'Missing something the app counts as making an instruction complete.',
+            items: instructions.filter(i => i.status === 'Draft' || i.status === 'Review Needed')
+        },
+        {
+            key: 'nowarning',
+            title: 'Safety work with no warning',
+            blurb: 'Safety and Maintenance instructions that carry no warning text. Not every one needs a warning — but it is worth a second look.',
+            items: instructions.filter(i =>
+                ['Safety', 'Maintenance'].includes(i.category) &&
+                (!i.warnings || !i.warnings.trim()))
+        }
+    ];
+}
+
+async function renderHealth() {
+    const container = document.getElementById('healthList');
+    const groups = await healthGroups();
+    container.innerHTML = '';
+
+    const clean = groups.every(group => group.items.length === 0);
+    if (clean) {
+        container.innerHTML = '<p class="empty-state">Nothing to tidy up. Every instruction has an owner, a status and a warning where it needs one.</p>';
+        return;
+    }
+
+    groups.forEach(group => {
+        const section = document.createElement('section');
+        section.className = 'instruction-section';
+
+        const toggle = document.createElement('div');
+        toggle.className = 'section-toggle collapsed';
+
+        const heading = document.createElement('h3');
+        heading.textContent = group.title;
+
+        const count = document.createElement('span');
+        count.className = 'group-count' + (group.items.length === 0 ? ' is-zero' : '');
+        count.textContent = group.items.length;
+
+        const icon = document.createElement('span');
+        icon.className = 'toggle-icon';
+        icon.textContent = '▼';
+
+        toggle.appendChild(heading);
+        toggle.appendChild(count);
+        toggle.appendChild(icon);
+
+        const content = document.createElement('div');
+        content.className = 'section-content';
+
+        const blurb = document.createElement('p');
+        blurb.className = 'health-blurb';
+        blurb.textContent = group.blurb;
+        content.appendChild(blurb);
+
+        if (group.items.length === 0) {
+            const none = document.createElement('p');
+            none.className = 'empty-state';
+            none.textContent = 'None — nothing to do here.';
+            content.appendChild(none);
+        } else {
+            group.items
+                .slice()
+                .sort((a, b) => a.number.localeCompare(b.number))
+                .forEach(instruction => content.appendChild(createInstructionRow(instruction)));
+        }
+
+        // No click handler here on purpose: the app already delegates clicks on
+        // .section-toggle globally. Adding one as well toggled the section twice
+        // per tap, so it appeared not to open at all.
+        section.appendChild(toggle);
+        section.appendChild(content);
+        container.appendChild(section);
     });
 }
 
@@ -2299,6 +2657,15 @@ async function initializeApp() {
     });
 
     document.getElementById('backFromInstructionBtn').addEventListener('click', async () => {
+        // Opened from inside a run: go back to the run, not to Home. Anywhere
+        // else, Home stays the destination it has always been.
+        if (window.instructionReturn === 'run' && currentRun()) {
+            window.instructionReturn = null;
+            await openRun();
+            return;
+        }
+
+        window.instructionReturn = null;
         await renderHomeScreen();
         showScreen('homeScreen');
     });
@@ -2382,6 +2749,46 @@ async function initializeApp() {
     });
 
     document.getElementById('savePersonBtn').addEventListener('click', handleSavePerson);
+
+    // Run a Set
+    document.getElementById('runSetBtn').addEventListener('click', async () => {
+        await renderRunPicker();
+        showScreen('runPickerScreen');
+    });
+
+    document.getElementById('runNudge').addEventListener('click', openRun);
+    document.getElementById('resumeRunCard').addEventListener('click', openRun);
+
+    document.getElementById('backFromRunPickerBtn').addEventListener('click', () => {
+        showScreen('settingsScreen');
+    });
+
+    document.getElementById('backFromRunBtn').addEventListener('click', async () => {
+        // Leaving a run does not end it — the run card on Home brings you back.
+        await renderHomeScreen();
+        showScreen('homeScreen');
+    });
+
+    document.getElementById('abandonRunBtn').addEventListener('click', () => {
+        showModal('Abandon this run?', 'The ticks for this run are discarded. Anything already marked Done stays done.', async (confirmed) => {
+            if (!confirmed) return;
+            saveRun(null);
+            await renderHomeScreen();
+            showScreen('homeScreen');
+        });
+    });
+
+    document.getElementById('finishRunBtn').addEventListener('click', finishRun);
+
+    // Library Health
+    document.getElementById('healthBtn').addEventListener('click', async () => {
+        await renderHealth();
+        showScreen('healthScreen');
+    });
+
+    document.getElementById('backFromHealthBtn').addEventListener('click', () => {
+        showScreen('settingsScreen');
+    });
 
     // Due now
     document.getElementById('dueNudge').addEventListener('click', async () => {

@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786971754-555a3adf">
+    <meta name="cache-bust" content="1786973054-2b7a395b">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=30.0&t=1786971754-555a3adf">
+    <link rel="stylesheet" href="css/style.css?v=31.0&t=1786973054-2b7a395b">
 </head>
 <body>
     <!--
@@ -57,6 +57,11 @@
             <path d="M6.05 16.8C6 15.55 6.95 14.65 8.2 14.65c1.3 0 2.15.95 2.15 2.15 0 1.3-.95 2.2-2.15 2.15-1.3-.05-2.15-.95-2.15-2.15Z"/>
         </symbol>
 
+        <symbol id="icon-run" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M4.4 6.2c1.2-.2 2.3-.2 3.5 0M4.3 12c1.2-.2 2.4-.2 3.6 0M4.4 17.8c1.2-.2 2.3-.2 3.5 0"/>
+            <path d="M11.4 6.1c2.9-.2 5.7-.1 8.5.1M11.3 11.9c2.9-.2 5.7-.1 8.5.1M11.4 17.7c2.9-.2 5.7-.1 8.5.1"/>
+        </symbol>
+
         <symbol id="icon-due" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
             <path d="M12.2 3.5c4.7-.1 8.5 3.6 8.4 8.4-.1 4.6-3.8 8.3-8.4 8.3-4.7 0-8.5-3.8-8.4-8.5.1-4.5 3.8-8.1 8.4-8.2Z"/>
             <path d="M11.9 6.9c-.1 1.8-.1 3.5.1 5.3 1.4.1 2.8.1 4.2 0"/>
@@ -74,7 +79,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v30.0</span>
+                <span class="version-badge" id="homeVersion">v31.0</span>
             </div>
         </header>
 
@@ -89,6 +94,18 @@
                 <span class="nudge-text">
                     <span class="nudge-title" id="backupNudgeTitle">Back up your instructions</span>
                     <span class="nudge-detail" id="backupNudgeDetail">Never backed up</span>
+                </span>
+                <span class="nudge-chevron">›</span>
+            </button>
+
+            <!-- A run you are in the middle of. Above everything else, because a
+                 half-finished departure checklist is the most urgent thing the
+                 app can be holding on to. -->
+            <button id="runNudge" class="nudge-card run" style="display: none;">
+                <svg class="nudge-glyph" aria-hidden="true"><use href="#icon-run"/></svg>
+                <span class="nudge-text">
+                    <span class="nudge-title" id="runNudgeTitle">Run in progress</span>
+                    <span class="nudge-detail" id="runNudgeDetail">0 of 0 done</span>
                 </span>
                 <span class="nudge-chevron">›</span>
             </button>
@@ -428,6 +445,12 @@
 
         <div class="settings-content">
             <div class="settings-section">
+                <h3>Checklists</h3>
+                <button id="runSetBtn" class="btn-secondary">▶️ Run a Set</button>
+                <button id="healthBtn" class="btn-secondary">🩺 Library Health</button>
+            </div>
+
+            <div class="settings-section">
                 <h3>People</h3>
                 <button id="managePeopleBtn" class="btn-secondary">Manage People</button>
                 <button id="addPersonBtn" class="btn-secondary">+ Add Person</button>
@@ -474,6 +497,66 @@
             <div id="instructionsList" class="full-instructions-list">
                 <p class="empty-state">No instructions yet.</p>
             </div>
+        </div>
+    </div>
+
+    <!-- Run a Set: pick which set to work through -->
+    <div id="runPickerScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromRunPickerBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2>Run a Set</h2>
+            <div></div>
+        </header>
+
+        <div class="list-content">
+            <!-- Offered before the list of sets: starting a second run would
+                 silently throw the first one away. -->
+            <button id="resumeRunCard" class="nudge-card run" hidden>
+                <svg class="nudge-glyph" aria-hidden="true"><use href="#icon-run"/></svg>
+                <span class="nudge-text">
+                    <span class="nudge-title" id="resumeRunName">Run in progress</span>
+                    <span class="nudge-detail" id="resumeRunDetail">0 of 0 done</span>
+                </span>
+                <span class="nudge-chevron">›</span>
+            </button>
+
+            <p class="screen-blurb">Work through several instructions as one checklist. Tap any of them to open it in full — you'll come back here afterwards.</p>
+
+            <div id="runPickerList" class="set-list"></div>
+        </div>
+    </div>
+
+    <!-- Run a Set: the run itself -->
+    <div id="runScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromRunBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2 id="runTitle">Run</h2>
+            <div></div>
+        </header>
+
+        <div class="list-content">
+            <p id="runProgress" class="run-progress">0 of 0 done</p>
+
+            <div id="runList" class="full-instructions-list"></div>
+
+            <div class="instruction-buttons">
+                <button id="finishRunBtn" class="btn-done">✓ Finish run</button>
+                <button id="abandonRunBtn" class="btn-danger">Abandon run</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Library Health Screen -->
+    <div id="healthScreen" class="screen">
+        <header class="app-header">
+            <button id="backFromHealthBtn" class="back-btn" aria-label="Back">← Back</button>
+            <h2>Library Health</h2>
+            <div></div>
+        </header>
+
+        <div class="list-content">
+            <p class="screen-blurb">Gaps in the library itself, rather than jobs on the RV. Nothing here is wrong as such — it's what's worth a second look. Tap any heading to open it.</p>
+            <div id="healthList"></div>
         </div>
     </div>
 
@@ -921,7 +1004,7 @@
                     <li><strong>Home — pink.</strong> The big Scan button, your Favourites and Recently Viewed, plus any nudge cards (something due, to-dos waiting, backup overdue).</li>
                     <li><strong>Instructions — green.</strong> Every instruction you have, searchable. Tap ＋ in the top right to write a new one.</li>
                     <li><strong>Actions — red.</strong> Your to-do list. A red number on the tab tells you how many are still open, so you can see it without going there.</li>
-                    <li><strong>Settings — blue.</strong> The housekeeping: People, backups and Data Safety, this guide, and the Version Log.</li>
+                    <li><strong>Settings — blue.</strong> The housekeeping: Run a Set and Library Health, People, backups and Data Safety, this guide, and the Version Log.</li>
                 </ul>
                 <p>Anything you open <em>from</em> a tab — an instruction, an editor, the People list — hides the tabs and gives you a ← Back button instead, so you always know whether you are on a main screen or inside something. It <em>keeps</em> the colour of the tab you came from, so a green instruction screen is one you reached from Instructions and Back will take you there.</p>
                 <p><strong>Two colours mean the same thing everywhere, whatever tab you are on:</strong> a <strong>filled</strong> button is the thing you came to do (Save, Back Up Now), and an <strong>outlined red</strong> button is a destructive one (Delete, Clear All Data). If a button is outlined in red, read it twice.</p>
@@ -943,6 +1026,8 @@
                 <ul>
                     <li><strong>Share an instruction:</strong> Open it and tap <strong>📤 Share</strong> at the bottom. The whole instruction goes into the normal iPhone share sheet as text — number, title, category, frequency, time, the safety warning, equipment, what to do beforehand, the numbered steps, afterwards and notes — so you can send it by Messages or Mail, or drop it into Notes. Whoever receives it does not need the app. Owner, audit history and revision numbers are left out on purpose: they matter in here, not to the person you sent it to.</li>
                     <li><strong>What's due:</strong> A green "Due now" card appears on the Home screen whenever something has come round again — tap it for the full list, most overdue first. This is worked out from two things the instruction already carries: its <strong>Frequency</strong> and when you last marked it <strong>Done</strong>. So the clock only starts once you have marked an instruction Done for the first time; before that it shows "After 1st Done" and stays off the list. That is deliberate, and it is why importing the starter library doesn't fill your Home screen with two hundred overdue items. Frequencies that describe an event rather than a date — "Before each trip", "Every session", "As-needed" — never fall due, and neither does anything Archived.</li>
+                    <li><strong>Running a set of instructions:</strong> Settings → <strong>▶️ Run a Set</strong> works through several instructions as one checklist — pick "Before each trip", everything currently due, your Favourites, or any category. Tick each one off as you go, or tap it to open the instruction in full; ← Back returns you to the run rather than to the Home screen. A run survives you closing the app: a pink card at the top of Home shows how far through you are and takes you back to it. <strong>Finish</strong> marks everything you ticked as Done in one go, which resets the clock on all of them at once — so a departure run keeps the Due list honest without visiting eight instructions one at a time. The list is fixed when the run starts, so running "Everything due now" doesn't shrink underneath you as you tick things off.</li>
+                    <li><strong>Library Health:</strong> Settings → <strong>🩺 Library Health</strong> is about the library itself rather than the RV. It shows what is overdue, what has a frequency but has never once been marked Done (so its clock never started), what has nobody named as owner, what is still Draft or Review Needed, and which Safety or Maintenance instructions carry no warning text. Everything listed is tappable, so you can work through it. None of it is an error — not every job needs a warning and not everything needs an owner. It's a second look, not a telling-off.</li>
                     <li><strong>Keeping your place in a job:</strong> Tick the steps as you go and they stay ticked. Leave the instruction, lock the phone, come back tomorrow — you pick up where you left off. A "3 of 12 done · Reset" line appears above the steps once you have started, and <strong>Reset</strong> clears them if you want to begin again. Marking the instruction <strong>Done</strong> clears them for you, so the next time you open it the list is clean. These ticks live only on this phone and are not part of your backup — they are where you are right now, not something worth keeping.</li>
                     <li><strong>Favorites:</strong> Tap ★ on any instruction to save it for quick access from the home screen.</li>
                     <li><strong>People:</strong> Add names once under Settings → Manage People, then pick them as Owner or "Revised by" on any instruction instead of retyping — their phone/email shows up automatically in Revision History.</li>
@@ -999,6 +1084,22 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v31.0 (2026-08-17) - RUN &amp; REVIEW</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>▶️ <strong>Run a Set</strong> (Settings → ▶️ Run a Set) works through several instructions as one checklist. Pick a set — "Before each trip", everything due, your Favourites, or any category — and tick them off one at a time</li>
+                            <li>↩️ <strong>Tap any instruction in a run to open it in full,</strong> steps, photos and all, and ← Back brings you straight back to the run rather than dumping you on the Home screen halfway through a departure checklist</li>
+                            <li>💾 <strong>A run survives being interrupted.</strong> Close the app, take a phone call, come back tomorrow — a pink card at the top of the Home screen shows the run and how far through it you are, and carries on where you left off</li>
+                            <li>✓ <strong>Finishing a run marks everything you ticked as Done in one go,</strong> which feeds straight back into the Due card — so a departure run quietly resets the clock on eight instructions at once. Anything you did not tick is left alone</li>
+                            <li>📸 <strong>A run takes a snapshot of its list when it starts.</strong> Running "Everything due now" would otherwise shrink underneath you as you ticked things off, and you would never see it finish</li>
+                            <li>🩺 <strong>Library Health</strong> (Settings → 🩺 Library Health) is about gaps in the library itself rather than jobs on the RV: what is <strong>Overdue</strong>, what has a frequency but has <strong>never been done</strong> (so its clock never started), what has <strong>no owner</strong>, what is still <strong>Draft or Review Needed</strong>, and which <strong>Safety or Maintenance</strong> instructions carry no warning text</li>
+                            <li>👆 <strong>Every entry there is tappable</strong> and takes you to the instruction, so the list is something you can work through rather than just read</li>
+                            <li>🤔 <strong>Nothing in Library Health is an error.</strong> Not every maintenance job needs a warning and not everything needs an owner — it is a second look, not a telling-off</li>
+                            <li>🏁 <strong>This completes the run of updates started at v28.0:</strong> the app now tells you what needs doing, keeps your place while you do it, can find anything you ever wrote, shows photos where they belong, shares a whole instruction, runs a checklist, and can tell you where its own gaps are</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v30.0 (2026-08-17) - SHOW &amp; SHARE</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1389,12 +1490,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=30.0&t=1786971754-555a3adf"></script>
-    <script src="js/qr.js?v=30.0&t=1786971754-555a3adf"></script>
-    <script src="js/version-sync.js?v=30.0&t=1786971754-555a3adf"></script>
-    <script src="js/persistence.js?v=30.0&t=1786971754-555a3adf"></script>
-    <script src="js/hybrid-storage.js?v=30.0&t=1786971754-555a3adf"></script>
-    <script src="js/ui.js?v=30.0&t=1786971754-555a3adf"></script>
-    <script src="js/app.js?v=30.0&t=1786971754-555a3adf"></script>
+    <script src="js/db.js?v=31.0&t=1786973054-2b7a395b"></script>
+    <script src="js/qr.js?v=31.0&t=1786973054-2b7a395b"></script>
+    <script src="js/version-sync.js?v=31.0&t=1786973054-2b7a395b"></script>
+    <script src="js/persistence.js?v=31.0&t=1786973054-2b7a395b"></script>
+    <script src="js/hybrid-storage.js?v=31.0&t=1786973054-2b7a395b"></script>
+    <script src="js/ui.js?v=31.0&t=1786973054-2b7a395b"></script>
+    <script src="js/app.js?v=31.0&t=1786973054-2b7a395b"></script>
 </body>
 </html>
