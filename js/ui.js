@@ -1,4 +1,4 @@
-const APP_VERSION = '33.0';
+const APP_VERSION = '34.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -213,6 +213,7 @@ async function openTab(tabName) {
             document.getElementById('searchInput').value = '';
             clearFilters();
             toggleFilterPanel(false);
+            toggleBulkPanel(false);
             await renderInstructionsList();
             showScreen('instructionsListScreen');
             break;
@@ -1055,6 +1056,179 @@ async function clearFiltersAndRender() {
     await renderInstructionsList(document.getElementById('searchInput').value);
 }
 
+// ---------------------------------------------------------------------------
+// Bulk actions on the filtered slice
+//
+// Library Health's fixers answer one fixed question each and only fill blanks.
+// These act on exactly what the filter has put on screen, which is what makes
+// "the Diving instructions are Anna's" a job of six taps rather than sixty.
+//
+// Every one of them is a deliberate overwrite, so all three go through a modal
+// that states the count and says plainly what it replaces, and all three leave
+// an Undo behind. Bulk edits deliberately write no revision history — two
+// hundred "Updated" entries would bury the real edits under bookkeeping.
+// ---------------------------------------------------------------------------
+
+// Exactly the rows currently on screen. Set on every render, so it can never
+// describe a list the screen isn't showing.
+let visibleInstructions = [];
+
+const BULK_STATUSES = ['Active', 'Draft', 'Review Needed', 'Archived'];
+
+// A shallow copy is enough to undo with, and much cheaper than cloning photos:
+// every change below builds NEW arrays rather than mutating the ones it found,
+// so the snapshot's shared references still hold the original values.
+function snapshotOf(items) {
+    return items.map(item => ({ ...item }));
+}
+
+async function applyBulkChange(items, change, describe, toastText) {
+    if (items.length === 0) return;
+
+    showModal(describe.title, describe.message, async (confirmed) => {
+        if (!confirmed) return;
+
+        const before = snapshotOf(items);
+        const count = await bulkUpdateInstructions(items.map(change));
+
+        await renderInstructionsList(document.getElementById('searchInput').value);
+
+        showToast('✓ ' + toastText(count), {
+            label: 'Undo',
+            onClick: async () => {
+                await bulkUpdateInstructions(before);
+                await renderInstructionsList(document.getElementById('searchInput').value);
+                showToast('↩︎ Put back as it was');
+            }
+        });
+    });
+}
+
+async function renderBulkPanel() {
+    const panel = document.getElementById('bulkPanel');
+    if (!panel) return;
+
+    const items = visibleInstructions;
+    const count = items.length;
+    panel.querySelector('.bulk-scope').textContent = count === 1
+        ? 'The 1 instruction now listed'
+        : 'All ' + count + ' instructions now listed';
+
+    const people = await getAllPeople();
+    people.sort((a, b) => a.name.localeCompare(b.name));
+
+    const ownerSelect = document.getElementById('bulkOwnerSelect');
+    const ownerBtn = document.getElementById('bulkOwnerBtn');
+    const ownerNote = document.getElementById('bulkOwnerNote');
+    const previous = ownerSelect.value;
+
+    ownerSelect.innerHTML = '';
+    people.forEach(person => {
+        const option = document.createElement('option');
+        option.value = person.id;
+        option.textContent = person.name;
+        ownerSelect.appendChild(option);
+    });
+    if (people.some(p => p.id === previous)) ownerSelect.value = previous;
+
+    const noPeople = people.length === 0;
+    ownerSelect.hidden = noPeople;
+    ownerBtn.hidden = noPeople;
+    ownerNote.hidden = !noPeople;
+    ownerBtn.textContent = 'Set owner on ' + count;
+
+    document.getElementById('bulkTagBtn').textContent = 'Add tag to ' + count;
+    document.getElementById('bulkStatusBtn').textContent = 'Set status on ' + count;
+}
+
+function bulkScopeNote() {
+    // Worth spelling out: with a search term as well, the slice is the overlap,
+    // and "all 12" would otherwise sound like all twelve of something bigger.
+    const term = document.getElementById('searchInput').value.trim();
+    return term ? ' (the filtered list, narrowed by your search for "' + term + '")' : '';
+}
+
+async function handleBulkOwner() {
+    const select = document.getElementById('bulkOwnerSelect');
+    if (!select.value) return;
+
+    const personId = select.value;
+    const personName = select.options[select.selectedIndex].textContent;
+    const items = visibleInstructions;
+
+    await applyBulkChange(
+        items,
+        (instruction) => ({ ...instruction, owner: personName, ownerId: personId }),
+        {
+            title: 'Set owner on ' + items.length + '?',
+            message: personName + ' becomes the owner of all ' + items.length +
+                ' instructions currently listed' + bulkScopeNote() +
+                '. This replaces any owner they already have. You can undo it straight afterwards.'
+        },
+        (count) => personName + ' set as owner on ' + count
+    );
+}
+
+async function handleBulkTag() {
+    const input = document.getElementById('bulkTagInput');
+    const tag = input.value.trim();
+    if (!tag) {
+        alert('Type a tag first.');
+        return;
+    }
+
+    const items = visibleInstructions;
+
+    await applyBulkChange(
+        items,
+        (instruction) => {
+            const tags = instruction.tags || [];
+            // A new array, never a push: the Undo snapshot shares this reference.
+            return tags.includes(tag) ? { ...instruction } : { ...instruction, tags: [...tags, tag] };
+        },
+        {
+            title: 'Add "' + tag + '" to ' + items.length + '?',
+            message: 'The tag is added to all ' + items.length + ' instructions currently listed' +
+                bulkScopeNote() + '. Any that already carry it are left alone, and nothing else changes. ' +
+                'Tags are searchable, so this is a way to mark a batch you want to find again.'
+        },
+        (count) => '"' + tag + '" added to ' + count
+    );
+
+    input.value = '';
+}
+
+async function handleBulkStatus() {
+    const status = document.getElementById('bulkStatusSelect').value;
+    const items = visibleInstructions;
+
+    const extra = status === 'Archived'
+        ? ' Archived instructions never fall due, and drop off the Due list.'
+        : '';
+
+    await applyBulkChange(
+        items,
+        (instruction) => ({ ...instruction, status }),
+        {
+            title: 'Set status to ' + status + ' on ' + items.length + '?',
+            message: 'All ' + items.length + ' instructions currently listed' + bulkScopeNote() +
+                ' are set to ' + status + ', replacing whatever status they have now.' + extra +
+                ' You can undo it straight afterwards.'
+        },
+        (count) => count + ' set to ' + status
+    );
+}
+
+function toggleBulkPanel(force) {
+    const panel = document.getElementById('bulkPanel');
+    const btn = document.getElementById('bulkOpenBtn');
+    if (!panel || !btn) return;
+
+    const show = typeof force === 'boolean' ? force : panel.hidden;
+    panel.hidden = !show;
+    btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+}
+
 async function renderInstructionsList(filter = '') {
     const list = document.getElementById('instructionsList');
     const summary = document.getElementById('listSummary');
@@ -1077,6 +1251,23 @@ async function renderInstructionsList(filter = '') {
         if (result.matched) matchedFields.set(instruction.id, result.fields);
         return result.matched;
     });
+
+    // What the bulk actions will act on: exactly these rows, nothing implied.
+    // Only offered while filtering — acting on a whole unfiltered library from
+    // a button beside the search box is not something anyone means to do.
+    visibleInstructions = filtering ? filtered : [];
+    const bulkBar = document.getElementById('bulkBar');
+    if (bulkBar) {
+        const offer = filtering && filtered.length > 0;
+        bulkBar.hidden = !offer;
+        if (offer) {
+            document.getElementById('bulkOpenBtn').textContent =
+                '⚡ Apply to all ' + filtered.length + '…';
+            await renderBulkPanel();
+        } else {
+            toggleBulkPanel(false);
+        }
+    }
 
     list.innerHTML = '';
 
@@ -2397,20 +2588,39 @@ async function finishRun() {
 }
 
 // Brief confirmation that slides up from the bottom and goes away on its own.
-function showToast(message) {
+//
+// An optional { label, onClick } puts a button in it — used for Undo after a
+// bulk change. A toast carrying an action stays up more than twice as long,
+// because it now has to be read and acted on rather than merely noticed.
+function showToast(message, action) {
     // Two in quick succession would otherwise sit on top of each other at the
     // same fixed position, showing the older message over the newer one.
     document.querySelectorAll('.toast').forEach(old => old.remove());
 
     const toast = document.createElement('div');
-    toast.className = 'toast';
-    toast.textContent = message;
+    toast.className = 'toast' + (action ? ' with-action' : '');
+
+    const text = document.createElement('span');
+    text.textContent = message;
+    toast.appendChild(text);
+
+    if (action) {
+        const btn = document.createElement('button');
+        btn.className = 'toast-action';
+        btn.textContent = action.label;
+        btn.addEventListener('click', () => {
+            toast.remove();
+            action.onClick();
+        });
+        toast.appendChild(btn);
+    }
+
     document.body.appendChild(toast);
 
     setTimeout(() => {
         toast.classList.add('leaving');
         setTimeout(() => toast.remove(), 300);
-    }, 2400);
+    }, action ? 6000 : 2400);
 }
 
 // ---------------------------------------------------------------------------
@@ -3228,6 +3438,12 @@ async function initializeApp() {
     document.getElementById('clearFiltersBtn').addEventListener('click', clearFiltersAndRender);
     document.getElementById('filterPanelClearBtn').addEventListener('click', clearFiltersAndRender);
     document.getElementById('filterPanelDoneBtn').addEventListener('click', () => toggleFilterPanel(false));
+
+    document.getElementById('bulkOpenBtn').addEventListener('click', () => toggleBulkPanel());
+    document.getElementById('bulkCloseBtn').addEventListener('click', () => toggleBulkPanel(false));
+    document.getElementById('bulkOwnerBtn').addEventListener('click', handleBulkOwner);
+    document.getElementById('bulkTagBtn').addEventListener('click', handleBulkTag);
+    document.getElementById('bulkStatusBtn').addEventListener('click', handleBulkStatus);
 
     document.getElementById('backFromEditorBtn').addEventListener('click', async () => {
         await renderInstructionsList();

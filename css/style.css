@@ -1475,6 +1475,111 @@ body {
     color: #fff;
 }
 
+/* Bulk actions on the filtered slice */
+.bulk-bar {
+    display: flex;
+}
+
+.bulk-bar[hidden] {
+    display: none;
+}
+
+.bulk-bar-btn {
+    flex: 1;
+    padding: 0.6rem 0.9rem;
+    background-color: color-mix(in srgb, var(--accent) 12%, var(--color-surface));
+    border: 1px dashed var(--accent);
+    border-radius: 8px;
+    color: var(--accent);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bulk-panel[hidden] {
+    display: none;
+}
+
+/* Says out loud what "all" means before any of the buttons below are tapped. */
+.bulk-scope {
+    margin-bottom: 0.9rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--accent);
+}
+
+.bulk-row {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.bulk-row select,
+.bulk-row input {
+    flex: 1;
+    min-width: 0;
+    padding: 0.5rem;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: 0.9rem;
+}
+
+.bulk-apply-btn {
+    flex-shrink: 0;
+    padding: 0.5rem 0.8rem;
+    background-color: var(--accent);
+    border: none;
+    border-radius: 8px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.bulk-apply-btn[hidden],
+.bulk-note[hidden] {
+    display: none;
+}
+
+.bulk-note {
+    margin-top: 0.45rem;
+    font-size: 0.78rem;
+    line-height: 1.45;
+    color: var(--color-text-secondary);
+}
+
+/* A toast carrying an Undo stops being a passing note and becomes something to
+   read, so it gets a left-aligned line and a button rather than centred text. */
+.toast.with-action {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    text-align: left;
+}
+
+.toast-action {
+    flex-shrink: 0;
+    padding: 0.35rem 0.75rem;
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.55);
+    border-radius: 8px;
+    color: #fff;
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 700;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
 .search-input {
     padding: 0.75rem;
     background-color: var(--color-surface);

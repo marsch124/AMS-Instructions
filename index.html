@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786991839-bd8cb1bf">
+    <meta name="cache-bust" content="1786992549-2a860833">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=33.0&t=1786991839-bd8cb1bf">
+    <link rel="stylesheet" href="css/style.css?v=34.0&t=1786992549-2a860833">
 </head>
 <body>
     <!--
@@ -83,7 +83,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v33.0</span>
+                <span class="version-badge" id="homeVersion">v34.0</span>
             </div>
         </header>
 
@@ -519,6 +519,53 @@
                     <button id="toggleAllGroupsBtn" class="list-summary-btn">Expand all</button>
                 </div>
             </div>
+            <!-- Only ever offered while a filter is on. Acting on a whole
+                 unfiltered library from here is not something anyone means to do. -->
+            <div id="bulkBar" class="bulk-bar" hidden>
+                <button id="bulkOpenBtn" class="bulk-bar-btn" aria-expanded="false" aria-controls="bulkPanel">⚡ Apply to all…</button>
+            </div>
+
+            <div id="bulkPanel" class="filter-panel bulk-panel" hidden>
+                <p class="bulk-scope"></p>
+
+                <div class="filter-group">
+                    <h4>Set owner</h4>
+                    <div class="bulk-row">
+                        <select id="bulkOwnerSelect" aria-label="Who owns these"></select>
+                        <button id="bulkOwnerBtn" class="bulk-apply-btn">Set owner</button>
+                    </div>
+                    <p id="bulkOwnerNote" class="bulk-note" hidden>Add someone under Settings → Manage People first.</p>
+                </div>
+
+                <div class="filter-group">
+                    <h4>Add a tag</h4>
+                    <div class="bulk-row">
+                        <input id="bulkTagInput" type="text" placeholder="e.g. spring-service" aria-label="Tag to add">
+                        <button id="bulkTagBtn" class="bulk-apply-btn">Add tag</button>
+                    </div>
+                    <p class="bulk-note">Tags are searchable, so this marks a batch you want to find again.</p>
+                </div>
+
+                <div class="filter-group">
+                    <h4>Set status</h4>
+                    <div class="bulk-row">
+                        <select id="bulkStatusSelect" aria-label="Status to set">
+                            <option value="Active">Active</option>
+                            <option value="Draft">Draft</option>
+                            <option value="Review Needed">Review Needed</option>
+                            <option value="Archived">Archived</option>
+                        </select>
+                        <button id="bulkStatusBtn" class="bulk-apply-btn">Set status</button>
+                    </div>
+                </div>
+
+                <p class="bulk-note">Each one asks before it changes anything, and leaves an Undo behind. Bulk changes are not written to Revision History.</p>
+
+                <div class="filter-panel-actions">
+                    <button id="bulkCloseBtn" class="filter-panel-btn">Close</button>
+                </div>
+            </div>
+
             <div id="instructionsList" class="full-instructions-list">
                 <p class="empty-state">No instructions yet.</p>
             </div>
@@ -1092,6 +1139,18 @@
                 <p><strong>Filters are forgotten every time you leave the tab</strong>, exactly like the search box. A filter you set yesterday and forgot about would show you a short list today and look for all the world like missing data.</p>
                 <p class="guide-example"><strong>For example:</strong> tap <strong>👤 Anna</strong> and <strong>⏰ Overdue</strong> before a Sunday morning conversation, and you have her list — nothing else. Or tap <strong>⚠️ No warning</strong> on a rainy afternoon and work down the instructions that still need their real hazard written in.</p>
 
+                <h4>Doing something to the whole filtered list</h4>
+                <p>Once a filter is on, a dashed <strong>⚡ Apply to all 12…</strong> button appears under the count. It opens three actions that work on exactly the rows on screen — no more, no less:</p>
+                <ul>
+                    <li><strong>Set owner</strong> — the one that turns a filter into a day's work saved. Filter to a category, pick the person, done.</li>
+                    <li><strong>Add a tag</strong> — added to any that haven't already got it, nothing else touched. Tags are searchable, so this is how you mark a batch you want to find again later.</li>
+                    <li><strong>Set status</strong> — including <strong>Archived</strong>, for a batch you want to keep but not be nagged about.</li>
+                </ul>
+                <p><strong>Every one of them asks first</strong>, naming the number and saying plainly what it replaces — and if a search is also narrowing the list, the question says so, because "all 12" should never be a surprise. <strong>Every one of them leaves an Undo</strong> in the bar at the bottom of the screen, which puts things back exactly as they were, including anything that already had the value you applied.</p>
+                <p>Bulk changes deliberately write nothing to Revision History: two hundred "Updated" entries would bury the real edits under bookkeeping. The safety copy on the phone is refreshed straight afterwards, as with every other change to your data.</p>
+                <p class="guide-example"><strong>For example:</strong> the starter library arrives with 205 instructions and no owners. Filter to <strong>Diving</strong>, ⚡ Apply to all → Anna. Filter to <strong>Cycling</strong>, ⚡ Apply to all → Martin. Six taps a category, and the person filter is suddenly worth having.</p>
+                <p>The button only ever appears while a filter is on. Acting on a whole unfiltered library from a button beside the search box is not something anybody means to do.</p>
+
                 <h4>Related instructions</h4>
                 <p>If an instruction lists related numbers, they appear at the bottom with their real titles, and tapping one takes you straight there. Rename an instruction and it updates itself everywhere it's referenced. If a related number has been deleted, the row says "No longer exists" rather than looking like a link that does nothing.</p>
             </section>
@@ -1164,7 +1223,8 @@
                 <p>Settings → <strong>🩺 Library Health</strong> is about the library itself rather than the RV. It shows what is overdue, what has a frequency but has never once been marked Done, what has nobody named as owner, what is still Draft or Review Needed, and which Safety or Maintenance instructions carry no warning text. Everything listed is tappable, so you can work through it.</p>
                 <p>None of it is an error — not every job needs a warning and not everything needs an owner. It's a second look, not a telling-off.</p>
                 <p><strong>Two of the groups can fix themselves:</strong> "No owner" lets you pick a person and apply them to everything that hasn't got one, and "Safety work with no warning" can drop a holding note onto all of them at once. Both leave anything already filled in alone, so you can run them again after adding new instructions. The holding warning is honest about being a placeholder and asks to be replaced with the real hazard — treat it as a reminder, not a job finished.</p>
-                <p><strong>Health or filters?</strong> Library Health is the report — a fixed set of questions, answered in one place, with the bulk fixes attached. The filters are the same information while you browse, mixable with anything else. Use Health to see how the library is doing; use the filters when you want to work through a particular slice of it.</p>
+                <p><strong>Health or filters?</strong> Library Health is the report — a fixed set of questions, answered in one place. Its own fixes are deliberately blunt: they fill blanks across the <em>whole</em> library in one tap, and never overwrite anything already filled in. The filters are the same information while you browse, mixable with anything else, and <strong>⚡ Apply to all</strong> acts on precisely the slice in front of you and will happily replace what's there — with an Undo behind it.</p>
+                <p>So: Health when one answer is right for everything unclaimed. Filters when the answer is different for the diving kit than it is for the RV.</p>
             </section>
 
             <section id="guidePhotos">
@@ -1200,13 +1260,15 @@
                 <p>Settings → ▶️ Run a Set → "Before each trip". Work down the checklist, tapping into any instruction you're unsure about, then <strong>Finish</strong>. Everything you ticked is marked Done in one go and the Due list is honest again. If you get interrupted, the pink card on Home brings you back to exactly where you stopped.</p>
 
                 <h4>2. Handing work to somebody else</h4>
-                <p>Instructions tab → <strong>Filter</strong> → 👤 their name. That is their list, and nothing else. Add <strong>⏰ Overdue</strong> if you only want to talk about what's slipped. If a name has nothing against it, use Settings → 🩺 Library Health → "No owner" to set an owner on everything unclaimed in one tap, and start again.</p>
+                <p>Instructions tab → <strong>Filter</strong> → 👤 their name. That is their list, and nothing else. Add <strong>⏰ Overdue</strong> if you only want to talk about what's slipped.</p>
+                <p>If a name has nothing against it yet, that's the job to do first — and it takes minutes rather than an evening. Filter to one category at a time and use <strong>⚡ Apply to all → Set owner</strong>. Where a single person really does own everything unclaimed, Settings → 🩺 Library Health → "No owner" does the lot in one tap instead.</p>
 
                 <h4>3. Something's wrong and you're standing in front of it</h4>
                 <p>Scan the number, scroll to <strong>🔍 Audit Log</strong>, record what you found and who found it. Then tap <strong>→ Convert to Action</strong> on that entry: the finding becomes a to-do, linked to this instruction, counted on the red Actions tab until somebody deals with it. You've written it down once and it can't now be forgotten.</p>
 
                 <h4>4. Tidying up an imported library</h4>
-                <p>Two hundred instructions arrived at once and none of them know whose they are. <strong>Filter → ❓ Nobody named</strong> to see the scale of it, <strong>⚠️ No warning</strong> for the ones missing a hazard, <strong>🚫 No photo</strong> for the ones that would be clearer with a picture. Do a handful each time you're sitting down anyway, and use Library Health's bulk fixes for the parts where one decision covers everything.</p>
+                <p>Two hundred instructions arrived at once and none of them know whose they are. <strong>Filter → ❓ Nobody named</strong> to see the scale of it, <strong>⚠️ No warning</strong> for the ones missing a hazard, <strong>🚫 No photo</strong> for the ones that would be clearer with a picture.</p>
+                <p>The ownership half is now a ten-minute job rather than an evening: filter to a category, <strong>⚡ Apply to all → Set owner</strong>, next category. The warnings and photos still want you one at a time, because only you know the actual hazard — but do a handful each time you're sitting down anyway and the library fills itself in. <strong>⚡ Apply to all → Add a tag</strong> is worth knowing here too: tag a batch <em>needs-photo</em> as you go and you can search your way straight back to them.</p>
 
                 <h4>5. Somewhere with no signal</h4>
                 <p>At the dive site, on a pitch with no bars, in an underground car park — it all still works. The instructions, the photos, the steps you tick, the to-dos you add, the Done you record. Only the very first use of the camera scanner ever needs the internet, and typing the number never does.</p>
@@ -1245,6 +1307,23 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v34.0 (2026-08-17) - DO SOMETHING TO THE WHOLE LIST</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>⚡ <strong>"Apply to all 12…" appears under the count whenever a filter is on</strong>, and acts on exactly the rows on screen — no more, no less</li>
+                            <li>👤 <strong>Set owner on the lot.</strong> Filter to Diving → Anna. Filter to Cycling → Martin. This is the thing that makes the person filter worth having, and it turns an evening of tapping into about ten minutes</li>
+                            <li>🏷️ <strong>Add a tag to the lot</strong> — added to any that haven't already got it, nothing else touched. Tags are searchable, so it's a way to mark a batch you want to find your way back to</li>
+                            <li>📋 <strong>Set status on the lot</strong>, Archived included, for a batch you want to keep but not be nagged about</li>
+                            <li>❓ <strong>Each one asks first</strong>, naming the number and saying plainly what it replaces. If a search is <em>also</em> narrowing the list, the question says so — "all 12" should never be a surprise</li>
+                            <li>↩︎ <strong>Each one leaves an Undo</strong> in the bar at the bottom, which puts things back exactly as they were — including anything that already carried the value you applied. It is a real snapshot of the previous state, not a guess at the opposite change</li>
+                            <li>🚫 <strong>The button only ever appears while a filter is on.</strong> Acting on a whole unfiltered library from a button beside the search box is not something anybody means to do</li>
+                            <li>📋 <strong>Bulk changes still write nothing to Revision History</strong>, same as the Library Health fixes — two hundred "Updated" entries would bury the real edits under bookkeeping</li>
+                            <li>🛟 <strong>The safety copy on the phone is refreshed straight afterwards</strong>, as with every other change to your data</li>
+                            <li>🩺 <strong>How This Works now says when to use Library Health and when to use this:</strong> Health when one answer is right for everything unclaimed, filters when the diving kit and the RV need different answers</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v33.0 (2026-08-17) - FILTERS, AND A GUIDE WORTH READING</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1684,12 +1763,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=33.0&t=1786991839-bd8cb1bf"></script>
-    <script src="js/qr.js?v=33.0&t=1786991839-bd8cb1bf"></script>
-    <script src="js/version-sync.js?v=33.0&t=1786991839-bd8cb1bf"></script>
-    <script src="js/persistence.js?v=33.0&t=1786991839-bd8cb1bf"></script>
-    <script src="js/hybrid-storage.js?v=33.0&t=1786991839-bd8cb1bf"></script>
-    <script src="js/ui.js?v=33.0&t=1786991839-bd8cb1bf"></script>
-    <script src="js/app.js?v=33.0&t=1786991839-bd8cb1bf"></script>
+    <script src="js/db.js?v=34.0&t=1786992549-2a860833"></script>
+    <script src="js/qr.js?v=34.0&t=1786992549-2a860833"></script>
+    <script src="js/version-sync.js?v=34.0&t=1786992549-2a860833"></script>
+    <script src="js/persistence.js?v=34.0&t=1786992549-2a860833"></script>
+    <script src="js/hybrid-storage.js?v=34.0&t=1786992549-2a860833"></script>
+    <script src="js/ui.js?v=34.0&t=1786992549-2a860833"></script>
+    <script src="js/app.js?v=34.0&t=1786992549-2a860833"></script>
 </body>
 </html>
