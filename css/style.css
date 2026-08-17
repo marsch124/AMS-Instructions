@@ -1319,6 +1319,162 @@ body {
     flex-shrink: 0;
 }
 
+/* Search box and Filter button share a line — the filter is a companion to the
+   search, not a separate idea, and putting it here costs no vertical space. */
+.search-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+}
+
+.search-row .search-input {
+    flex: 1;
+    min-width: 0;
+}
+
+.filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    flex-shrink: 0;
+    padding: 0 0.85rem;
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* Filtering is a state you can forget you're in, so the button wears the tab's
+   colour the whole time something is on — not just while the panel is open. */
+.filter-btn.on {
+    border-color: var(--accent);
+    color: var(--accent);
+    background-color: color-mix(in srgb, var(--accent) 14%, var(--color-surface));
+}
+
+.filter-glyph {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex-shrink: 0;
+}
+
+.filter-btn-count {
+    min-width: 1.2rem;
+    padding: 0 0.3rem;
+    border-radius: 999px;
+    background-color: var(--accent);
+    color: #fff;
+    font-size: 0.72rem;
+    font-weight: 700;
+    line-height: 1.2rem;
+    text-align: center;
+}
+
+.filter-btn-count[hidden] {
+    display: none;
+}
+
+.filter-panel {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 10px;
+    padding: 0.9rem;
+}
+
+.filter-panel[hidden] {
+    display: none;
+}
+
+.filter-group + .filter-group {
+    margin-top: 0.9rem;
+}
+
+.filter-group h4 {
+    margin: 0 0 0.45rem;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--color-text-secondary);
+}
+
+.filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.65rem;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    color: var(--color-text);
+    font-family: inherit;
+    font-size: 0.82rem;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.filter-chip.on {
+    border-color: var(--accent);
+    background-color: color-mix(in srgb, var(--accent) 18%, var(--color-bg));
+    color: var(--accent);
+    font-weight: 600;
+}
+
+/* Shown, not hidden: "0 overdue" is worth knowing. Just not tappable. */
+.filter-chip:disabled {
+    opacity: 0.4;
+    cursor: default;
+}
+
+.filter-chip-count {
+    font-size: 0.72rem;
+    font-variant-numeric: tabular-nums;
+    color: var(--color-text-secondary);
+}
+
+.filter-chip.on .filter-chip-count {
+    color: inherit;
+}
+
+.filter-panel-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--color-border);
+}
+
+.filter-panel-btn {
+    padding: 0.45rem 0.9rem;
+    background: none;
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text-secondary);
+    font-family: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.filter-panel-btn.primary {
+    border-color: var(--accent);
+    background-color: var(--accent);
+    color: #fff;
+}
+
 .search-input {
     padding: 0.75rem;
     background-color: var(--color-surface);
@@ -1353,6 +1509,12 @@ body {
 .list-summary-text {
     font-size: 0.8rem;
     color: var(--color-text-secondary);
+}
+
+.list-summary-buttons {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
 }
 
 .list-summary-btn {
@@ -1982,10 +2144,47 @@ body {
     color: var(--accent);
 }
 
+/* Sub-headings inside a guide section. The guide got long enough that one flat
+   list of tips was unreadable — these are what let you skim to the part you
+   actually came for. */
+.how-it-works-content h4 {
+    margin-top: 0.5rem;
+    font-size: 0.98rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.how-it-works-content section > h4:first-of-type {
+    margin-top: 0;
+}
+
 .how-it-works-content p,
 .how-it-works-content li {
     line-height: 1.6;
     color: var(--color-text);
+}
+
+/* A worked example, set apart from the explanation it follows so you can skip
+   either one: read the rule, or read the story, whichever you think in. */
+.guide-example {
+    padding: 0.75rem 0.9rem;
+    background-color: var(--color-surface);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    font-size: 0.94rem;
+}
+
+.guide-contents {
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+    padding-left: 1.25rem;
+}
+
+.guide-contents a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: none;
 }
 
 .how-it-works-content ul,

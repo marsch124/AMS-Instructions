@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786989499-b1ef3abe">
+    <meta name="cache-bust" content="1786991839-bd8cb1bf">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=32.0&t=1786989499-b1ef3abe">
+    <link rel="stylesheet" href="css/style.css?v=33.0&t=1786991839-bd8cb1bf">
 </head>
 <body>
     <!--
@@ -72,6 +72,10 @@
             <path d="M8.6 4.8c-.1 1.4-.1 2.8 0 4.2 2.1.2 4.2.2 6.3 0 .1-1.4.1-2.8 0-4.2"/>
             <path d="M8.2 19.3c-.1-1.9-.1-3.7 0-5.5 2.5-.2 5-.2 7.5 0 .1 1.8.1 3.6 0 5.5"/>
         </symbol>
+
+        <symbol id="icon-filter" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M3.6 5.2c5.6-.3 11.2-.3 16.8 0-2.1 2.7-4.2 5.2-6.4 7.6-.1 2.7-.1 5.3.1 8-1.4-.8-2.8-1.7-4.2-2.7.1-1.8.1-3.6 0-5.4C7.8 10.4 5.7 7.9 3.6 5.2Z"/>
+        </symbol>
     </svg>
 
     <!-- Home Screen -->
@@ -79,7 +83,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v32.0</span>
+                <span class="version-badge" id="homeVersion">v33.0</span>
             </div>
         </header>
 
@@ -489,10 +493,31 @@
         </header>
 
         <div class="list-content">
-            <input id="searchInput" type="text" placeholder="Search..." class="search-input">
+            <div class="search-row">
+                <input id="searchInput" type="text" placeholder="Search..." class="search-input">
+                <button id="filterBtn" class="filter-btn" aria-expanded="false" aria-controls="filterPanel">
+                    <svg class="filter-glyph" aria-hidden="true"><use href="#icon-filter"/></svg>
+                    <span>Filter</span>
+                    <span id="filterCount" class="filter-btn-count" hidden>0</span>
+                </button>
+            </div>
+
+            <!-- Folded away by default: four groups of chips would eat a third of
+                 the screen on every visit, and most visits are just browsing. -->
+            <div id="filterPanel" class="filter-panel" hidden>
+                <div class="filter-panel-body"></div>
+                <div class="filter-panel-actions">
+                    <button id="filterPanelClearBtn" class="filter-panel-btn">Clear all</button>
+                    <button id="filterPanelDoneBtn" class="filter-panel-btn primary">Done</button>
+                </div>
+            </div>
+
             <div id="listSummary" class="list-summary" hidden>
                 <span class="list-summary-text"></span>
-                <button id="toggleAllGroupsBtn" class="list-summary-btn">Expand all</button>
+                <div class="list-summary-buttons">
+                    <button id="clearFiltersBtn" class="list-summary-btn" hidden>Clear filters</button>
+                    <button id="toggleAllGroupsBtn" class="list-summary-btn">Expand all</button>
+                </div>
             </div>
             <div id="instructionsList" class="full-instructions-list">
                 <p class="empty-state">No instructions yet.</p>
@@ -991,69 +1016,204 @@
             <div></div>
         </header>
 
-        <div class="how-it-works-content">
+        <div class="how-it-works-content" id="howItWorksBody">
             <section>
-                <h3>What is AMS Instructions?</h3>
-                <p>A quick-reference guide system using 3-digit numbers. Attach labeled cards with numbers (001-999) to key locations in your RV (bed, steering wheel, water systems) and scan or enter the number to see step-by-step instructions.</p>
+                <h3>What this app is for</h3>
+                <p>A quick-reference guide system built around 3-digit numbers. Attach labelled cards with numbers (001–999) to the places that matter — the bed, the steering wheel, the water filler, the gas locker — then scan or type the number and the instruction for that exact job appears.</p>
+                <p>The point is that you don't have to remember anything at the moment you need it. The knowledge lives on the number, not in your head, and not in a folder in a drawer. It also means somebody else can do the job properly the first time: hand them the number, and they get your steps, your warnings and your photos.</p>
+                <p class="guide-example"><strong>For example:</strong> a card taped inside the gas locker reads <strong>118</strong>. Anyone opening that locker can scan it and get "Changing the Gas Bottle" — the warning about the flame, the order the valves come off in, and a photo of the regulator seated correctly.</p>
             </section>
 
             <section>
-                <h3>Getting Around</h3>
+                <h3>In this guide</h3>
+                <ul class="guide-contents">
+                    <li><a href="#guideAround">Getting around</a></li>
+                    <li><a href="#guideStart">Setting it up</a></li>
+                    <li><a href="#guideFind">Finding an instruction</a></li>
+                    <li><a href="#guideFollow">Following an instruction</a></li>
+                    <li><a href="#guideWork">Staying on top of the work</a></li>
+                    <li><a href="#guideHonest">Keeping the library honest</a></li>
+                    <li><a href="#guidePhotos">Photos</a></li>
+                    <li><a href="#guideData">Your data</a></li>
+                    <li><a href="#guideCases">Five things this is actually for</a></li>
+                    <li><a href="#guideNumbers">How the numbers are organised</a></li>
+                </ul>
+            </section>
+
+            <section id="guideAround">
+                <h3>Getting around</h3>
                 <p>Four tabs along the bottom of the screen, always one tap away — <strong>and each one has its own colour</strong>. The whole screen takes that colour, so you can tell where you are out of the corner of your eye, before you have read a single word:</p>
                 <ul>
-                    <li><strong>Home — pink.</strong> The big Scan button, your Favourites and Recently Viewed, plus any nudge cards (something due, to-dos waiting, backup overdue).</li>
-                    <li><strong>Instructions — green.</strong> Every instruction you have, searchable. Tap ＋ in the top right to write a new one.</li>
+                    <li><strong>Home — pink.</strong> The big Scan button, your Favourites and Recently Viewed, plus any nudge cards (something due, to-dos waiting, a run half-finished, backup overdue).</li>
+                    <li><strong>Instructions — green.</strong> Every instruction you have, browsable by category, searchable, and filterable. Tap ＋ in the top right to write a new one.</li>
                     <li><strong>Actions — red.</strong> Your to-do list. A red number on the tab tells you how many are still open, so you can see it without going there.</li>
                     <li><strong>Settings — blue.</strong> The housekeeping: Run a Set and Library Health, People, backups and Data Safety, this guide, and the Version Log.</li>
                 </ul>
                 <p>Anything you open <em>from</em> a tab — an instruction, an editor, the People list — hides the tabs and gives you a ← Back button instead, so you always know whether you are on a main screen or inside something. It <em>keeps</em> the colour of the tab you came from, so a green instruction screen is one you reached from Instructions and Back will take you there.</p>
-                <p><strong>Two colours mean the same thing everywhere, whatever tab you are on:</strong> a <strong>filled</strong> button is the thing you came to do (Save, Back Up Now), and an <strong>outlined red</strong> button is a destructive one (Delete, Clear All Data). If a button is outlined in red, read it twice.</p>
+                <p><strong>Two colours mean the same thing everywhere, whatever tab you are on:</strong> a <strong>filled</strong> button is the thing you came to do (Save, Back Up Now, Done), and an <strong>outlined red</strong> button is a destructive one (Delete, Clear All Data). If a button is outlined in red, read it twice.</p>
             </section>
 
-            <section>
-                <h3>Getting Started</h3>
+            <section id="guideStart">
+                <h3>Setting it up</h3>
                 <ol>
-                    <li><strong>Create instructions:</strong> Open the 📋 Instructions tab and tap ＋ in the top right. Assign a 3-digit number (001-999) to each task. Fill in title, steps, warnings, and any other details you need.</li>
-                    <li><strong>Print the numbers:</strong> Create cards or labels with 3-digit numbers (001-999). You can print just the digits, or use a free QR generator (qr-server.com) to embed the number for backup scanning.</li>
-                    <li><strong>Attach to locations:</strong> Use Duro tape or adhesive to attach number cards to the relevant locations in your RV (bed, steering wheel, water tank, etc).</li>
-                    <li><strong>Scan & follow:</strong> Tap the pink scanner icon (🔢 crosshair) on the Home tab, or browse the 📋 Instructions tab, enter the 3-digit number, and follow the step-by-step guide.</li>
-                    <li><strong>Backup your data:</strong> Go to Settings → 💾 Back Up Now to create a backup. On iPhone, tap Share → Save to Files or Notes to keep your instructions safe.</li>
+                    <li><strong>Start with the library, or start empty.</strong> Settings → Restore from a Backup File will load the 205-instruction starter library if you have the file — RV, home, diving, running, cycling, swimming, golf, meditation, mobility and strength. Every one of them is an ordinary instruction you can edit, rewrite or delete. Or ignore it entirely and write your own from scratch.</li>
+                    <li><strong>Write an instruction.</strong> Instructions tab → ＋ in the top right. Give it a 3-digit number, a title, and the steps — one per line. Everything else (warnings, equipment, preparations, frequency, owner, photos) is optional and can be filled in later.</li>
+                    <li><strong>Print the numbers.</strong> Make cards or labels with the 3-digit numbers on them. Plain printed digits are enough — you can always type the number. If you want to scan, a free QR generator (qr-server.com) will turn the number into a code.</li>
+                    <li><strong>Attach them where the job happens.</strong> Duro tape or adhesive, on or beside the thing itself: the water filler, the gas locker, the awning arm, the bed mechanism.</li>
+                    <li><strong>Add the people.</strong> Settings → Manage People. Anna and Martin are there already; add anyone else who does jobs. Now you can say whose instruction each one is.</li>
+                    <li><strong>Back it up.</strong> Settings → 💾 Back Up Now, then Save to Files or iCloud Drive. Do this the day you finish setting up, not the day you need it.</li>
                 </ol>
             </section>
 
-            <section>
-                <h3>Tips</h3>
+            <section id="guideFind">
+                <h3>Finding an instruction</h3>
+
+                <h4>Browsing by category</h4>
+                <p>The Instructions tab is grouped into folding sections — one per category, each with a coloured dot and a count. Tap a header to open it, tap again to close. It remembers what you left open, and "Expand all" / "Collapse all" beside the count line does the lot at once. This is the way to find something when you do not know what to search for.</p>
+
+                <h4>Search</h4>
+                <p>Type in the search box and the folders drop away, giving you one plain list of every match across all categories, with the category shown on each result. Searching by number works too. The box clears itself each time you come back to the tab, so you never land on a filtered list wondering where everything went.</p>
+
+                <h4>Search reads the whole instruction, not just the title</h4>
+                <p>Steps, description, warnings, equipment, preparations, after-use, maintenance, notes, tags, location and owner are all searched. Where the match is somewhere you cannot see from the list, the result says so underneath — "matched in Steps" — so a hit on hidden text never looks like a mistake.</p>
+                <p class="guide-example"><strong>For example:</strong> you once typed the tyre pressure into step 4 of the pre-drive check and have long forgotten which instruction it was in. Search <strong>3.5</strong> and it comes back, marked "matched in Steps".</p>
+
+                <h4>Filters — narrowing the list rather than searching it</h4>
+                <p>Search answers <em>"where did I write that?"</em>. Filters answer <em>"what needs my attention?"</em>. Tap <strong>Filter</strong> beside the search box and a panel folds open with five groups of chips. Every chip carries a count, so you can see how much of each thing there is before you tap anything — and a chip nothing matches is greyed out rather than hidden, because "0 overdue" is worth knowing too.</p>
                 <ul>
-                    <li><strong>Share an instruction:</strong> Open it and tap <strong>📤 Share</strong> at the bottom. The whole instruction goes into the normal iPhone share sheet as text — number, title, category, frequency, time, the safety warning, equipment, what to do beforehand, the numbered steps, afterwards and notes — so you can send it by Messages or Mail, or drop it into Notes. Whoever receives it does not need the app. Owner, audit history and revision numbers are left out on purpose: they matter in here, not to the person you sent it to.</li>
-                    <li><strong>What's due:</strong> A green "Due now" card appears on the Home screen whenever something has come round again — tap it for the full list, most overdue first. This is worked out from two things the instruction already carries: its <strong>Frequency</strong> and when you last marked it <strong>Done</strong>. So the clock only starts once you have marked an instruction Done for the first time; before that it shows "After 1st Done" and stays off the list. That is deliberate, and it is why importing the starter library doesn't fill your Home screen with two hundred overdue items. Frequencies that describe an event rather than a date — "Before each trip", "Every session", "As-needed" — never fall due, and neither does anything Archived.</li>
-                    <li><strong>Running a set of instructions:</strong> Settings → <strong>▶️ Run a Set</strong> works through several instructions as one checklist — pick "Before each trip", everything currently due, your Favourites, or any category. Tick each one off as you go, or tap it to open the instruction in full; ← Back returns you to the run rather than to the Home screen. A run survives you closing the app: a pink card at the top of Home shows how far through you are and takes you back to it. <strong>Finish</strong> marks everything you ticked as Done in one go, which resets the clock on all of them at once — so a departure run keeps the Due list honest without visiting eight instructions one at a time. The list is fixed when the run starts, so running "Everything due now" doesn't shrink underneath you as you tick things off.</li>
-                    <li><strong>Library Health:</strong> Settings → <strong>🩺 Library Health</strong> is about the library itself rather than the RV. It shows what is overdue, what has a frequency but has never once been marked Done (so its clock never started), what has nobody named as owner, what is still Draft or Review Needed, and which Safety or Maintenance instructions carry no warning text. Everything listed is tappable, so you can work through it. None of it is an error — not every job needs a warning and not everything needs an owner. It's a second look, not a telling-off. <strong>Two of the groups can fix themselves:</strong> "No owner" lets you pick a person and apply them to everything that hasn't got one, and "Safety work with no warning" can drop a holding note onto all of them at once. Both leave anything already filled in alone, so you can run them again after adding new instructions. The holding warning is honest about being a placeholder and asks to be replaced with the real hazard — treat it as a reminder, not a job finished.</li>
-                    <li><strong>Keeping your place in a job:</strong> Tick the steps as you go and they stay ticked. Leave the instruction, lock the phone, come back tomorrow — you pick up where you left off. A "3 of 12 done · Reset" line appears above the steps once you have started, and <strong>Reset</strong> clears them if you want to begin again. Marking the instruction <strong>Done</strong> clears them for you, so the next time you open it the list is clean. These ticks live only on this phone and are not part of your backup — they are where you are right now, not something worth keeping.</li>
-                    <li><strong>Favorites:</strong> Tap ★ on any instruction to save it for quick access from the home screen.</li>
-                    <li><strong>People:</strong> Add names once under Settings → Manage People, then pick them as Owner or "Revised by" on any instruction instead of retyping — their phone/email shows up automatically in Revision History.</li>
-                    <li><strong>Version Log:</strong> What changed in each release of the app lives on its own screen — Settings → Version Log. This guide is about how to use the app; the Version Log is about what's new.</li>
-                    <li><strong>Revision History:</strong> Open an instruction and scroll to the bottom, then tap "📋 Revision History" to expand it. It lists every saved change with the version number, date, and who made it. You choose that person from the "Revised by" dropdown while editing, and the entry appears here after you save. Marking an instruction Done and adding an audit do not create entries — this section is only for changes to the instruction itself.</li>
-                    <li><strong>Audit Log:</strong> Open any instruction, tap "🔍 Audit Log" to expand it, then record who checked it, when, and what they found. The dot next to the heading tells you at a glance whether an instruction has been audited. If the person who did the audit isn't in the "Audited by" list, tap "+ Person" beside it to add them on the spot — you'll come back to the same instruction with them selected.</li>
-                    <li><strong>Actions (to-dos):</strong> Anything that needs doing goes on the Actions list — the 🗒️ Actions tab at the bottom, or the red "🗒️ To-dos to tackle" card that appears on the Home screen whenever something is open. The red number on the Actions tab counts what is still open, so an unfinished job stays visible from wherever you are. Tap ＋ in the top right to add one. Each to-do can carry a <strong>priority</strong> (Normal or High), an optional <strong>due date</strong>, and a link to an instruction — or none at all, for a general to-do. Open ones are listed first (High before Normal, soonest due first); tap the box to tick one off and it drops into the "✓ Done" group at the bottom, where you can tick it back open if you were too hasty.</li>
-                    <li><strong>Turning an audit finding into a to-do:</strong> In an instruction's Audit Log, tap "→ Convert to Action" on any entry. The finding's first line becomes the to-do's title, the full text goes into its notes, and it stays linked to that instruction — so you can jump back to it from the Actions list by tapping the #number. Once converted, the audit entry shows "✓ Already actioned" instead of the button, so the same finding can't quietly become two separate to-dos. Backing out without saving leaves the audit entry untouched, ready to convert later.</li>
-                    <li><strong>Scanning a number:</strong> Point the box at the printed number and hold steady, or tap "📸 Capture & Scan" for a deliberate one-shot read. Good, even lighting helps a lot.</li>
-                    <li><strong>Manual entry:</strong> Can't scan the number card? Just enter the 3-digit number manually in the number input field — always fast and 100% reliable.</li>
-                    <li><strong>Backing up:</strong> Settings → <strong>💾 Back Up Now</strong> hands the backup straight to the normal iPhone share sheet, so you can Save to Files or put it in iCloud Drive. A 💾 card appears on the Home screen if it's been more than a week since your last one. To put a backup back, use Settings → Restore from a Backup File.</li>
-                    <li><strong>Data Safety:</strong> Settings → Data Safety shows every copy of your data the app can see — what's in the app right now, plus two automatic backups kept on this phone (a recent one and an older one), each with its date and how much it holds. If anything ever goes missing, you can put back either backup with one tap. It's also where a "Clear All Data" can be undone.</li>
-                    <li><strong>One phone, one copy:</strong> The app keeps its data on the device it's running on — the Home Screen app and Safari each have their own separate copy and do not share. Treat the Home Screen app on your phone as the real one, and use backups rather than expecting the two to match.</li>
-                    <li><strong>Offline:</strong> Your instructions are stored locally and everything works offline, including manual number entry. Camera scanning needs internet the very first time to download its recognition engine (a few MB) — after that it works normally.</li>
-                    <li><strong>Dark mode:</strong> The app defaults to dark mode, perfect for bedside use at night. Custom pink accents help tasks pop even in low light.</li>
-                    <li><strong>Browsing by category:</strong> The 📋 Instructions tab is grouped into folding sections — one per category, each with a coloured dot and a count. Tap a header to open it, tap again to close. It remembers what you left open, and "Expand all" / "Collapse all" beside the count line does the lot at once. This is the way to find something when you do not know what to search for.</li>
-                    <li><strong>Photos beside a step:</strong> Each photo in the editor has a "Show at step" picker. Leave it on "In the photo gallery" and the photo behaves as it always has; choose a step and the picture appears directly under that step while you're following the instruction — which is where you actually want to see it. The picker names each step by its own words, and keeps up with steps you are still typing. If you later shorten the steps, a photo left pointing at one that no longer exists quietly returns to the gallery rather than disappearing.</li>
-                    <li><strong>Photos:</strong> An instruction can hold up to 5 photos — add them while editing, under 📷 Photos. The first one shows up as a small thumbnail beside that instruction everywhere it's listed (the Instructions tab, Favourites, Recently Viewed), which is often the fastest way to recognise the right one. Instructions with no photo simply don't show a thumbnail. Photos are shrunk automatically when you add them — the editor shows the stored size next to each one, and what it came in at. They are still the biggest thing in your data, so if you ever add a great many, watch for the red "Safety copy on this phone has stopped" card on the Home screen and back up to Files.</li>
-                    <li><strong>Search:</strong> Type in the search box and the groups drop away, giving you a plain list of every match across all categories, with the category shown on each result. Searching by number works too. The box clears itself each time you come back to the tab, so you never land on a filtered list wondering where everything went.</li>
-                    <li><strong>Search looks inside everything:</strong> not just titles, but steps, description, warnings, equipment, preparations, after-use, maintenance, notes, location and owner. So a tyre pressure you once typed into step 4 is findable by typing the number, and searching a person's name brings back everything they own. Where the match is somewhere you cannot see from the list, the result says so underneath — "matched in Steps" — so a hit on hidden text never looks like a mistake.</li>
-                    <li><strong>Related instructions:</strong> If an instruction lists related numbers, they appear at the bottom with their real titles, and tapping one takes you straight there. Rename an instruction and it updates itself everywhere it's referenced. If a related number has been deleted, the row says "No longer exists" rather than looking like a link that does nothing.</li>
+                    <li><strong>Whose job it is</strong> — one chip per person, plus <strong>Nobody named</strong>. This reads the Owner field, and it understands both an owner picked from the People list and one that came in as a plain name from an import, so nobody's work goes missing.</li>
+                    <li><strong>When it's due</strong> — <strong>Overdue</strong>, <strong>Due within a week</strong>, <strong>Never done</strong> (it has a frequency but has never been marked Done, so its clock has never started), and <strong>No repeat</strong> (nothing that falls due on a date — "Before each trip", "As-needed", or no frequency at all).</li>
+                    <li><strong>Status</strong> — Active, Draft, Review Needed, Archived.</li>
+                    <li><strong>Gaps worth a second look</strong> — <strong>No warning</strong>, <strong>No photo</strong>, <strong>Barely any steps</strong> (fewer than two). None of these is an error; they are the half-finished corners of the library.</li>
+                    <li><strong>Quick marks</strong> — <strong>Favourite</strong>, <strong>Has a photo</strong>, <strong>Has an open to-do</strong>, <strong>Never audited</strong>.</li>
                 </ul>
+                <p><strong>How chips combine:</strong> chips in the <em>same</em> group widen the net, chips in <em>different</em> groups narrow it. Anna + Martin gives you everything either of them owns. Anna + Overdue gives you only Anna's overdue work.</p>
+                <p>The moment any filter is on, the folders drop away and you get one plain list, exactly as searching does. The count line reads "12 of 205" so you always know you are looking at a slice, the <strong>Filter</strong> button turns green and shows how many chips are on, and <strong>Clear filters</strong> sits right there beside the count. You can search inside a filtered list — the search box and the filters apply together.</p>
+                <p><strong>Filters are forgotten every time you leave the tab</strong>, exactly like the search box. A filter you set yesterday and forgot about would show you a short list today and look for all the world like missing data.</p>
+                <p class="guide-example"><strong>For example:</strong> tap <strong>👤 Anna</strong> and <strong>⏰ Overdue</strong> before a Sunday morning conversation, and you have her list — nothing else. Or tap <strong>⚠️ No warning</strong> on a rainy afternoon and work down the instructions that still need their real hazard written in.</p>
+
+                <h4>Related instructions</h4>
+                <p>If an instruction lists related numbers, they appear at the bottom with their real titles, and tapping one takes you straight there. Rename an instruction and it updates itself everywhere it's referenced. If a related number has been deleted, the row says "No longer exists" rather than looking like a link that does nothing.</p>
             </section>
 
-            <section>
-                <h3>How the Numbers Are Organised</h3>
+            <section id="guideFollow">
+                <h3>Following an instruction</h3>
+
+                <h4>Scanning a number</h4>
+                <p>Tap the pink scanner on the Home tab, point the box at the printed number and hold steady, or tap "📸 Capture &amp; Scan" for a deliberate one-shot read. Good, even lighting helps a lot.</p>
+
+                <h4>Typing the number</h4>
+                <p>Can't scan? Type the 3 digits into the number field instead. Always fast, always reliable, and it works with no camera and no light.</p>
+
+                <h4>Keeping your place in a job</h4>
+                <p>Tick the steps as you go and they stay ticked. Leave the instruction, lock the phone, come back tomorrow — you pick up where you left off. A "3 of 12 done · Reset" line appears above the steps once you have started, and <strong>Reset</strong> clears them if you want to begin again. Marking the instruction <strong>Done</strong> clears them for you, so next time you open it the list is clean.</p>
+                <p>These ticks live only on this phone and are not part of your backup — they are where you are right now, not something worth keeping.</p>
+
+                <h4>Photos beside the step they belong to</h4>
+                <p>Each photo in the editor has a "Show at step" picker. Leave it on "In the photo gallery" and the photo behaves as it always has; choose a step and the picture appears directly under that step while you're following the instruction — which is where you actually want to see it. The picker names each step by its own words, and keeps up with steps you are still typing. If you later shorten the steps, a photo left pointing at one that no longer exists quietly returns to the gallery rather than disappearing.</p>
+
+                <h4>Marking it Done</h4>
+                <p>The <strong>Done</strong> button at the bottom of an instruction records that you did it, right now. That is what starts and restarts the clock behind the Due list, and it clears your step ticks ready for next time. It does not write a revision entry — doing a job is not the same as changing the instruction.</p>
+
+                <h4>Sharing an instruction</h4>
+                <p>Open it and tap <strong>📤 Share</strong> at the bottom. The whole instruction goes into the normal iPhone share sheet as plain text — number, title, category, frequency, time, the safety warning, equipment, what to do beforehand, the numbered steps, afterwards and notes — so you can send it by Messages or Mail, or drop it into Notes. Whoever receives it does not need the app.</p>
+                <p>Owner, audit history and revision numbers are deliberately left out: they matter in here, and mean nothing to the person you sent it to.</p>
+                <p class="guide-example"><strong>For example:</strong> a friend borrows the RV for a weekend. Share 100 (Pre-Drive Vehicle Check), 118 (Gas Bottle) and 140 (Emptying the Waste Tank) into one Messages thread and they have what they need, with no app to install.</p>
+            </section>
+
+            <section id="guideWork">
+                <h3>Staying on top of the work</h3>
+
+                <h4>What's due</h4>
+                <p>A green "Due now" card appears on the Home screen whenever something has come round again — tap it for the full list, most overdue first. This is worked out from two things the instruction already carries: its <strong>Frequency</strong> and when you last marked it <strong>Done</strong>.</p>
+                <p>So the clock only starts once you have marked an instruction Done for the first time; before that it shows "After 1st Done" and stays off the list. That is deliberate, and it is why importing the starter library doesn't fill your Home screen with two hundred overdue items. Frequencies that describe an event rather than a date — "Before each trip", "Every session", "As-needed" — never fall due, and neither does anything Archived.</p>
+                <p class="guide-example"><strong>For example:</strong> "Check Tyre Pressures" is Monthly. You mark it Done on the 1st of May; on the 31st it reappears on the Due list. Until that first Done, it simply waits.</p>
+
+                <h4>Running a set of instructions</h4>
+                <p>Settings → <strong>▶️ Run a Set</strong> works through several instructions as one checklist — pick "Before each trip", everything currently due, your Favourites, or any category. Tick each one off as you go, or tap it to open the instruction in full; ← Back returns you to the run rather than to the Home screen.</p>
+                <p>A run survives you closing the app: a pink card at the top of Home shows how far through you are and takes you back to it. <strong>Finish</strong> marks everything you ticked as Done in one go, which resets the clock on all of them at once — so a departure run keeps the Due list honest without visiting eight instructions one at a time. The list is fixed when the run starts, so running "Everything due now" doesn't shrink underneath you as you tick things off.</p>
+
+                <h4>Actions — the to-do list</h4>
+                <p>Anything that needs doing goes on the Actions list: the 🗒️ Actions tab at the bottom, or the red "To-dos to tackle" card that appears on Home whenever something is open. The red number on the tab counts what is still open, so an unfinished job stays visible from wherever you are.</p>
+                <p>Tap ＋ in the top right to add one. Each to-do can carry a <strong>priority</strong> (Normal or High), an optional <strong>due date</strong>, and a link to an instruction — or none at all, for a general to-do. Open ones are listed first (High before Normal, soonest due first); tap the box to tick one off and it drops into the "✓ Done" group at the bottom, where you can tick it back open if you were too hasty.</p>
+                <p class="guide-example"><strong>For example:</strong> the awning arm sticks. Add a to-do "Service the awning arm", mark it High, link it to instruction 131, and it shows on the Home screen and against that instruction until it's done.</p>
+
+                <h4>Turning an audit finding into a to-do</h4>
+                <p>In an instruction's Audit Log, tap "→ Convert to Action" on any entry. The finding's first line becomes the to-do's title, the full text goes into its notes, and it stays linked to that instruction — so you can jump back to it from the Actions list by tapping the #number. Once converted, the audit entry shows "✓ Already actioned" instead of the button, so the same finding can't quietly become two separate to-dos. Backing out without saving leaves the audit entry untouched, ready to convert later.</p>
+            </section>
+
+            <section id="guideHonest">
+                <h3>Keeping the library honest</h3>
+
+                <h4>People</h4>
+                <p>Add names once under Settings → Manage People, then pick them as Owner or "Revised by" on any instruction instead of retyping — their phone and email show up automatically in Revision History. Anna and Martin are seeded for you the first time; delete them if they're not your people.</p>
+
+                <h4>Owner — whose job it is</h4>
+                <p>Set on any instruction while editing. It is the field behind the person filter and behind "No owner" in Library Health, so filling it in is what turns a pile of instructions into two shorter lists of somebody's work.</p>
+
+                <h4>Status</h4>
+                <p>Left on <strong>Auto</strong>, the app works it out from how complete the instruction is: <strong>Draft</strong> if it hasn't got a title, description and steps; <strong>Active</strong> if it has those plus frequency, time estimate, owner and a warning; <strong>Review Needed</strong> in between. Set it by hand if you'd rather, and use <strong>Archived</strong> for anything you want to keep but not be nagged about — archived instructions never fall due.</p>
+
+                <h4>Revision History</h4>
+                <p>Open an instruction and scroll to the bottom, then tap "📋 Revision History" to expand it. It lists every saved change with the version number, date, and who made it. You choose that person from the "Revised by" dropdown while editing, and the entry appears here after you save. Marking an instruction Done and adding an audit do not create entries — this section is only for changes to the instruction itself.</p>
+
+                <h4>Audit Log</h4>
+                <p>Open any instruction, tap "🔍 Audit Log" to expand it, then record who checked it, when, and what they found. The dot next to the heading tells you at a glance whether an instruction has been audited. If the person who did the audit isn't in the "Audited by" list, tap "+ Person" beside it to add them on the spot — you'll come back to the same instruction with them selected.</p>
+
+                <h4>Library Health</h4>
+                <p>Settings → <strong>🩺 Library Health</strong> is about the library itself rather than the RV. It shows what is overdue, what has a frequency but has never once been marked Done, what has nobody named as owner, what is still Draft or Review Needed, and which Safety or Maintenance instructions carry no warning text. Everything listed is tappable, so you can work through it.</p>
+                <p>None of it is an error — not every job needs a warning and not everything needs an owner. It's a second look, not a telling-off.</p>
+                <p><strong>Two of the groups can fix themselves:</strong> "No owner" lets you pick a person and apply them to everything that hasn't got one, and "Safety work with no warning" can drop a holding note onto all of them at once. Both leave anything already filled in alone, so you can run them again after adding new instructions. The holding warning is honest about being a placeholder and asks to be replaced with the real hazard — treat it as a reminder, not a job finished.</p>
+                <p><strong>Health or filters?</strong> Library Health is the report — a fixed set of questions, answered in one place, with the bulk fixes attached. The filters are the same information while you browse, mixable with anything else. Use Health to see how the library is doing; use the filters when you want to work through a particular slice of it.</p>
+            </section>
+
+            <section id="guidePhotos">
+                <h3>Photos</h3>
+                <p>An instruction can hold up to 5 photos — add them while editing, under 📷 Photos. The first one shows up as a small thumbnail beside that instruction everywhere it's listed (the Instructions tab, Favourites, Recently Viewed), which is often the fastest way to recognise the right one. Instructions with no photo simply don't show a thumbnail.</p>
+                <p>Photos are shrunk automatically when you add them — the editor shows the stored size next to each one, and what it came in at. They are still the biggest thing in your data, so if you ever add a great many, watch for the red "Safety copy on this phone has stopped" card on the Home screen and back up to Files.</p>
+                <p class="guide-example"><strong>Worth photographing:</strong> anything you'd otherwise describe in a paragraph — which way a valve points when it's correct, where the fuse actually sits, what the tyre wear looked like last spring so you can compare it to this spring.</p>
+            </section>
+
+            <section id="guideData">
+                <h3>Your data</h3>
+
+                <h4>Backing up</h4>
+                <p>Settings → <strong>💾 Back Up Now</strong> hands the backup straight to the normal iPhone share sheet, so you can Save to Files or put it in iCloud Drive. A 💾 card appears on the Home screen if it's been more than a week since your last one. To put a backup back, use Settings → Restore from a Backup File.</p>
+
+                <h4>Data Safety</h4>
+                <p>Settings → Data Safety shows every copy of your data the app can see — what's in the app right now, plus two automatic backups kept on this phone (a recent one and an older one), each with its date and how much it holds. If anything ever goes missing, you can put back either backup with one tap. It's also where a "Clear All Data" can be undone.</p>
+
+                <h4>One phone, one copy</h4>
+                <p>The app keeps its data on the device it's running on — the Home Screen app and Safari each have their own separate copy and do not share. Treat the Home Screen app on your phone as the real one, and use backups rather than expecting the two to match.</p>
+
+                <h4>Offline</h4>
+                <p>Your instructions are stored locally and everything works offline, including typing a number in by hand. Camera scanning needs internet the very first time to download its recognition engine (a few MB) — after that it works normally.</p>
+
+                <h4>Dark mode</h4>
+                <p>The app follows the phone and looks right either way; dark is the default, which is what you want at the bedside at night.</p>
+            </section>
+
+            <section id="guideCases">
+                <h3>Five things this is actually for</h3>
+
+                <h4>1. Leaving on a trip</h4>
+                <p>Settings → ▶️ Run a Set → "Before each trip". Work down the checklist, tapping into any instruction you're unsure about, then <strong>Finish</strong>. Everything you ticked is marked Done in one go and the Due list is honest again. If you get interrupted, the pink card on Home brings you back to exactly where you stopped.</p>
+
+                <h4>2. Handing work to somebody else</h4>
+                <p>Instructions tab → <strong>Filter</strong> → 👤 their name. That is their list, and nothing else. Add <strong>⏰ Overdue</strong> if you only want to talk about what's slipped. If a name has nothing against it, use Settings → 🩺 Library Health → "No owner" to set an owner on everything unclaimed in one tap, and start again.</p>
+
+                <h4>3. Something's wrong and you're standing in front of it</h4>
+                <p>Scan the number, scroll to <strong>🔍 Audit Log</strong>, record what you found and who found it. Then tap <strong>→ Convert to Action</strong> on that entry: the finding becomes a to-do, linked to this instruction, counted on the red Actions tab until somebody deals with it. You've written it down once and it can't now be forgotten.</p>
+
+                <h4>4. Tidying up an imported library</h4>
+                <p>Two hundred instructions arrived at once and none of them know whose they are. <strong>Filter → ❓ Nobody named</strong> to see the scale of it, <strong>⚠️ No warning</strong> for the ones missing a hazard, <strong>🚫 No photo</strong> for the ones that would be clearer with a picture. Do a handful each time you're sitting down anyway, and use Library Health's bulk fixes for the parts where one decision covers everything.</p>
+
+                <h4>5. Somewhere with no signal</h4>
+                <p>At the dive site, on a pitch with no bars, in an underground car park — it all still works. The instructions, the photos, the steps you tick, the to-dos you add, the Done you record. Only the very first use of the camera scanner ever needs the internet, and typing the number never does.</p>
+            </section>
+
+            <section id="guideNumbers">
+                <h3>How the numbers are organised</h3>
                 <p><strong>001–099 is yours.</strong> Nothing else uses those numbers, so your own instructions can live there without ever colliding with anything.</p>
                 <p>The starter library uses 100 upwards, grouped by hundreds so a printed number card tells you which world it belongs to before you even scan it:</p>
                 <ul>
@@ -1069,6 +1229,7 @@
                     <li><strong>900–909 — Strength:</strong> full-body sessions, splits, and a bodyweight one for the RV</li>
                 </ul>
                 <p>Every one of them is yours to edit. Open it, tap Edit, and change anything — they are ordinary instructions, not locked templates.</p>
+                <p><strong>What changed in each release</strong> lives on its own screen: Settings → Version Log. This guide is about how to use the app; the Version Log is about what's new.</p>
             </section>
 
         </div>
@@ -1084,6 +1245,26 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v33.0 (2026-08-17) - FILTERS, AND A GUIDE WORTH READING</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>🔽 <strong>A Filter button beside the search box</strong> on the Instructions tab. Search answers "where did I write that?"; filters answer "what needs my attention?" — and the two work together, so you can search inside a filtered list</li>
+                            <li>👤 <strong>Whose job it is</strong> — one chip per person, plus "Nobody named". It matches an owner picked from the People list <em>and</em> one that arrived as a plain name from an import, so nobody's work goes missing</li>
+                            <li>⏰ <strong>When it's due</strong> — Overdue, Due within a week, Never done (it has a frequency but its clock never started), No repeat. Same reckoning as the Home "Due now" card, not a second opinion</li>
+                            <li>📋 <strong>Status</strong> — Active, Draft, Review Needed, Archived</li>
+                            <li>⚠️ <strong>Gaps worth a second look</strong> — No warning, No photo, Barely any steps. The half-finished corners of the library, browsable instead of only countable</li>
+                            <li>★ <strong>Quick marks</strong> — Favourite, Has a photo, Has an open to-do, Never audited</li>
+                            <li>🔢 <strong>Every chip carries a count</strong>, so you can see how much of a thing there is before you tap it. A chip nothing matches is greyed rather than hidden — "0 overdue" is worth knowing too</li>
+                            <li>➕ <strong>Chips in the same group widen, chips in different groups narrow.</strong> Anna + Martin gives you both their lists; Anna + Overdue gives you only her overdue work</li>
+                            <li>🧹 <strong>Filters are forgotten every time you leave the tab</strong>, exactly like the search box. A filter set yesterday and forgotten would show a short list today and look for all the world like missing data</li>
+                            <li>📖 <strong>How This Works has been rebuilt.</strong> One long list of tips has become nine headed sections with an "In this guide" list at the top that jumps you straight to the part you want</li>
+                            <li>💡 <strong>Worked examples throughout</strong> — the tyre pressure buried in step 4, the friend borrowing the RV, the monthly check that only starts its clock once you have done it</li>
+                            <li>🗺️ <strong>A new "Five things this is actually for"</strong> section: leaving on a trip, handing work to somebody else, finding a fault while standing in front of it, tidying up an imported library, and working somewhere with no signal</li>
+                            <li>🩺 <strong>And it now says plainly when to use Library Health and when to use the filters</strong> — the report versus the same facts while you browse</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v32.0 (2026-08-17) - FIX IT FROM THE HEALTH SCREEN</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1503,12 +1684,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=32.0&t=1786989499-b1ef3abe"></script>
-    <script src="js/qr.js?v=32.0&t=1786989499-b1ef3abe"></script>
-    <script src="js/version-sync.js?v=32.0&t=1786989499-b1ef3abe"></script>
-    <script src="js/persistence.js?v=32.0&t=1786989499-b1ef3abe"></script>
-    <script src="js/hybrid-storage.js?v=32.0&t=1786989499-b1ef3abe"></script>
-    <script src="js/ui.js?v=32.0&t=1786989499-b1ef3abe"></script>
-    <script src="js/app.js?v=32.0&t=1786989499-b1ef3abe"></script>
+    <script src="js/db.js?v=33.0&t=1786991839-bd8cb1bf"></script>
+    <script src="js/qr.js?v=33.0&t=1786991839-bd8cb1bf"></script>
+    <script src="js/version-sync.js?v=33.0&t=1786991839-bd8cb1bf"></script>
+    <script src="js/persistence.js?v=33.0&t=1786991839-bd8cb1bf"></script>
+    <script src="js/hybrid-storage.js?v=33.0&t=1786991839-bd8cb1bf"></script>
+    <script src="js/ui.js?v=33.0&t=1786991839-bd8cb1bf"></script>
+    <script src="js/app.js?v=33.0&t=1786991839-bd8cb1bf"></script>
 </body>
 </html>

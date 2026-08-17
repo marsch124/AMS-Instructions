@@ -1,4 +1,4 @@
-const APP_VERSION = '32.0';
+const APP_VERSION = '33.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -208,8 +208,11 @@ async function openTab(tabName) {
             showScreen('homeScreen');
             break;
         case 'instructions':
-            // Clear the box too, or it claims to be filtering a list that isn't
+            // Clear the box too, or it claims to be filtering a list that isn't.
+            // Same for the filters, and the panel folds shut behind them.
             document.getElementById('searchInput').value = '';
+            clearFilters();
+            toggleFilterPanel(false);
             await renderInstructionsList();
             showScreen('instructionsListScreen');
             break;
@@ -798,16 +801,276 @@ function matchInstruction(instruction, term) {
     return { matched: onRow || fields.length > 0, fields };
 }
 
+// ---------------------------------------------------------------------------
+// Filters on the Instructions tab
+//
+// Search answers "where did I write that?". Filters answer "what needs my
+// attention?" — whose jobs these are, what has fallen due, what is half-finished.
+// The two combine, so you can search inside a filtered list.
+//
+// Chosen within one group they widen (Anna OR Martin); chosen across groups they
+// narrow (Anna AND overdue). That is the only arrangement that behaves the way
+// people expect without needing to be explained.
+//
+// Nothing is remembered between visits, exactly like the search box: a filter set
+// yesterday and forgotten would show a short list today and look like data loss.
+// ---------------------------------------------------------------------------
+
+const FILTER_GROUPS = ['person', 'due', 'status', 'gaps', 'marks'];
+
+function newFilterState() {
+    const state = {};
+    FILTER_GROUPS.forEach(group => { state[group] = new Set(); });
+    return state;
+}
+
+let activeFilters = newFilterState();
+
+function activeFilterCount() {
+    return FILTER_GROUPS.reduce((total, group) => total + activeFilters[group].size, 0);
+}
+
+function clearFilters() {
+    activeFilters = newFilterState();
+}
+
+const DUE_SOON_DAYS = 7;
+
+// Everything a filter needs that isn't on the instruction itself. Fetched once
+// per render rather than per instruction — four reads instead of eight hundred.
+async function filterContext() {
+    const [people, favourites, actions, audits] = await Promise.all([
+        getAllPeople(), getFavorites(), getAllActions(), getAllAudits()
+    ]);
+
+    return {
+        people: people.slice().sort((a, b) => a.name.localeCompare(b.name)),
+        favourites: new Set(favourites),
+        openTodos: new Set(actions
+            .filter(a => a.status !== 'done' && a.instructionId)
+            .map(a => a.instructionId)),
+        audited: new Set(audits.map(a => a.instructionId)),
+        now: Date.now()
+    };
+}
+
+// An instruction can carry an owner as a person id (picked in the editor) or as
+// a bare name (imported, or typed before People existed). Match either, or the
+// same person filtered twice over would quietly miss half their work.
+function matchesPerson(instruction, key, context) {
+    if (key === 'none') return !instruction.owner || !String(instruction.owner).trim();
+
+    const person = context.people.find(p => p.id === key);
+    if (!person) return false;
+    if (instruction.ownerId) return instruction.ownerId === key;
+    return String(instruction.owner || '').trim().toLowerCase() === person.name.toLowerCase();
+}
+
+const FILTER_TESTS = {
+    // When it's due. Reuses nextDueAt(), so these agree with the Home "Due now"
+    // card and Library Health rather than inventing a second idea of overdue.
+    'due:overdue': (i, c) => { const at = nextDueAt(i); return at !== null && at <= c.now; },
+    'due:soon': (i, c) => {
+        const at = nextDueAt(i);
+        return at !== null && at > c.now && at <= c.now + DUE_SOON_DAYS * DAY_MS;
+    },
+    'due:never': (i) => Boolean(FREQUENCY_DAYS[i.frequency]) && !i.lastCompleted && i.status !== 'Archived',
+    'due:noclock': (i) => !FREQUENCY_DAYS[i.frequency],
+
+    // Status, as the instruction records it.
+    'status:Active': (i) => i.status === 'Active',
+    'status:Draft': (i) => i.status === 'Draft',
+    'status:Review Needed': (i) => i.status === 'Review Needed',
+    'status:Archived': (i) => i.status === 'Archived',
+
+    // Gaps — the same second look Library Health takes, but browsable.
+    'gaps:warning': (i) => !i.warnings || !i.warnings.trim(),
+    'gaps:photo': (i) => (i.photos || []).length === 0,
+    'gaps:steps': (i) => (i.steps || []).length < 2,
+
+    // Quick marks.
+    'marks:favourite': (i, c) => c.favourites.has(i.id),
+    'marks:hasphoto': (i) => (i.photos || []).length > 0,
+    'marks:todo': (i, c) => c.openTodos.has(i.id),
+    'marks:unaudited': (i, c) => !c.audited.has(i.id)
+};
+
+function filterMatches(group, key, instruction, context) {
+    if (group === 'person') return matchesPerson(instruction, key, context);
+    const test = FILTER_TESTS[group + ':' + key];
+    return test ? test(instruction, context) : true;
+}
+
+function passesFilters(instruction, context) {
+    return FILTER_GROUPS.every(group => {
+        const chosen = activeFilters[group];
+        if (chosen.size === 0) return true;   // nothing chosen here = no opinion
+        return [...chosen].some(key => filterMatches(group, key, instruction, context));
+    });
+}
+
+// The fixed part of the panel. The Person row is built from the People list, so
+// it can't be written down here.
+const FILTER_SECTIONS = [
+    {
+        group: 'due',
+        title: "When it's due",
+        chips: [
+            { key: 'overdue', label: '⏰ Overdue' },
+            { key: 'soon', label: '📅 Due within a week' },
+            { key: 'never', label: '🕰️ Never done' },
+            { key: 'noclock', label: '➰ No repeat' }
+        ]
+    },
+    {
+        group: 'status',
+        title: 'Status',
+        chips: [
+            { key: 'Active', label: 'Active' },
+            { key: 'Draft', label: 'Draft' },
+            { key: 'Review Needed', label: 'Review Needed' },
+            { key: 'Archived', label: 'Archived' }
+        ]
+    },
+    {
+        group: 'gaps',
+        title: 'Gaps worth a second look',
+        chips: [
+            { key: 'warning', label: '⚠️ No warning' },
+            { key: 'photo', label: '🚫 No photo' },
+            { key: 'steps', label: '📝 Barely any steps' }
+        ]
+    },
+    {
+        group: 'marks',
+        title: 'Quick marks',
+        chips: [
+            { key: 'favourite', label: '★ Favourite' },
+            { key: 'hasphoto', label: '📷 Has a photo' },
+            { key: 'todo', label: '🗒️ Has an open to-do' },
+            { key: 'unaudited', label: '🔍 Never audited' }
+        ]
+    }
+];
+
+function makeFilterChip(group, key, label, count, isOn) {
+    const chip = document.createElement('button');
+    chip.className = 'filter-chip' + (isOn ? ' on' : '');
+    chip.type = 'button';
+    chip.dataset.group = group;
+    chip.dataset.key = key;
+    chip.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+
+    const text = document.createElement('span');
+    text.textContent = label;
+    chip.appendChild(text);
+
+    const badge = document.createElement('span');
+    badge.className = 'filter-chip-count';
+    badge.textContent = count;
+    chip.appendChild(badge);
+
+    // A chip nothing matches is a dead end, so it's shown but not tappable —
+    // greyed rather than hidden, because "0 overdue" is itself worth knowing.
+    // One already switched on stays tappable, or you couldn't switch it off.
+    if (count === 0 && !isOn) chip.disabled = true;
+
+    chip.addEventListener('click', () => {
+        const set = activeFilters[group];
+        if (set.has(key)) { set.delete(key); } else { set.add(key); }
+        renderInstructionsList(document.getElementById('searchInput').value);
+    });
+
+    return chip;
+}
+
+// Counts on each chip are worked out against the whole library, not against the
+// other filters. They answer "how much of this is there?" rather than "how much
+// would be left?" — the second changes under your finger as you tap and makes
+// the panel feel unstable.
+function renderFilterPanel(instructions, context) {
+    const panel = document.getElementById('filterPanel');
+    if (!panel) return;
+
+    const body = panel.querySelector('.filter-panel-body');
+    body.innerHTML = '';
+
+    const sections = [
+        {
+            group: 'person',
+            title: 'Whose job it is',
+            chips: [
+                ...context.people.map(p => ({ key: p.id, label: '👤 ' + p.name })),
+                { key: 'none', label: '❓ Nobody named' }
+            ]
+        },
+        ...FILTER_SECTIONS
+    ];
+
+    sections.forEach(section => {
+        const wrap = document.createElement('div');
+        wrap.className = 'filter-group';
+
+        const heading = document.createElement('h4');
+        heading.textContent = section.title;
+        wrap.appendChild(heading);
+
+        const row = document.createElement('div');
+        row.className = 'filter-chips';
+        section.chips.forEach(chip => {
+            const count = instructions.filter(i => filterMatches(section.group, chip.key, i, context)).length;
+            row.appendChild(makeFilterChip(
+                section.group, chip.key, chip.label, count, activeFilters[section.group].has(chip.key)
+            ));
+        });
+        wrap.appendChild(row);
+
+        body.appendChild(wrap);
+    });
+}
+
+function updateFilterButton() {
+    const badge = document.getElementById('filterCount');
+    const btn = document.getElementById('filterBtn');
+    if (!badge || !btn) return;
+
+    const count = activeFilterCount();
+    badge.textContent = count;
+    badge.hidden = count === 0;
+    btn.classList.toggle('on', count > 0);
+}
+
+function toggleFilterPanel(force) {
+    const panel = document.getElementById('filterPanel');
+    const btn = document.getElementById('filterBtn');
+    if (!panel || !btn) return;
+
+    const show = typeof force === 'boolean' ? force : panel.hidden;
+    panel.hidden = !show;
+    btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+}
+
+async function clearFiltersAndRender() {
+    clearFilters();
+    await renderInstructionsList(document.getElementById('searchInput').value);
+}
+
 async function renderInstructionsList(filter = '') {
     const list = document.getElementById('instructionsList');
     const summary = document.getElementById('listSummary');
     const instructions = await getAllInstructions();
+    const context = await filterContext();
+
+    renderFilterPanel(instructions, context);
+    updateFilterButton();
 
     const term = filter.trim().toLowerCase();
+    const filtering = activeFilterCount() > 0;
 
     // Where each result was found, so the rows can say so without matching twice.
     const matchedFields = new Map();
     const filtered = instructions.filter(instruction => {
+        if (!passesFilters(instruction, context)) return false;
         if (!term) return true;
 
         const result = matchInstruction(instruction, term);
@@ -818,14 +1081,28 @@ async function renderInstructionsList(filter = '') {
     list.innerHTML = '';
 
     if (filtered.length === 0) {
-        list.innerHTML = '<p class="empty-state">No instructions found.</p>';
-        if (summary) summary.hidden = true;
+        // Naming the filters matters more than naming the search: the search box
+        // is visible and obviously empty-handed, whereas a filter left on three
+        // screens ago is exactly the thing you'd forget you had set.
+        let nothing = 'No instructions found.';
+        if (filtering && term) nothing = 'Nothing matches that search inside these filters.';
+        else if (filtering) nothing = 'Nothing matches these filters.';
+
+        list.innerHTML = '<p class="empty-state">' + nothing + '</p>';
+        if (summary) {
+            summary.hidden = !filtering;
+            if (filtering) {
+                summary.querySelector('.list-summary-text').textContent = '0 of ' + instructions.length;
+                summary.querySelector('#toggleAllGroupsBtn').hidden = true;
+                summary.querySelector('#clearFiltersBtn').hidden = false;
+            }
+        }
         return;
     }
 
-    // Searching shows a flat list. Grouping while filtering would bury results
-    // behind folded headers, which is the opposite of what a search is for.
-    if (term) {
+    // Searching or filtering shows a flat list. Grouping would bury results
+    // behind folded headers, which is the opposite of what both are for.
+    if (term || filtering) {
         filtered.sort((a, b) => a.number.localeCompare(b.number));
         filtered.forEach(instr => {
             const row = createInstructionRow(instr);
@@ -842,9 +1119,11 @@ async function renderInstructionsList(filter = '') {
         });
         if (summary) {
             summary.hidden = false;
-            summary.querySelector('.list-summary-text').textContent =
-                filtered.length + (filtered.length === 1 ? ' match' : ' matches');
+            summary.querySelector('.list-summary-text').textContent = filtering
+                ? filtered.length + ' of ' + instructions.length + (term ? ' · searched' : '')
+                : filtered.length + (filtered.length === 1 ? ' match' : ' matches');
             summary.querySelector('#toggleAllGroupsBtn').hidden = true;
+            summary.querySelector('#clearFiltersBtn').hidden = !filtering;
         }
         return;
     }
@@ -910,6 +1189,7 @@ async function renderInstructionsList(filter = '') {
         const btn = summary.querySelector('#toggleAllGroupsBtn');
         btn.hidden = false;
         btn.textContent = open.size >= ordered.length ? 'Collapse all' : 'Expand all';
+        summary.querySelector('#clearFiltersBtn').hidden = true;
     }
 }
 
@@ -2944,6 +3224,11 @@ async function initializeApp() {
         renderInstructionsList(e.target.value);
     });
 
+    document.getElementById('filterBtn').addEventListener('click', () => toggleFilterPanel());
+    document.getElementById('clearFiltersBtn').addEventListener('click', clearFiltersAndRender);
+    document.getElementById('filterPanelClearBtn').addEventListener('click', clearFiltersAndRender);
+    document.getElementById('filterPanelDoneBtn').addEventListener('click', () => toggleFilterPanel(false));
+
     document.getElementById('backFromEditorBtn').addEventListener('click', async () => {
         await renderInstructionsList();
         showScreen('instructionsListScreen');
@@ -2994,6 +3279,20 @@ async function initializeApp() {
 
     document.getElementById('howItWorksBtn').addEventListener('click', () => {
         showScreen('howItWorksScreen');
+        document.getElementById('howItWorksScreen').scrollTop = 0;
+    });
+
+    // "In this guide" jumps. Scrolled by hand rather than by the browser's own
+    // anchor handling, which would stamp a #hash onto the URL — harmless in
+    // Safari, but the Home Screen app then reopens on whatever it landed on.
+    document.getElementById('howItWorksBody').addEventListener('click', (e) => {
+        const link = e.target.closest('.guide-contents a');
+        if (!link) return;
+        e.preventDefault();
+        // Jumped, not glided: the guide is fifteen thousand pixels tall, and a
+        // smooth scroll across it is several seconds of blur.
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) target.scrollIntoView({ block: 'start' });
     });
 
     document.getElementById('backFromHowBtn').addEventListener('click', () => {
