@@ -1,4 +1,4 @@
-const APP_VERSION = '29.0';
+const APP_VERSION = '30.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -99,25 +99,61 @@ function clearStepProgress(instruction) {
     saveStepProgress(instruction, []);
 }
 
-function shareViaSMS(instruction) {
-    const title = instruction.title;
-    const where = instruction.where ? ` @ ${instruction.where}` : '';
-    const completed = instruction.completionCount ? ` (completed ${instruction.completionCount}x)` : '';
-    const message = `✓ Just completed: ${title}${where}${completed}`;
+// The whole instruction as plain text, laid out to be read in a message rather
+// than parsed. Deliberately not every field: owner, audit history and revision
+// numbers matter inside the app and mean nothing to whoever you send this to.
+function instructionToText(instruction) {
+    const lines = [instruction.number + ' — ' + instruction.title];
 
-    // Use SMS URL scheme (works on iOS and Android)
-    const smsUrl = `sms:?body=${encodeURIComponent(message)}`;
+    const meta = [
+        instruction.category,
+        instruction.frequency,
+        instruction.timeEstimate ? instruction.timeEstimate + ' min' : null
+    ].filter(Boolean);
+    if (meta.length) lines.push(meta.join(' · '));
 
-    // Check if SMS API is available (Web Share API)
-    if (navigator.share && navigator.canShare({ text: message })) {
-        navigator.share({
-            title: `Completed: ${title}`,
-            text: message
-        }).catch(err => console.log('Share cancelled'));
-    } else {
-        // Fallback to SMS URL
-        window.location.href = smsUrl;
+    const section = (label, value) => {
+        if (!value || !String(value).trim()) return;
+        lines.push('', label + String(value).trim());
+    };
+
+    section('', instruction.description);
+    // The warning goes above the steps here for the same reason it does on
+    // screen: it has to be read before starting, not discovered afterwards.
+    section('⚠️ ', instruction.warnings);
+    section('Equipment: ', instruction.equipment);
+    section('Before you start: ', instruction.preparations);
+
+    const steps = instruction.steps || [];
+    if (steps.length) {
+        lines.push('');
+        steps.forEach((step, i) => lines.push((i + 1) + '. ' + step));
     }
+
+    section('Afterwards: ', instruction.afterUse);
+    section('Notes: ', instruction.notes);
+
+    lines.push('', 'Sent from AMS Instructions');
+    return lines.join('\n');
+}
+
+// Shares the instruction itself. This used to send a one-line "✓ Just completed"
+// message, which told the recipient nothing they could act on. Being able to send
+// someone the actual steps is the thing that was missing.
+function shareInstruction(instruction) {
+    const text = instructionToText(instruction);
+    const title = instruction.number + ' — ' + instruction.title;
+
+    // canShare is checked for existence first: on browsers that have share but
+    // not canShare, calling it directly throws and nothing gets shared at all.
+    if (navigator.share && (!navigator.canShare || navigator.canShare({ text }))) {
+        navigator.share({ title, text }).catch(() => {
+            // Cancelling the share sheet rejects. That is a choice, not a fault.
+        });
+        return;
+    }
+
+    window.location.href = 'sms:?body=' + encodeURIComponent(text);
 }
 
 // The four root screens that carry the bottom tab bar. Every other screen is a
@@ -306,18 +342,23 @@ function displayInstruction(instruction) {
     // Instructions with checkboxes
     renderSteps(instruction);
 
-    // Photos
-    if (instruction.photos && instruction.photos.length > 0) {
+    // Photos. Anything pinned to a step has already been shown beside that step
+    // by renderSteps, so the gallery holds only what is left — and disappears
+    // entirely once every photo has found a step to belong to.
+    const galleryPhotos = (instruction.photos || [])
+        .filter(photo => pinnedStepIndex(photo, instruction) === null);
+
+    if (galleryPhotos.length > 0) {
         document.getElementById('photosSection').style.display = 'flex';
         const photosGal = document.getElementById('instructionPhotos');
         photosGal.innerHTML = '';
-        instruction.photos.forEach(photo => {
+        galleryPhotos.forEach(photo => {
             const img = document.createElement('img');
             img.src = photo.data;
             img.className = 'photo-thumbnail';
             photosGal.appendChild(img);
         });
-        updatePreviewIndicator('photosPreview', instruction.photos.length > 0);
+        updatePreviewIndicator('photosPreview', true);
     } else {
         document.getElementById('photosSection').style.display = 'none';
     }
@@ -427,6 +468,17 @@ function displayInstruction(instruction) {
     });
 }
 
+// Which step a photo belongs to, or null for the gallery at the bottom.
+//
+// A photo only counts as pinned if it points at a step that still exists. Shorten
+// an instruction's steps and its orphaned photos fall back to the gallery rather
+// than disappearing from the app altogether.
+function pinnedStepIndex(photo, instruction) {
+    const total = (instruction.steps || []).length;
+    const step = photo.step;
+    return Number.isInteger(step) && step >= 0 && step < total ? step : null;
+}
+
 // The steps, with your place in them kept. Tick three of twelve, walk away, lock
 // the phone, come back — the three are still ticked. Losing your place halfway
 // through a job you are doing with wet hands is the whole reason this exists.
@@ -434,6 +486,7 @@ function renderSteps(instruction) {
     const stepsList = document.getElementById('instructionSteps');
     const steps = instruction.steps || [];
     const ticked = new Set(stepProgressFor(instruction));
+    const photos = instruction.photos || [];
 
     stepsList.innerHTML = '';
 
@@ -463,6 +516,29 @@ function renderSteps(instruction) {
         // an apostrophe or a "<" in it should read as itself.
         label.appendChild(document.createTextNode(' ' + step));
         li.appendChild(label);
+
+        // A photo pinned to this step sits directly under it. The picture of the
+        // valve belongs beside the instruction to turn the valve — not in a
+        // gallery at the bottom that you have to scroll to and match up yourself.
+        const stepPhotos = photos.filter(photo => pinnedStepIndex(photo, instruction) === i);
+        if (stepPhotos.length > 0) {
+            li.classList.add('has-photos');
+
+            const strip = document.createElement('div');
+            strip.className = 'step-photos';
+
+            stepPhotos.forEach(photo => {
+                const img = document.createElement('img');
+                img.className = 'step-photo';
+                img.src = photo.data;
+                img.alt = '';
+                img.loading = 'lazy';
+                strip.appendChild(img);
+            });
+
+            li.appendChild(strip);
+        }
+
         stepsList.appendChild(li);
     });
 
@@ -1029,6 +1105,15 @@ function photoThumb(instruction) {
     return photo ? (photo.thumb || photo.data) : null;
 }
 
+// The steps as they stand in the editor right now — the photo pickers are built
+// from these, so they follow steps that have not been saved yet.
+function editorStepTitles() {
+    return document.getElementById('editorSteps').value
+        .split('\n')
+        .map(step => step.trim())
+        .filter(step => step);
+}
+
 function renderPhotosList() {
     const list = document.getElementById('editorPhotosList');
     list.innerHTML = '';
@@ -1061,8 +1146,41 @@ function renderPhotosList() {
         }
         size.textContent = sizeText;
 
+        // Where this photo should appear. Built from whatever is in the steps box
+        // right now, so it keeps up with steps you are still writing.
+        const stepSelect = document.createElement('select');
+        stepSelect.className = 'photo-item-step';
+        stepSelect.setAttribute('aria-label', 'Where to show this photo');
+
+        const galleryOption = document.createElement('option');
+        galleryOption.value = '';
+        galleryOption.textContent = 'In the photo gallery';
+        stepSelect.appendChild(galleryOption);
+
+        editorStepTitles().forEach((text, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            // The step's own words, not just its number — otherwise you have to
+            // count down the list to work out which step 7 is.
+            option.textContent = 'Step ' + (index + 1) + ' — ' +
+                (text.length > 40 ? text.slice(0, 40) + '…' : text);
+            stepSelect.appendChild(option);
+        });
+
+        const wanted = Number.isInteger(photo.step) ? String(photo.step) : '';
+        stepSelect.value = wanted;
+        // Pinned to a step that no longer exists, because the steps were cut
+        // short: fall back to the gallery rather than silently keeping a
+        // pointer to nothing.
+        if (stepSelect.value !== wanted) photo.step = null;
+
+        stepSelect.addEventListener('change', () => {
+            photo.step = stepSelect.value === '' ? null : Number(stepSelect.value);
+        });
+
         info.appendChild(name);
         info.appendChild(size);
+        info.appendChild(stepSelect);
         div.appendChild(img);
         div.appendChild(info);
 
@@ -2209,7 +2327,7 @@ async function initializeApp() {
 
     document.getElementById('shareBtn').addEventListener('click', () => {
         if (currentInstruction) {
-            shareViaSMS(currentInstruction);
+            shareInstruction(currentInstruction);
         }
     });
 
@@ -2275,6 +2393,10 @@ async function initializeApp() {
         await renderHomeScreen();
         showScreen('homeScreen');
     });
+
+    // Rewriting the steps changes what the photo pickers can offer, so rebuild
+    // them when the box is done being typed in.
+    document.getElementById('editorSteps').addEventListener('change', renderPhotosList);
 
     document.getElementById('stepResetBtn').addEventListener('click', () => {
         if (!currentInstruction) return;

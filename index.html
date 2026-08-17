@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786970960-5361d73b">
+    <meta name="cache-bust" content="1786971754-555a3adf">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=29.0&t=1786970960-5361d73b">
+    <link rel="stylesheet" href="css/style.css?v=30.0&t=1786971754-555a3adf">
 </head>
 <body>
     <!--
@@ -74,7 +74,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v29.0</span>
+                <span class="version-badge" id="homeVersion">v30.0</span>
             </div>
         </header>
 
@@ -412,7 +412,7 @@
             <!-- Buttons -->
             <div class="instruction-buttons">
                 <button id="doneBtn" class="btn-done">✓ Mark Done</button>
-                <button id="shareBtn" class="btn-secondary">📱 Share via SMS</button>
+                <button id="shareBtn" class="btn-secondary">📤 Share</button>
                 <button id="editInstructionBtn" class="btn-secondary">Edit</button>
             </div>
         </div>
@@ -941,7 +941,7 @@
             <section>
                 <h3>Tips</h3>
                 <ul>
-                                        <li><strong>Share instructions:</strong> When viewing an instruction, tap the "📱 Share via SMS" button at the bottom to send a completion message via text with the task name and location.</li>
+                    <li><strong>Share an instruction:</strong> Open it and tap <strong>📤 Share</strong> at the bottom. The whole instruction goes into the normal iPhone share sheet as text — number, title, category, frequency, time, the safety warning, equipment, what to do beforehand, the numbered steps, afterwards and notes — so you can send it by Messages or Mail, or drop it into Notes. Whoever receives it does not need the app. Owner, audit history and revision numbers are left out on purpose: they matter in here, not to the person you sent it to.</li>
                     <li><strong>What's due:</strong> A green "Due now" card appears on the Home screen whenever something has come round again — tap it for the full list, most overdue first. This is worked out from two things the instruction already carries: its <strong>Frequency</strong> and when you last marked it <strong>Done</strong>. So the clock only starts once you have marked an instruction Done for the first time; before that it shows "After 1st Done" and stays off the list. That is deliberate, and it is why importing the starter library doesn't fill your Home screen with two hundred overdue items. Frequencies that describe an event rather than a date — "Before each trip", "Every session", "As-needed" — never fall due, and neither does anything Archived.</li>
                     <li><strong>Keeping your place in a job:</strong> Tick the steps as you go and they stay ticked. Leave the instruction, lock the phone, come back tomorrow — you pick up where you left off. A "3 of 12 done · Reset" line appears above the steps once you have started, and <strong>Reset</strong> clears them if you want to begin again. Marking the instruction <strong>Done</strong> clears them for you, so the next time you open it the list is clean. These ticks live only on this phone and are not part of your backup — they are where you are right now, not something worth keeping.</li>
                     <li><strong>Favorites:</strong> Tap ★ on any instruction to save it for quick access from the home screen.</li>
@@ -959,6 +959,7 @@
                     <li><strong>Offline:</strong> Your instructions are stored locally and everything works offline, including manual number entry. Camera scanning needs internet the very first time to download its recognition engine (a few MB) — after that it works normally.</li>
                     <li><strong>Dark mode:</strong> The app defaults to dark mode, perfect for bedside use at night. Custom pink accents help tasks pop even in low light.</li>
                     <li><strong>Browsing by category:</strong> The 📋 Instructions tab is grouped into folding sections — one per category, each with a coloured dot and a count. Tap a header to open it, tap again to close. It remembers what you left open, and "Expand all" / "Collapse all" beside the count line does the lot at once. This is the way to find something when you do not know what to search for.</li>
+                    <li><strong>Photos beside a step:</strong> Each photo in the editor has a "Show at step" picker. Leave it on "In the photo gallery" and the photo behaves as it always has; choose a step and the picture appears directly under that step while you're following the instruction — which is where you actually want to see it. The picker names each step by its own words, and keeps up with steps you are still typing. If you later shorten the steps, a photo left pointing at one that no longer exists quietly returns to the gallery rather than disappearing.</li>
                     <li><strong>Photos:</strong> An instruction can hold up to 5 photos — add them while editing, under 📷 Photos. The first one shows up as a small thumbnail beside that instruction everywhere it's listed (the Instructions tab, Favourites, Recently Viewed), which is often the fastest way to recognise the right one. Instructions with no photo simply don't show a thumbnail. Photos are shrunk automatically when you add them — the editor shows the stored size next to each one, and what it came in at. They are still the biggest thing in your data, so if you ever add a great many, watch for the red "Safety copy on this phone has stopped" card on the Home screen and back up to Files.</li>
                     <li><strong>Search:</strong> Type in the search box and the groups drop away, giving you a plain list of every match across all categories, with the category shown on each result. Searching by number works too. The box clears itself each time you come back to the tab, so you never land on a filtered list wondering where everything went.</li>
                     <li><strong>Search looks inside everything:</strong> not just titles, but steps, description, warnings, equipment, preparations, after-use, maintenance, notes, location and owner. So a tyre pressure you once typed into step 4 is findable by typing the number, and searching a person's name brings back everything they own. Where the match is somewhere you cannot see from the list, the result says so underneath — "matched in Steps" — so a hit on hidden text never looks like a mistake.</li>
@@ -998,6 +999,20 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v30.0 (2026-08-17) - SHOW &amp; SHARE</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>📸 <strong>A photo can now sit beside the step it belongs to.</strong> While editing, each photo has a "Show at step" picker — choose a step and the picture appears directly underneath it when you're following the instruction. The photo of the valve belongs next to the step that says turn the valve, not in a gallery at the bottom you have to scroll to and match up yourself</li>
+                            <li>🖼️ <strong>Photos you don't pin to a step stay in the gallery</strong> exactly as before, and the gallery disappears once every photo has found a step to belong to. Nothing you already have moves anywhere unless you move it</li>
+                            <li>📝 <strong>The step picker lists the steps by their own words</strong> — "Step 3 — Unscrew the housing" — so you don't have to count down the list to work out which one is which. It follows steps you are still typing, too</li>
+                            <li>🛟 <strong>Shorten an instruction's steps and any photo left pointing at a step that no longer exists returns to the gallery</strong> rather than vanishing from the app</li>
+                            <li>📤 <strong>"Share via SMS" is now just "Share" — and it sends the actual instruction.</strong> Number, title, category, frequency, time, the safety warning, equipment, what to do beforehand, the numbered steps, afterwards and notes, laid out to be read in a message. It goes to the normal iPhone share sheet, so it can go to Messages, Mail, Notes or anywhere else</li>
+                            <li>🤷 <strong>What that button used to do</strong> was send a single line reading "✓ Just completed: …" — which told whoever received it nothing they could act on. Being able to send someone the actual steps is the thing that was missing</li>
+                            <li>🔒 <strong>What's deliberately left out of a shared instruction:</strong> owner, audit history and revision numbers. They matter inside the app and mean nothing to whoever you sent it to</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v29.0 (2026-08-17) - FIND ANYTHING</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1374,12 +1389,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=29.0&t=1786970960-5361d73b"></script>
-    <script src="js/qr.js?v=29.0&t=1786970960-5361d73b"></script>
-    <script src="js/version-sync.js?v=29.0&t=1786970960-5361d73b"></script>
-    <script src="js/persistence.js?v=29.0&t=1786970960-5361d73b"></script>
-    <script src="js/hybrid-storage.js?v=29.0&t=1786970960-5361d73b"></script>
-    <script src="js/ui.js?v=29.0&t=1786970960-5361d73b"></script>
-    <script src="js/app.js?v=29.0&t=1786970960-5361d73b"></script>
+    <script src="js/db.js?v=30.0&t=1786971754-555a3adf"></script>
+    <script src="js/qr.js?v=30.0&t=1786971754-555a3adf"></script>
+    <script src="js/version-sync.js?v=30.0&t=1786971754-555a3adf"></script>
+    <script src="js/persistence.js?v=30.0&t=1786971754-555a3adf"></script>
+    <script src="js/hybrid-storage.js?v=30.0&t=1786971754-555a3adf"></script>
+    <script src="js/ui.js?v=30.0&t=1786971754-555a3adf"></script>
+    <script src="js/app.js?v=30.0&t=1786971754-555a3adf"></script>
 </body>
 </html>
