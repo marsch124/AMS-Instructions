@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786973054-2b7a395b">
+    <meta name="cache-bust" content="1786989499-b1ef3abe">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=31.0&t=1786973054-2b7a395b">
+    <link rel="stylesheet" href="css/style.css?v=32.0&t=1786989499-b1ef3abe">
 </head>
 <body>
     <!--
@@ -79,7 +79,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v31.0</span>
+                <span class="version-badge" id="homeVersion">v32.0</span>
             </div>
         </header>
 
@@ -1027,7 +1027,7 @@
                     <li><strong>Share an instruction:</strong> Open it and tap <strong>📤 Share</strong> at the bottom. The whole instruction goes into the normal iPhone share sheet as text — number, title, category, frequency, time, the safety warning, equipment, what to do beforehand, the numbered steps, afterwards and notes — so you can send it by Messages or Mail, or drop it into Notes. Whoever receives it does not need the app. Owner, audit history and revision numbers are left out on purpose: they matter in here, not to the person you sent it to.</li>
                     <li><strong>What's due:</strong> A green "Due now" card appears on the Home screen whenever something has come round again — tap it for the full list, most overdue first. This is worked out from two things the instruction already carries: its <strong>Frequency</strong> and when you last marked it <strong>Done</strong>. So the clock only starts once you have marked an instruction Done for the first time; before that it shows "After 1st Done" and stays off the list. That is deliberate, and it is why importing the starter library doesn't fill your Home screen with two hundred overdue items. Frequencies that describe an event rather than a date — "Before each trip", "Every session", "As-needed" — never fall due, and neither does anything Archived.</li>
                     <li><strong>Running a set of instructions:</strong> Settings → <strong>▶️ Run a Set</strong> works through several instructions as one checklist — pick "Before each trip", everything currently due, your Favourites, or any category. Tick each one off as you go, or tap it to open the instruction in full; ← Back returns you to the run rather than to the Home screen. A run survives you closing the app: a pink card at the top of Home shows how far through you are and takes you back to it. <strong>Finish</strong> marks everything you ticked as Done in one go, which resets the clock on all of them at once — so a departure run keeps the Due list honest without visiting eight instructions one at a time. The list is fixed when the run starts, so running "Everything due now" doesn't shrink underneath you as you tick things off.</li>
-                    <li><strong>Library Health:</strong> Settings → <strong>🩺 Library Health</strong> is about the library itself rather than the RV. It shows what is overdue, what has a frequency but has never once been marked Done (so its clock never started), what has nobody named as owner, what is still Draft or Review Needed, and which Safety or Maintenance instructions carry no warning text. Everything listed is tappable, so you can work through it. None of it is an error — not every job needs a warning and not everything needs an owner. It's a second look, not a telling-off.</li>
+                    <li><strong>Library Health:</strong> Settings → <strong>🩺 Library Health</strong> is about the library itself rather than the RV. It shows what is overdue, what has a frequency but has never once been marked Done (so its clock never started), what has nobody named as owner, what is still Draft or Review Needed, and which Safety or Maintenance instructions carry no warning text. Everything listed is tappable, so you can work through it. None of it is an error — not every job needs a warning and not everything needs an owner. It's a second look, not a telling-off. <strong>Two of the groups can fix themselves:</strong> "No owner" lets you pick a person and apply them to everything that hasn't got one, and "Safety work with no warning" can drop a holding note onto all of them at once. Both leave anything already filled in alone, so you can run them again after adding new instructions. The holding warning is honest about being a placeholder and asks to be replaced with the real hazard — treat it as a reminder, not a job finished.</li>
                     <li><strong>Keeping your place in a job:</strong> Tick the steps as you go and they stay ticked. Leave the instruction, lock the phone, come back tomorrow — you pick up where you left off. A "3 of 12 done · Reset" line appears above the steps once you have started, and <strong>Reset</strong> clears them if you want to begin again. Marking the instruction <strong>Done</strong> clears them for you, so the next time you open it the list is clean. These ticks live only on this phone and are not part of your backup — they are where you are right now, not something worth keeping.</li>
                     <li><strong>Favorites:</strong> Tap ★ on any instruction to save it for quick access from the home screen.</li>
                     <li><strong>People:</strong> Add names once under Settings → Manage People, then pick them as Owner or "Revised by" on any instruction instead of retyping — their phone/email shows up automatically in Revision History.</li>
@@ -1084,6 +1084,19 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v32.0 (2026-08-17) - FIX IT FROM THE HEALTH SCREEN</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>👤 <strong>Library Health can now set an owner on everything that hasn't got one</strong>, in one tap. Open "No owner", pick a person, confirm — done. Anything that already has an owner is left exactly as it is, so this is safe to run again whenever you add instructions</li>
+                            <li>⚠️ <strong>And it can add a holding warning</strong> to Safety and Maintenance instructions that carry none. Anything that already has a warning is untouched</li>
+                            <li>🚧 <strong>That warning says plainly that it is a placeholder</strong> — that no specific hazard has been recorded yet, to treat the job with the usual care in the meantime, and to replace it with the real hazard once you know it. Five instructions all carrying the same confident-sounding warning would be worse than none: identical boilerplate is exactly what teaches you to skim past warnings, which is the opposite of what they are for. Treat it as a to-do, not a job finished</li>
+                            <li>📋 <strong>These bulk changes deliberately do not write revision history.</strong> Two hundred "Updated" entries would bury the real edits under bookkeeping</li>
+                            <li>🛟 <strong>The safety copy on the phone is refreshed straight afterwards,</strong> like every other change that touches your data</li>
+                            <li>↻ <strong>The health screen re-counts itself after a fix</strong>, so you see what is actually left rather than work you have already done</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v31.0 (2026-08-17) - RUN &amp; REVIEW</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1490,12 +1503,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=31.0&t=1786973054-2b7a395b"></script>
-    <script src="js/qr.js?v=31.0&t=1786973054-2b7a395b"></script>
-    <script src="js/version-sync.js?v=31.0&t=1786973054-2b7a395b"></script>
-    <script src="js/persistence.js?v=31.0&t=1786973054-2b7a395b"></script>
-    <script src="js/hybrid-storage.js?v=31.0&t=1786973054-2b7a395b"></script>
-    <script src="js/ui.js?v=31.0&t=1786973054-2b7a395b"></script>
-    <script src="js/app.js?v=31.0&t=1786973054-2b7a395b"></script>
+    <script src="js/db.js?v=32.0&t=1786989499-b1ef3abe"></script>
+    <script src="js/qr.js?v=32.0&t=1786989499-b1ef3abe"></script>
+    <script src="js/version-sync.js?v=32.0&t=1786989499-b1ef3abe"></script>
+    <script src="js/persistence.js?v=32.0&t=1786989499-b1ef3abe"></script>
+    <script src="js/hybrid-storage.js?v=32.0&t=1786989499-b1ef3abe"></script>
+    <script src="js/ui.js?v=32.0&t=1786989499-b1ef3abe"></script>
+    <script src="js/app.js?v=32.0&t=1786989499-b1ef3abe"></script>
 </body>
 </html>

@@ -1,4 +1,4 @@
-const APP_VERSION = '31.0';
+const APP_VERSION = '32.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -2118,6 +2118,10 @@ async function finishRun() {
 
 // Brief confirmation that slides up from the bottom and goes away on its own.
 function showToast(message) {
+    // Two in quick succession would otherwise sit on top of each other at the
+    // same fixed position, showing the older message over the newer one.
+    document.querySelectorAll('.toast').forEach(old => old.remove());
+
     const toast = document.createElement('div');
     toast.className = 'toast';
     toast.textContent = message;
@@ -2174,6 +2178,95 @@ async function healthGroups() {
     ];
 }
 
+// Deliberately honest about being a placeholder. Five instructions all carrying
+// the same confident-sounding warning would be worse than none: identical
+// boilerplate is exactly what teaches you to skim past warnings, which is the
+// opposite of what the section is for. This one says what it is and asks to be
+// replaced, while still giving a sane baseline in the meantime.
+const PLACEHOLDER_WARNING = 'No specific hazard has been recorded for this job yet. Until one is, treat it with the usual care: the vehicle stable and level, anything powered switched off and isolated, and the whole procedure read through before you start. Replace this with the real hazard once you know what it is.';
+
+// A bulk fix attached to a health group. Only two groups have one — an owner and
+// a warning placeholder are gaps a single decision can close for the whole
+// library. Everything else in Library Health needs judgement per instruction.
+async function buildOwnerFixer(items, onDone) {
+    const wrap = document.createElement('div');
+    wrap.className = 'health-fix';
+
+    const people = await getAllPeople();
+    if (people.length === 0) {
+        const note = document.createElement('p');
+        note.className = 'empty-state';
+        note.textContent = 'Add someone under Settings → Manage People first.';
+        wrap.appendChild(note);
+        return wrap;
+    }
+
+    const select = document.createElement('select');
+    select.setAttribute('aria-label', 'Who owns these');
+    people.forEach(person => {
+        const option = document.createElement('option');
+        option.value = person.id;
+        option.textContent = person.name;
+        select.appendChild(option);
+    });
+
+    const button = document.createElement('button');
+    button.className = 'btn-secondary';
+    button.textContent = 'Set as owner on all ' + items.length;
+
+    button.addEventListener('click', () => {
+        const personId = select.value;
+        const personName = select.options[select.selectedIndex].textContent;
+
+        showModal('Set owner on ' + items.length + '?',
+            personName + ' becomes the owner of every instruction that currently has none. Instructions that already have an owner are left alone.',
+            async (confirmed) => {
+                if (!confirmed) return;
+                const updated = items.map(instruction => ({
+                    ...instruction, owner: personName, ownerId: personId
+                }));
+                const count = await bulkUpdateInstructions(updated);
+                showToast('✓ ' + personName + ' set as owner on ' + count);
+                await onDone();
+            });
+    });
+
+    wrap.appendChild(select);
+    wrap.appendChild(button);
+    return wrap;
+}
+
+function buildWarningFixer(items, onDone) {
+    const wrap = document.createElement('div');
+    wrap.className = 'health-fix';
+
+    const button = document.createElement('button');
+    button.className = 'btn-secondary';
+    button.textContent = 'Add a placeholder warning to all ' + items.length;
+
+    button.addEventListener('click', () => {
+        showModal('Add a placeholder warning to ' + items.length + '?',
+            'Each one gets the same holding text, which says plainly that the real hazard has not been recorded yet and asks you to replace it. Instructions that already have a warning are untouched.',
+            async (confirmed) => {
+                if (!confirmed) return;
+                const updated = items.map(instruction => ({
+                    ...instruction, warnings: PLACEHOLDER_WARNING
+                }));
+                const count = await bulkUpdateInstructions(updated);
+                showToast('✓ Placeholder warning added to ' + count);
+                await onDone();
+            });
+    });
+
+    const note = document.createElement('p');
+    note.className = 'health-fix-note';
+    note.textContent = 'A placeholder is a prompt, not a real warning — worth replacing each one with the actual hazard when you next open it.';
+
+    wrap.appendChild(button);
+    wrap.appendChild(note);
+    return wrap;
+}
+
 async function renderHealth() {
     const container = document.getElementById('healthList');
     const groups = await healthGroups();
@@ -2185,7 +2278,7 @@ async function renderHealth() {
         return;
     }
 
-    groups.forEach(group => {
+    for (const group of groups) {
         const section = document.createElement('section');
         section.className = 'instruction-section';
 
@@ -2221,6 +2314,16 @@ async function renderHealth() {
             none.textContent = 'None — nothing to do here.';
             content.appendChild(none);
         } else {
+            // Re-render after a fix so the counts and lists reflect what just
+            // happened, rather than showing work that has already been done.
+            const refresh = () => renderHealth();
+
+            if (group.key === 'noowner') {
+                content.appendChild(await buildOwnerFixer(group.items, refresh));
+            } else if (group.key === 'nowarning') {
+                content.appendChild(buildWarningFixer(group.items, refresh));
+            }
+
             group.items
                 .slice()
                 .sort((a, b) => a.number.localeCompare(b.number))
@@ -2233,7 +2336,7 @@ async function renderHealth() {
         section.appendChild(toggle);
         section.appendChild(content);
         container.appendChild(section);
-    });
+    }
 }
 
 const LAST_EXPORT_KEY = 'ams_last_export_time';

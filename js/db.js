@@ -151,6 +151,23 @@ async function recordCompletion(instruction) {
     });
 }
 
+// Writes a batch of instructions in one transaction, WITHOUT touching revision
+// history. Setting the owner on two hundred instructions at once would otherwise
+// write two hundred "Updated" entries and bury the real edits under bookkeeping.
+// Everything goes in one transaction so a bulk fix either lands or doesn't.
+async function bulkUpdateInstructions(instructions) {
+    if (instructions.length === 0) return 0;
+
+    const tx = db.transaction(STORE_INSTRUCTIONS, 'readwrite');
+    const store = tx.objectStore(STORE_INSTRUCTIONS);
+
+    return new Promise((resolve, reject) => {
+        instructions.forEach(instruction => store.put(instruction));
+        tx.oncomplete = () => resolve(instructions.length);
+        tx.onerror = () => reject(tx.error);
+    });
+}
+
 // How long an instruction stays done before it comes round again.
 //
 // Only the frequencies that describe a clock appear here. "Before each trip",
@@ -640,7 +657,7 @@ async function getDBSize() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786973054-2b7a395b', {
+            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786989499-b1ef3abe', {
                 scope: '/AMS-Instructions/'
             });
         } catch (error) {

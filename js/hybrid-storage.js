@@ -178,6 +178,13 @@ saveInstructionDB = async function(instruction) {
     return result;
 };
 
+const originalBulkUpdateInstructions = bulkUpdateInstructions;
+bulkUpdateInstructions = async function(instructions) {
+    const result = await originalBulkUpdateInstructions(instructions);
+    await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
 const originalRecordCompletion = recordCompletion;
 recordCompletion = async function(instruction) {
     const result = await originalRecordCompletion(instruction);
