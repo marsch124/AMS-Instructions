@@ -1,4 +1,4 @@
-const APP_VERSION = '39.0';
+const APP_VERSION = '40.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -279,6 +279,11 @@ async function navigateToInstruction(number) {
     }
     currentInstruction = instruction;
     await addToRecent(instruction);
+    // The Done History draws each name as the same coloured pill the list rows
+    // use, and those colours come from People. Loaded here so an instruction
+    // opened by typing its number — without going through the list first —
+    // shows the same colour for a person as everywhere else.
+    await loadOwnerNames();
     displayInstruction(instruction);
     showScreen('instructionScreen');
 }
@@ -313,11 +318,18 @@ function displayInstruction(instruction) {
     const completionCount = instruction.completionCount || 0;
     document.getElementById('instructionCompletionCount').textContent = completionCount === 1 ? '1 time' : completionCount + ' times';
 
+    // "2 days ago · Anna" where the app knows who, so the answer to "was that
+    // you or me?" is on the screen you are already looking at rather than one
+    // section further down.
+    const lastDoneEl = document.getElementById('instructionLastCompleted');
     if (instruction.lastCompleted) {
-        document.getElementById('instructionLastCompleted').textContent = formatRelativeTime(instruction.lastCompleted);
+        const who = doneByLabel((instruction.completionLog || [])[0]);
+        lastDoneEl.textContent = formatRelativeTime(instruction.lastCompleted) + (who ? ' · ' + who : '');
     } else {
-        document.getElementById('instructionLastCompleted').textContent = 'Never';
+        lastDoneEl.textContent = 'Never';
     }
+
+    renderDoneLog(instruction);
 
     updateNextDueLine(instruction);
 
@@ -580,6 +592,62 @@ function setupSection(sectionId, content) {
     updatePreviewIndicator(sectionId + 'Preview', content && content.trim().length > 0);
 }
 
+// Every recorded completion, newest first — who, and when.
+//
+// Completions recorded before this existed have a count and a date but no log,
+// and are said out loud rather than left looking like an empty history: an
+// instruction done nine times that shows nothing would read as a bug.
+function renderDoneLog(instruction) {
+    const list = document.getElementById('instructionDoneLog');
+    const log = instruction.completionLog || [];
+    const count = instruction.completionCount || 0;
+
+    list.innerHTML = '';
+    updatePreviewIndicator('doneLogPreview', log.length > 0);
+
+    if (log.length === 0 && count === 0) {
+        list.innerHTML = '<p class="empty-state">Not marked Done yet.</p>';
+        return;
+    }
+
+    log.forEach(entry => {
+        const div = document.createElement('div');
+        div.className = 'history-entry done-entry';
+
+        const when = document.createElement('div');
+        when.className = 'history-date';
+        when.textContent = new Date(entry.at).toLocaleString();
+
+        const who = document.createElement('div');
+        who.className = 'done-entry-who';
+        const name = doneByLabel(entry);
+        if (name) {
+            who.appendChild(ownerPill(name));
+        } else {
+            const plain = document.createElement('span');
+            plain.className = 'done-entry-noname';
+            plain.textContent = 'No name recorded';
+            who.appendChild(plain);
+        }
+
+        div.appendChild(who);
+        div.appendChild(when);
+        list.appendChild(div);
+    });
+
+    // The gap between the counter and the log: everything done before the app
+    // started keeping names.
+    const earlier = count - log.length;
+    if (earlier > 0) {
+        const note = document.createElement('p');
+        note.className = 'done-entry-earlier';
+        note.textContent = earlier === 1
+            ? 'Marked Done once more before the app started recording who.'
+            : 'Marked Done ' + earlier + ' more times before the app started recording who.';
+        list.appendChild(note);
+    }
+}
+
 function updatePreviewIndicator(id, filled) {
     const el = document.getElementById(id);
     if (el) {
@@ -775,6 +843,108 @@ function ownerPill(name) {
     pill.appendChild(spriteIcon('person', 'owner-glyph'));
     pill.appendChild(document.createTextNode(name));
     return pill;
+}
+
+// ---------------------------------------------------------------------------
+// Who did it
+//
+// Marking something done used to record two things: a counter and a date. In a
+// van used by two people the question actually asked is "did you do the water
+// filter or did I", and that was exactly what the app could not answer.
+//
+// The log lives on the instruction itself, next to revisionHistory, rather than
+// in a store of its own — so it travels inside every backup, restores with the
+// instruction it belongs to, and needs no changes to the three hardcoded store
+// lists in db.js that a new store would have had to be added to.
+// ---------------------------------------------------------------------------
+
+const LAST_DONE_BY_KEY = 'ams_last_done_by';
+
+// The person who marked the last thing done, if they are still in People. Asked
+// once and then remembered, because a chooser in front of every single Mark Done
+// would be a tax on the one action the app most wants to be effortless.
+async function rememberedDoer() {
+    const id = localStorage.getItem(LAST_DONE_BY_KEY);
+    if (!id) return null;
+
+    const people = await getAllPeople();
+    return people.find(person => person.id === id) || null;
+}
+
+function rememberDoer(person) {
+    if (person) {
+        localStorage.setItem(LAST_DONE_BY_KEY, person.id);
+    } else {
+        localStorage.removeItem(LAST_DONE_BY_KEY);
+    }
+}
+
+// A modal list of people, resolving to the one picked — or null for "don't
+// record a name", which Cancel also gives. Nobody is ever credited by default:
+// the only ways out are an explicit tap on a name, or no name at all.
+function choosePerson(title, message, people) {
+    return new Promise((resolve) => {
+        const modal = document.getElementById('choiceModal');
+        const options = document.getElementById('choiceOptions');
+        const cancel = document.getElementById('choiceCancel');
+
+        document.getElementById('choiceTitle').textContent = title;
+        document.getElementById('choiceMessage').textContent = message || '';
+        options.innerHTML = '';
+
+        const close = (person) => {
+            modal.hidden = true;
+            cancel.removeEventListener('click', onCancel);
+            resolve(person);
+        };
+        const onCancel = () => close(null);
+
+        people.forEach(person => {
+            const row = document.createElement('button');
+            row.className = 'choice-option';
+            row.type = 'button';
+            row.appendChild(ownerPill(person.name));
+            row.addEventListener('click', () => close(person));
+            options.appendChild(row);
+        });
+
+        const none = document.createElement('button');
+        none.className = 'choice-option choice-none';
+        none.type = 'button';
+        none.textContent = people.length > 0 ? 'Don\'t record a name' : 'Nobody is in your People list yet';
+        none.addEventListener('click', () => close(null));
+        options.appendChild(none);
+
+        cancel.addEventListener('click', onCancel);
+        modal.hidden = false;
+    });
+}
+
+// Who to credit for a Mark Done about to happen. Remembered from last time where
+// possible; asked outright the first time, or if that person has since been
+// deleted. Returns null when the answer is "don't record a name".
+async function askWhoDidIt(message) {
+    const remembered = await rememberedDoer();
+    if (remembered) return remembered;
+
+    const people = await getAllPeople();
+    const person = await choosePerson('Who did it?', message, people);
+    rememberDoer(person);
+    return person;
+}
+
+// The "actually, that was Anna" correction offered in the toast straight after.
+// Always asks, even when somebody is remembered — being asked is the whole point
+// of having tapped it.
+async function askWhoInstead() {
+    const people = await getAllPeople();
+    const person = await choosePerson('Who did it?', 'This replaces the name on what you just marked done.', people);
+    rememberDoer(person);
+    return person;
+}
+
+function doneByLabel(entry) {
+    return entry && entry.byName ? entry.byName : '';
 }
 
 // One row in the list. Used both grouped and flat, so a search result and a
@@ -2921,12 +3091,17 @@ async function finishRun() {
     const run = currentRun();
     if (!run) return;
 
-    for (const number of run.ticked) {
+    // Asked once for the whole run, not once per instruction: a departure
+    // checklist is one person working through one list.
+    const person = await askWhoDidIt('Recorded against everything you ticked in this run.');
+    const numbers = [...run.ticked];
+
+    for (const number of numbers) {
         const instruction = await getInstruction(number);
-        if (instruction) await recordCompletion(instruction);
+        if (instruction) await recordCompletion(instruction, person);
     }
 
-    const count = run.ticked.length;
+    const count = numbers.length;
     saveRun(null);
     await renderHomeScreen();
     showScreen('homeScreen');
@@ -2934,9 +3109,23 @@ async function finishRun() {
     // A toast rather than showModal: finishing is an acknowledgement, and
     // showModal is a Cancel/Confirm dialog — offering "Cancel" on something
     // that has already happened would be nonsense.
-    showToast(count === 1
+    const finished = count === 1
         ? '✓ Run finished — 1 marked as Done'
-        : '✓ Run finished — ' + count + ' marked as Done');
+        : '✓ Run finished — ' + count + ' marked as Done';
+
+    showToast(person ? finished + ' · ' + person.name : finished, {
+        label: 'Not you?',
+        onClick: async () => {
+            const instead = await askWhoInstead();
+            for (const number of numbers) {
+                const instruction = await getInstruction(number);
+                if (instruction) await amendLastCompletion(instruction, instead);
+            }
+            showToast(instead
+                ? '✓ ' + count + ' recorded as ' + instead.name
+                : '✓ Name removed from ' + count);
+        }
+    });
 }
 
 // Brief confirmation that slides up from the bottom and goes away on its own.
@@ -3199,13 +3388,17 @@ function formatBackupDate(value) {
     return date.toLocaleDateString() + ' at ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+function plural(count, one, many) {
+    return count + ' ' + (count === 1 ? one : (many || one + 's'));
+}
+
 function describeCounts(counts) {
     if (!counts) return 'Nothing stored';
     const parts = [
-        counts.instructions + (counts.instructions === 1 ? ' instruction' : ' instructions'),
-        counts.people + (counts.people === 1 ? ' person' : ' people'),
-        counts.audits + (counts.audits === 1 ? ' audit' : ' audits'),
-        counts.actions + (counts.actions === 1 ? ' to-do' : ' to-dos')
+        plural(counts.instructions, 'instruction'),
+        plural(counts.people, 'person', 'people'),
+        plural(counts.audits, 'audit'),
+        plural(counts.actions, 'to-do')
     ];
     return parts.join('  ·  ');
 }
@@ -3457,6 +3650,13 @@ async function renderBulkUndoSlot() {
 async function renderDataSafety() {
     const status = hybridStorage.status();
 
+    // A verdict from a previous visit describes backups that have moved on since.
+    const results = document.getElementById('checkResults');
+    if (results) {
+        results.hidden = true;
+        results.innerHTML = '';
+    }
+
     await renderBulkUndoSlot();
 
     const warning = document.getElementById('backupWarning');
@@ -3504,6 +3704,169 @@ async function renderDataSafety() {
 
     document.getElementById('lastExportDate').textContent =
         formatBackupDate(localStorage.getItem(LAST_EXPORT_KEY)) || 'Never backed up';
+}
+
+// ---------------------------------------------------------------------------
+// Checking a backup
+//
+// The counts on this screen have always been read straight out of the backup
+// file — which tells you what it claims to hold, not whether any of it would
+// come back. Both times data was actually lost in this app, the safety layer
+// that failed had never once been exercised. So this exercises them.
+// ---------------------------------------------------------------------------
+
+function checkResultsPanel() {
+    const panel = document.getElementById('checkResults');
+    panel.hidden = false;
+    panel.innerHTML = '';
+    return panel;
+}
+
+function addCheckMessage(panel, text) {
+    const p = document.createElement('p');
+    p.className = 'check-progress';
+    p.textContent = text;
+    panel.appendChild(p);
+    return p;
+}
+
+// One backup's report card. Deliberately leads with the verdict — the counts
+// are the evidence, not the answer.
+function renderCheckResult(panel, label, result) {
+    const card = document.createElement('div');
+
+    const heading = document.createElement('h4');
+    heading.textContent = label;
+    card.appendChild(heading);
+
+    // Three verdicts, not two. A backup can restore every instruction it holds
+    // and still have something wrong inside it — a green tick sitting directly
+    // above a warning is the kind of reassurance that teaches you to stop
+    // reading the warnings.
+    const problemCount = (result.problems || []).length;
+    const state = !result.readable ? 'bad' : result.restorable ? (problemCount > 0 ? 'warn' : 'ok') : 'bad';
+    card.className = 'check-card ' + state;
+
+    const verdict = document.createElement('p');
+    verdict.className = 'check-verdict';
+    if (!result.readable) {
+        verdict.textContent = '✗ Not a backup this app can read';
+    } else if (state === 'ok') {
+        verdict.textContent = '✓ Restores cleanly';
+    } else if (state === 'warn') {
+        verdict.textContent = '⚠ Restores, but read this';
+    } else {
+        verdict.textContent = '✗ Would not restore properly';
+    }
+    card.appendChild(verdict);
+
+    if (result.counts) {
+        const when = formatBackupDate(result.counts.timestamp);
+        if (when) {
+            const date = document.createElement('p');
+            date.className = 'check-line';
+            date.textContent = 'Saved ' + when;
+            card.appendChild(date);
+        }
+
+        const counts = document.createElement('p');
+        counts.className = 'check-line';
+        counts.textContent = [
+            plural(result.counts.instructions, 'instruction'),
+            plural(result.counts.photos, 'photo'),
+            plural(result.counts.people, 'person', 'people'),
+            plural(result.counts.audits, 'audit'),
+            plural(result.counts.actions, 'to-do')
+        ].join(' · ');
+        card.appendChild(counts);
+    }
+
+    if (result.restored) {
+        const restored = document.createElement('p');
+        restored.className = 'check-line';
+        restored.textContent = 'Test restore put back ' + result.restored.instructions +
+            ' of ' + plural(result.counts.instructions, 'instruction') + '.';
+        card.appendChild(restored);
+    }
+
+    (result.problems || []).forEach(problem => {
+        const p = document.createElement('p');
+        p.className = 'check-problem';
+        p.textContent = '⚠ ' + problem;
+        card.appendChild(p);
+    });
+
+    panel.appendChild(card);
+}
+
+async function checkOnPhoneBackups() {
+    const panel = checkResultsPanel();
+    const progress = addCheckMessage(panel, 'Checking…');
+
+    const slots = [
+        ['Automatic backup', hybridStorage.getSlot('current')],
+        ['Older automatic backup', hybridStorage.getSlot('previous')]
+    ];
+
+    const results = [];
+    for (const [label, data] of slots) {
+        if (!data) {
+            results.push([label, { readable: false, restorable: false, problems: ['There is no backup in this slot yet.'] }]);
+            continue;
+        }
+        try {
+            results.push([label, await verifyBackup(data)]);
+        } catch (error) {
+            results.push([label, { readable: true, restorable: false, problems: ['The check itself failed: ' + error.message] }]);
+        }
+    }
+
+    progress.remove();
+    results.forEach(([label, result]) => renderCheckResult(panel, label, result));
+
+    // The comparison the slot cards can't make: a backup that restores perfectly
+    // can still be missing this morning's work.
+    const live = (await getAllInstructions()).length;
+    const best = results.map(([, result]) => (result.counts ? result.counts.instructions : 0));
+    const behind = live - Math.max(0, ...best);
+
+    const summary = document.createElement('p');
+    summary.className = behind > 0 ? 'check-problem' : 'check-progress';
+    summary.textContent = behind > 0
+        ? '⚠ The app currently holds ' + live + ' instructions — ' + behind + ' more than the best backup.'
+        : 'The app holds ' + live + ' instructions, and the backups have them.';
+    panel.appendChild(summary);
+}
+
+async function checkBackupFile(file) {
+    const panel = checkResultsPanel();
+    const progress = addCheckMessage(panel, 'Reading ' + file.name + '…');
+
+    let data = null;
+    try {
+        data = JSON.parse(await file.text());
+    } catch (error) {
+        progress.remove();
+        renderCheckResult(panel, file.name, {
+            readable: false,
+            restorable: false,
+            problems: ['This file is not readable as a backup: ' + error.message]
+        });
+        return;
+    }
+
+    try {
+        const result = await verifyBackup(data);
+        progress.remove();
+        renderCheckResult(panel, file.name, result);
+    } catch (error) {
+        progress.remove();
+        renderCheckResult(panel, file.name, {
+            readable: true,
+            restorable: false,
+            problems: ['The check itself failed: ' + error.message]
+        });
+    }
 }
 
 function restoreFromSlot(which) {
@@ -3653,18 +4016,35 @@ async function initializeApp() {
 
     document.getElementById('doneBtn').addEventListener('click', async () => {
         if (currentInstruction) {
-            currentInstruction = await recordCompletion(currentInstruction);
+            const person = await askWhoDidIt('Recorded against this job, and remembered for next time.');
+            currentInstruction = await recordCompletion(currentInstruction, person);
 
             document.getElementById('instructionCompletionCount').textContent =
                 currentInstruction.completionCount === 1 ? '1 time' : currentInstruction.completionCount + ' times';
-            document.getElementById('instructionLastCompleted').textContent = 'Just now';
+            document.getElementById('instructionLastCompleted').textContent =
+                'Just now' + (person ? ' · ' + person.name : '');
 
             // The job is finished, so the ticks have done their work — clearing
             // them now means the next run starts from a clean list rather than
             // one that looks already complete.
             clearStepProgress(currentInstruction);
             renderSteps(currentInstruction);
+            renderDoneLog(currentInstruction);
             updateNextDueLine(currentInstruction);
+
+            // Correcting the name has to be easier than being asked every time,
+            // or the remembering above is a trap rather than a convenience.
+            showToast(person ? '✓ Done · ' + person.name : '✓ Done — no name recorded', {
+                label: 'Not you?',
+                onClick: async () => {
+                    const instead = await askWhoInstead();
+                    currentInstruction = await amendLastCompletion(currentInstruction, instead);
+                    document.getElementById('instructionLastCompleted').textContent =
+                        'Just now' + (instead ? ' · ' + instead.name : '');
+                    renderDoneLog(currentInstruction);
+                    showToast(instead ? '✓ Recorded as ' + instead.name : '✓ Name removed');
+                }
+            });
         }
 
         document.getElementById('doneBtn').textContent = '✓ Done!';
@@ -3870,6 +4250,26 @@ async function initializeApp() {
 
     document.getElementById('restoreCurrentBtn').addEventListener('click', () => restoreFromSlot('current'));
     document.getElementById('restorePreviousBtn').addEventListener('click', () => restoreFromSlot('previous'));
+
+    document.getElementById('checkBackupsBtn').addEventListener('click', async (e) => {
+        const btn = e.currentTarget;
+        btn.disabled = true;
+        try {
+            await checkOnPhoneBackups();
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    const checkFileInput = document.getElementById('checkBackupFileInput');
+    document.getElementById('checkBackupFileBtn').addEventListener('click', () => checkFileInput.click());
+    checkFileInput.addEventListener('change', async () => {
+        const file = checkFileInput.files[0];
+        // Cleared straight away, so picking the same file twice still counts as
+        // a change and runs the check again.
+        checkFileInput.value = '';
+        if (file) await checkBackupFile(file);
+    });
 
     document.getElementById('importBtn').addEventListener('click', () => {
         document.getElementById('importFile').click();

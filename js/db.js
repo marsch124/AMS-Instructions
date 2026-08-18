@@ -136,10 +136,56 @@ async function saveInstructionDB(instruction) {
     });
 }
 
+// How many "who did it" entries an instruction keeps. Twenty is several years
+// of an annual job and a season of a weekly one — long enough to answer "was it
+// me or you last time", short enough that the log never becomes the bulk of an
+// instruction, which would matter: instructions travel whole inside every backup.
+const DONE_LOG_LIMIT = 20;
+
 // Bare completion update — no revision history entry (see Mark Done bug, v11 plan)
-async function recordCompletion(instruction) {
+//
+// `person` is optional. Marking something done without saying who still records
+// the completion, because the date is worth having on its own; the entry simply
+// carries no name. The name is stored alongside the id so a completion still
+// reads properly after that person has been deleted from People.
+async function recordCompletion(instruction, person) {
     instruction.completionCount = (instruction.completionCount || 0) + 1;
     instruction.lastCompleted = Date.now();
+
+    const entry = {
+        at: instruction.lastCompleted,
+        byId: person ? person.id : null,
+        byName: person ? person.name : ''
+    };
+
+    // Newest first, so the head of the list is "who did it last" without a sort.
+    instruction.completionLog = [entry, ...(instruction.completionLog || [])]
+        .slice(0, DONE_LOG_LIMIT);
+
+    const tx = db.transaction(STORE_INSTRUCTIONS, 'readwrite');
+    const store = tx.objectStore(STORE_INSTRUCTIONS);
+
+    return new Promise((resolve, reject) => {
+        const request = store.put(instruction);
+        request.onsuccess = () => resolve(instruction);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// Put a different name on the most recent completion — the "actually, that was
+// Anna" correction offered straight after marking something done. Deliberately
+// touches nothing else: no second completion is recorded, the count does not
+// move, and an instruction with no log is left alone rather than given one.
+async function amendLastCompletion(instruction, person) {
+    const log = instruction.completionLog || [];
+    if (log.length === 0) return instruction;
+
+    log[0] = {
+        at: log[0].at,
+        byId: person ? person.id : null,
+        byName: person ? person.name : ''
+    };
+    instruction.completionLog = log;
 
     const tx = db.transaction(STORE_INSTRUCTIONS, 'readwrite');
     const store = tx.objectStore(STORE_INSTRUCTIONS);
@@ -663,6 +709,222 @@ async function importData(data) {
     });
 }
 
+// ---------------------------------------------------------------------------
+// Checking a backup — by actually restoring it, somewhere harmless.
+//
+// Twice now a safety net in this app turned out to have been dead from the day
+// it was written, and both times it was only discovered when it was needed. So
+// this does not inspect a backup and pronounce it healthy: it opens a second,
+// throwaway database with exactly the same shape as the real one, restores the
+// backup into it, counts what came back, and throws the database away. What it
+// reports is what a real restore would actually do.
+//
+// The unique index on `number` is the point of doing it for real: two
+// instructions sharing a number abort the whole import in one go, and that is
+// invisible to any amount of counting.
+// ---------------------------------------------------------------------------
+
+const VERIFY_DB_NAME = 'ams-instructions-verify';
+
+function deleteVerifyDatabase() {
+    return new Promise((resolve) => {
+        const request = indexedDB.deleteDatabase(VERIFY_DB_NAME);
+        // A blocked delete is not worth failing a check over — the next run
+        // deletes it first anyway. Resolve either way.
+        request.onsuccess = () => resolve();
+        request.onerror = () => resolve();
+        request.onblocked = () => resolve();
+    });
+}
+
+function openVerifyDatabase() {
+    return new Promise((resolve, reject) => {
+        const request = indexedDB.open(VERIFY_DB_NAME, 1);
+
+        request.onupgradeneeded = (event) => {
+            const database = event.target.result;
+            // Same stores and — crucially — the same unique index as the real
+            // database, or the rehearsal would be easier than the performance.
+            const instructionsStore = database.createObjectStore(STORE_INSTRUCTIONS, { keyPath: 'id' });
+            instructionsStore.createIndex('number', 'number', { unique: true });
+            instructionsStore.createIndex('category', 'category', { unique: false });
+            database.createObjectStore(STORE_FAVORITES, { keyPath: 'id' });
+            database.createObjectStore(STORE_PEOPLE, { keyPath: 'id' });
+            database.createObjectStore(STORE_AUDITS, { keyPath: 'id' });
+            database.createObjectStore(STORE_ACTIONS, { keyPath: 'id' });
+        };
+
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+function countStore(database, storeName) {
+    return new Promise((resolve, reject) => {
+        const request = database.transaction(storeName, 'readonly').objectStore(storeName).count();
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+// Restores `data` into the throwaway database and reports what arrived. Always
+// cleans up after itself, including when the restore fails — which is the case
+// that matters most, since that is when something is actually wrong.
+async function dryRunRestore(data) {
+    await deleteVerifyDatabase();
+
+    let database = null;
+    try {
+        database = await openVerifyDatabase();
+
+        await new Promise((resolve, reject) => {
+            const tx = database.transaction(
+                [STORE_INSTRUCTIONS, STORE_FAVORITES, STORE_PEOPLE, STORE_AUDITS, STORE_ACTIONS],
+                'readwrite'
+            );
+
+            // An aborted transaction reports no error of its own — the useful one
+            // belongs to the request that failed, and is only reachable while it
+            // bubbles past. Caught here so the report can say what went wrong
+            // rather than the word "null".
+            let firstError = null;
+            tx.addEventListener('error', (event) => {
+                if (!firstError && event.target) firstError = event.target.error;
+            }, true);
+
+            // Deliberately the same writes, in the same single transaction, as
+            // importData(). If this diverges from importData, the check stops
+            // being a rehearsal of anything.
+            (data.instructions || []).forEach(item => tx.objectStore(STORE_INSTRUCTIONS).put(item));
+            (data.favorites || []).forEach(id => tx.objectStore(STORE_FAVORITES).put({ id, favorited: true }));
+            (data.people || []).forEach(item => tx.objectStore(STORE_PEOPLE).put(item));
+            (data.audits || []).forEach(item => tx.objectStore(STORE_AUDITS).put(item));
+            (data.actions || []).forEach(item => tx.objectStore(STORE_ACTIONS).put(item));
+
+            const failure = () => reject(firstError || tx.error ||
+                new Error('the restore was stopped part-way through'));
+
+            tx.oncomplete = () => resolve();
+            tx.onerror = failure;
+            tx.onabort = failure;
+        });
+
+        return {
+            instructions: await countStore(database, STORE_INSTRUCTIONS),
+            favorites: await countStore(database, STORE_FAVORITES),
+            people: await countStore(database, STORE_PEOPLE),
+            audits: await countStore(database, STORE_AUDITS),
+            actions: await countStore(database, STORE_ACTIONS)
+        };
+    } finally {
+        if (database) database.close();
+        await deleteVerifyDatabase();
+    }
+}
+
+function countPhotos(instructions) {
+    let total = 0;
+    let broken = 0;
+
+    instructions.forEach(instruction => {
+        (instruction.photos || []).forEach(photo => {
+            total++;
+            // A photo is a data: URI. Anything else is a photo that will come
+            // back as a blank square — which looks like the app's fault later.
+            if (!photo || typeof photo.data !== 'string' || !photo.data.startsWith('data:')) broken++;
+        });
+    });
+
+    return { total, broken };
+}
+
+// The whole check: what is in the file, what is wrong with it, and what a real
+// restore would actually put back. `problems` is written to be read by somebody
+// who has no interest in databases.
+async function verifyBackup(data) {
+    const problems = [];
+
+    if (!data || typeof data !== 'object') {
+        return { readable: false, problems: ['This file is not a backup the app can read.'] };
+    }
+
+    if (!Array.isArray(data.instructions)) {
+        return { readable: false, problems: ['This file has no list of instructions in it at all.'] };
+    }
+
+    const instructions = data.instructions;
+
+    if (instructions.length === 0) {
+        problems.push('This backup contains no instructions. Restoring it would put nothing back.');
+    }
+
+    const seenNumbers = new Map();
+    const duplicates = new Set();
+    let missingFields = 0;
+
+    instructions.forEach(instruction => {
+        if (!instruction || !instruction.id || !instruction.number || !instruction.title) {
+            missingFields++;
+            return;
+        }
+        if (seenNumbers.has(instruction.number)) duplicates.add(instruction.number);
+        seenNumbers.set(instruction.number, true);
+    });
+
+    if (missingFields > 0) {
+        problems.push(missingFields + (missingFields === 1
+            ? ' instruction is missing its number, title or identity, and would come back damaged.'
+            : ' instructions are missing their number, title or identity, and would come back damaged.'));
+    }
+
+    if (duplicates.size > 0) {
+        const list = [...duplicates].sort().join(', ');
+        problems.push('Two instructions share the same number (' + list +
+            '). A number has to be unique, so this would stop the whole restore.');
+    }
+
+    const photos = countPhotos(instructions);
+    if (photos.broken > 0) {
+        problems.push(photos.broken + (photos.broken === 1
+            ? ' photo is damaged and would come back blank.'
+            : ' photos are damaged and would come back blank.'));
+    }
+
+    const counts = {
+        instructions: instructions.length,
+        people: (data.people || []).length,
+        audits: (data.audits || []).length,
+        actions: (data.actions || []).length,
+        favorites: (data.favorites || []).length,
+        photos: photos.total,
+        timestamp: data.timestamp || null
+    };
+
+    let restored = null;
+    try {
+        restored = await dryRunRestore(data);
+    } catch (error) {
+        problems.push('A test restore of this backup failed: ' + (error && error.message ? error.message : error));
+        return { readable: true, restorable: false, counts, restored: null, problems };
+    }
+
+    if (restored.instructions !== instructions.length) {
+        problems.push('A test restore put back ' + restored.instructions + ' of ' +
+            instructions.length + ' instructions.');
+    }
+
+    return {
+        readable: true,
+        // A backup that restores everything it holds passes, even if it is a
+        // backup of very little — an empty backup is reported as a problem
+        // above rather than pretended to be a success.
+        restorable: restored.instructions === instructions.length && instructions.length > 0,
+        counts,
+        restored,
+        problems
+    };
+}
+
 async function clearAllData() {
     return new Promise((resolve, reject) => {
         const tx = db.transaction([STORE_INSTRUCTIONS, STORE_RECENT, STORE_FAVORITES, STORE_SETTINGS, STORE_AUDITS, STORE_ACTIONS], 'readwrite');
@@ -699,7 +961,7 @@ async function getDBSize() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1787074057-48906cc4', {
+            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1787075583-02569d81', {
                 scope: '/AMS-Instructions/'
             });
         } catch (error) {

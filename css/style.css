@@ -2145,6 +2145,86 @@ body {
     line-height: 1.4;
 }
 
+/* Checking a backup. Two buttons stacked rather than side by side: they do
+   different jobs and one of them opens the Files picker. */
+.check-slot button + button {
+    margin-top: 0.25rem;
+}
+
+.check-results {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.25rem;
+}
+
+.check-progress {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+}
+
+/* Verdict first, evidence under it. The colour is the verdict as well, since a
+   green or red edge is read before any of the words are. */
+.check-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    border-radius: 6px;
+    background-color: var(--color-bg);
+    border-left: 3px solid var(--color-border);
+}
+
+.check-card.ok {
+    border-left-color: var(--color-success);
+}
+
+.check-card.warn {
+    border-left-color: var(--color-accent-warm);
+}
+
+.check-card.bad {
+    border-left-color: var(--color-danger-text);
+}
+
+.check-card h4 {
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-secondary);
+}
+
+.check-verdict {
+    font-size: 0.95rem;
+    font-weight: 600;
+}
+
+.check-card.ok .check-verdict {
+    color: var(--color-success);
+}
+
+.check-card.warn .check-verdict {
+    color: var(--color-accent-warm);
+}
+
+.check-card.bad .check-verdict {
+    color: var(--color-danger-text);
+}
+
+.check-line {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+}
+
+.check-problem {
+    font-size: 0.8rem;
+    line-height: 1.4;
+    color: var(--color-danger-text);
+}
+
 .backup-warning {
     padding: 0.75rem 1rem;
     border-radius: 8px;
@@ -2535,6 +2615,75 @@ body {
 
 .modal-buttons button {
     flex: 1;
+}
+
+/* Picking a person. Full-width rows with a decent target, because this appears
+   mid-job — one-handed, in a van, often in the dark. */
+.choice-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.choice-message:empty {
+    display: none;
+}
+
+.choice-option {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+    padding: 0.85rem 1rem;
+    background-color: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    color: var(--color-text);
+    font-size: 1rem;
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+}
+
+.choice-option:active {
+    background-color: var(--color-border);
+}
+
+/* The pill inside a chooser row is the label, not a badge on something else,
+   so it drops the small-print sizing it has on a list row. */
+.choice-option .list-item-owner {
+    margin-top: 0;
+    font-size: 1rem;
+    padding: 0.2rem 0.6rem 0.2rem 0.45rem;
+}
+
+.choice-none {
+    color: var(--color-text-secondary);
+    font-size: 0.9rem;
+}
+
+/* Done History */
+.done-entry {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.done-entry-who .list-item-owner {
+    margin-top: 0;
+}
+
+.done-entry-noname {
+    font-size: 0.85rem;
+    color: var(--color-text-secondary);
+    font-style: italic;
+}
+
+.done-entry-earlier {
+    font-size: 0.8rem;
+    color: var(--color-text-secondary);
+    line-height: 1.4;
+    padding: 0 0.25rem;
 }
 
 /* Version Badge */

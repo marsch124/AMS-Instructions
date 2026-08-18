@@ -185,9 +185,19 @@ bulkUpdateInstructions = async function(instructions) {
     return result;
 };
 
+// Note the pass-through of every argument rather than just the instruction:
+// recordCompletion takes the person who did it as a second argument, and a
+// wrapper that named only the first would drop them without a word.
 const originalRecordCompletion = recordCompletion;
-recordCompletion = async function(instruction) {
-    const result = await originalRecordCompletion(instruction);
+recordCompletion = async function(...args) {
+    const result = await originalRecordCompletion(...args);
+    await hybridStorage.mirrorToLocalStorage();
+    return result;
+};
+
+const originalAmendLastCompletion = amendLastCompletion;
+amendLastCompletion = async function(...args) {
+    const result = await originalAmendLastCompletion(...args);
     await hybridStorage.mirrorToLocalStorage();
     return result;
 };

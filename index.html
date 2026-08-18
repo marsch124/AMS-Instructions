@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1787074057-48906cc4">
+    <meta name="cache-bust" content="1787075583-02569d81">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=39.0&t=1787074057-48906cc4">
+    <link rel="stylesheet" href="css/style.css?v=40.0&t=1787075583-02569d81">
 </head>
 <body>
     <!--
@@ -271,7 +271,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v39.0</span>
+                <span class="version-badge" id="homeVersion">v40.0</span>
             </div>
         </header>
 
@@ -571,6 +571,18 @@
                 </div>
                 <div id="relatedContent" class="section-content">
                     <div id="instructionRelated" class="related-list"></div>
+                </div>
+            </section>
+
+            <!-- Done History -->
+            <section class="instruction-section">
+                <div id="doneLogToggle" class="section-toggle">
+                    <h3><svg class="head-glyph" aria-hidden="true"><use href="#icon-due"/></svg><span>Done History</span></h3>
+                    <span class="preview-indicator" id="doneLogPreview"></span>
+                    <span class="toggle-icon">▼</span>
+                </div>
+                <div id="doneLogContent" class="section-content">
+                    <div id="instructionDoneLog" class="history-list"></div>
                 </div>
             </section>
 
@@ -928,6 +940,15 @@
                 <p class="backup-date" id="previousBackupDate">--</p>
                 <p class="backup-counts" id="previousBackupCounts">--</p>
                 <button id="restorePreviousBtn" class="btn-secondary">Restore this backup</button>
+            </div>
+
+            <div class="backup-slot check-slot">
+                <h3>Check a backup really works</h3>
+                <p class="backup-note">This doesn't just count what's in a backup — it puts it back, into a scratch copy of the app that's thrown away straight afterwards, and tells you what actually arrived. Nothing you can see changes.</p>
+                <button id="checkBackupsBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-shield"/></svg><span>Check the backups on this phone</span></button>
+                <button id="checkBackupFileBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-restore"/></svg><span>Check a backup file…</span></button>
+                <input type="file" id="checkBackupFileInput" accept=".json,application/json" hidden>
+                <div id="checkResults" class="check-results" hidden></div>
             </div>
 
             <div class="backup-slot">
@@ -1407,6 +1428,13 @@
                 <h4>Marking it Done</h4>
                 <p>The <strong>Done</strong> button at the bottom of an instruction records that you did it, right now. That is what starts and restarts the clock behind the Due list, and it clears your step ticks ready for next time. It does not write a revision entry — doing a job is not the same as changing the instruction.</p>
 
+                <h4>Who did it</h4>
+                <p>The first time you mark anything Done, the app asks who did it and then <strong>remembers that person</strong> — so it is one tap from then on, not two. If it was the other one of you, tap <strong>Not you?</strong> in the bar that appears straight afterwards: that swaps the name on what you just recorded, and is remembered for next time. It does not record the job twice.</p>
+                <p>You are never credited by default. Choosing <strong>Don't record a name</strong>, or cancelling, still records that the job was done — just without a name against it.</p>
+                <p><strong>Where it shows.</strong> The "Last Done" line at the top of an instruction reads "2 days ago · Anna". Below the steps, <strong>Done History</strong> lists the last twenty completions, newest first, each with the person's own colour. Anything you marked Done before this existed is still counted, and the history says so plainly rather than pretending those times never happened.</p>
+                <p>Finishing a <strong>run</strong> asks once for the whole run rather than once per instruction, and the same "Not you?" correction applies to everything you ticked.</p>
+                <p class="guide-example"><strong>For example:</strong> the water filter is due and you can't remember whether you changed it in June or Anna did. Open it, look at Done History: "Anna · 14 June". Question settled, without either of you having to remember anything.</p>
+
                 <h4>Sharing an instruction</h4>
                 <p>Open it and tap <strong>Share</strong> at the bottom. The whole instruction goes into the normal iPhone share sheet as plain text — number, title, category, frequency, time, the safety warning, equipment, what to do beforehand, the numbered steps, afterwards and notes — so you can send it by Messages or Mail, or drop it into Notes. Whoever receives it does not need the app.</p>
                 <p>Owner, audit history and revision numbers are deliberately left out: they matter in here, and mean nothing to the person you sent it to.</p>
@@ -1478,6 +1506,12 @@
                 <p>Settings → Data Safety shows every copy of your data the app can see — what's in the app right now, plus two automatic backups kept on this phone (a recent one and an older one), each with its date and how much it holds. If anything ever goes missing, you can put back either backup with one tap. It's also where a "Clear All Data" can be undone.</p>
                 <p><strong>It is also where the last bulk change waits.</strong> If you have used Apply to all and want it back, the card at the top of this screen undoes precisely that change — which is a much finer instrument than restoring a backup. The older automatic backup is roughly a day behind by design, so restoring it would also throw away everything else you have done since; the undo card throws away nothing but the change itself.</p>
 
+                <h4>Checking a backup actually works</h4>
+                <p>Counting what's in a backup tells you what it <em>claims</em> to hold. Settings → Data Safety → <strong>Check the backups on this phone</strong> goes further: it takes each backup and puts it back — into a scratch copy of the app that is thrown away the moment the check finishes — then tells you what actually arrived. Nothing you can see changes, and none of your data is touched.</p>
+                <p>Each backup comes back with one of three verdicts. <strong>Restores cleanly</strong> means everything in it came back. <strong>Restores, but read this</strong> means it works, with something worth knowing — a damaged photo that would come back blank, say. <strong>Would not restore properly</strong> means it would fail, and the reason is written underneath: usually two instructions sharing one number, which stops the entire restore rather than just those two. At the bottom, one line compares the backups with what's in the app right now, because a backup can restore perfectly and still be missing this morning's work.</p>
+                <p><strong>Check a backup file…</strong> does the same to a file you pick from Files or iCloud — the ones you saved months ago and have never had reason to open. It reads the file, it does not restore it, so it is safe to run on anything. A backup file holding nothing at all is reported as a failure rather than a tidy empty success, because that is exactly the shape of a backup that has quietly overwritten itself.</p>
+                <p>Worth doing before a long trip, and after any big change to the library.</p>
+
                 <h4>One phone, one copy</h4>
                 <p>The app keeps its data on the device it's running on — the Home Screen app and Safari each have their own separate copy and do not share. Treat the Home Screen app on your phone as the real one, and use backups rather than expecting the two to match.</p>
 
@@ -1542,6 +1576,26 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v40.0 (2026-08-18) - WHO DID IT, AND A BACKUP THAT PROVES ITSELF</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>✅ <strong>Marking something Done now records who did it.</strong> Until now it recorded two things — a counter and a date — and neither of them answered the question actually asked in a van used by two people: "did you do that, or did I?"</li>
+                            <li>👤 <strong>It asks once, then remembers.</strong> The first Mark Done asks who you are; after that it is one tap as before. If it was the other one of you, tap <strong>Not you?</strong> in the bar that appears straight afterwards — it swaps the name on what you just recorded, and does <em>not</em> record the job a second time</li>
+                            <li>🕰️ <strong>New "Done History" section</strong> below the steps on every instruction: the last twenty completions, newest first, each with the person's own colour. The "Last Done" line at the top now reads "2 days ago · Anna"</li>
+                            <li>🏃 <strong>Finishing a run asks once for the whole run</strong>, not once per instruction, and the same correction applies to everything you ticked</li>
+                            <li>🤐 <strong>Nobody is ever credited by default.</strong> "Don't record a name" and Cancel both still record that the job was done, just without a name — and completions from before this existed are counted and said out loud rather than quietly ignored</li>
+                        </ul>
+                        <p><strong>And the part that matters most:</strong></p>
+                        <ul>
+                            <li>🛡️ <strong>You can now check that a backup actually works</strong> — Settings → Data Safety → <strong>Check the backups on this phone</strong>. It doesn't count what a backup claims to hold: it puts it back, into a scratch copy of the app that is thrown away when the check finishes, and reports what actually arrived. Nothing you can see changes</li>
+                            <li>🚦 <strong>Three verdicts, not a green tick and a shrug.</strong> "Restores cleanly", "Restores, but read this" (a damaged photo, say), or "Would not restore properly" — with the reason written underneath in plain words. The usual culprit is two instructions sharing one number, which stops the <em>entire</em> restore rather than just those two</li>
+                            <li>📂 <strong>Check a backup file…</strong> does the same to a file you pick from Files or iCloud — the ones saved months ago that you have never had a reason to open. It reads them, it does not restore them, so it is safe to run on anything</li>
+                            <li>📉 <strong>One line at the bottom compares the backups with what's in the app right now</strong>, because a backup can restore perfectly and still be missing this morning's work</li>
+                            <li>🕳️ <strong>An empty backup is reported as a failure</strong>, not as a tidy success. That is precisely the shape of a backup that has quietly overwritten itself — which is what cost real data here once already</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v39.0 (2026-08-18) - WHOSE JOB IT IS, WITHOUT OPENING IT</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -2051,6 +2105,20 @@
         </button>
     </nav>
 
+    <!-- Pick one person from a list. Used by Mark Done, and by the correction
+         offered straight afterwards. Cancel is the only way out that records
+         nobody, so a mis-tap never silently credits the wrong person. -->
+    <div id="choiceModal" class="modal" hidden>
+        <div class="modal-content">
+            <h3 id="choiceTitle">Who did it?</h3>
+            <p id="choiceMessage" class="choice-message"></p>
+            <div id="choiceOptions" class="choice-options"></div>
+            <div class="modal-buttons">
+                <button id="choiceCancel" class="btn-secondary">Cancel</button>
+            </div>
+        </div>
+    </div>
+
     <!-- Modals -->
     <div id="modal" class="modal" hidden>
         <div class="modal-content">
@@ -2063,12 +2131,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=39.0&t=1787074057-48906cc4"></script>
-    <script src="js/qr.js?v=39.0&t=1787074057-48906cc4"></script>
-    <script src="js/version-sync.js?v=39.0&t=1787074057-48906cc4"></script>
-    <script src="js/persistence.js?v=39.0&t=1787074057-48906cc4"></script>
-    <script src="js/hybrid-storage.js?v=39.0&t=1787074057-48906cc4"></script>
-    <script src="js/ui.js?v=39.0&t=1787074057-48906cc4"></script>
-    <script src="js/app.js?v=39.0&t=1787074057-48906cc4"></script>
+    <script src="js/db.js?v=40.0&t=1787075583-02569d81"></script>
+    <script src="js/qr.js?v=40.0&t=1787075583-02569d81"></script>
+    <script src="js/version-sync.js?v=40.0&t=1787075583-02569d81"></script>
+    <script src="js/persistence.js?v=40.0&t=1787075583-02569d81"></script>
+    <script src="js/hybrid-storage.js?v=40.0&t=1787075583-02569d81"></script>
+    <script src="js/ui.js?v=40.0&t=1787075583-02569d81"></script>
+    <script src="js/app.js?v=40.0&t=1787075583-02569d81"></script>
 </body>
 </html>
