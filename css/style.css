@@ -1894,6 +1894,51 @@ body {
     margin-top: 0.25rem;
 }
 
+/* Category and owner on one line under the title. The category keeps its own
+   margin-top (it is used on its own in the People and Actions rows too), so
+   this row must not add a second one. Wraps rather than squeezing, because a
+   long category beside a long name on a narrow phone has to go somewhere. */
+.list-item-meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+
+/* Who owns it, at a glance. The hue comes from the name (set inline per pill),
+   so each person keeps the same colour everywhere and down the whole list —
+   but the lightness is decided here, per theme, so a hue that happens to land
+   on deep blue is still readable on the dark teal. */
+.list-item-owner {
+    --owner-hue: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.25rem;
+    padding: 0.1rem 0.45rem 0.1rem 0.35rem;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    white-space: nowrap;
+    color: hsl(var(--owner-hue) 70% 75%);
+    background-color: hsl(var(--owner-hue) 45% 75% / 0.16);
+    border: 1px solid hsl(var(--owner-hue) 55% 70% / 0.35);
+}
+
+.list-item-owner .owner-glyph {
+    width: 0.85em;
+    height: 0.85em;
+    flex-shrink: 0;
+}
+
+@media (prefers-color-scheme: light) {
+    :root:not([data-theme="dark"]) .list-item-owner {
+        color: hsl(var(--owner-hue) 55% 32%);
+        background-color: hsl(var(--owner-hue) 55% 45% / 0.1);
+        border-color: hsl(var(--owner-hue) 45% 40% / 0.28);
+    }
+}
+
 /* Standing explanation at the top of a screen, before the content proper. */
 .screen-blurb {
     font-size: 0.875rem;

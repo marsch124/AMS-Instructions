@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1787060839-e8deb813">
+    <meta name="cache-bust" content="1787074057-48906cc4">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=38.0&t=1787060839-e8deb813">
+    <link rel="stylesheet" href="css/style.css?v=39.0&t=1787074057-48906cc4">
 </head>
 <body>
     <!--
@@ -271,7 +271,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v38.0</span>
+                <span class="version-badge" id="homeVersion">v39.0</span>
             </div>
         </header>
 
@@ -1325,6 +1325,11 @@
                 <h4>Browsing by category</h4>
                 <p>The Instructions tab is grouped into folding sections — one per category, each with a coloured dot and a count. Tap a header to open it, tap again to close. It remembers what you left open, and "Expand all" / "Collapse all" beside the count line does the lot at once. This is the way to find something when you do not know what to search for.</p>
 
+                <h4>Whose job it is, on the row</h4>
+                <p>Where an instruction has an owner, their name sits under the title as a small coloured pill — so a category you have just opened tells you how the work is split before you have opened anything. <strong>Each person keeps the same colour everywhere</strong>, which is what makes it readable at a glance rather than something you have to stop and read. Adding somebody new to People gives them the next colour along and leaves everyone else's alone.</p>
+                <p>A name that came in with imported data gets a pill just like one picked from your People list, and so does one whose person you have since deleted — the name is shown rather than quietly dropped. <strong>Instructions with nobody named show nothing at all.</strong> Marking every unclaimed one would drown the ones that do have an owner; the <strong>Nobody named</strong> filter and Library Health are where to go looking for those deliberately.</p>
+                <p class="guide-example"><strong>For example:</strong> open the Maintenance group before a Sunday morning conversation and the two of you can see, without tapping anything, that eleven of the fourteen jobs are blue.</p>
+
                 <h4>Search</h4>
                 <p>Type in the search box and the folders drop away, giving you one plain list of every match across all categories, with the category shown on each result. Searching by number works too. The box clears itself each time you come back to the tab, so you never land on a filtered list wondering where everything went.</p>
                 <p><strong>It also keeps your place while you work.</strong> Open a result, edit it, save — and you come back to the same search results rather than the whole library. The same is true of a filter, and of backing out of the editor without saving, or deleting an instruction. The one deliberate exception is restoring a backup: the whole library has just been replaced, so the search box and filters are cleared rather than left describing a library that no longer exists.</p>
@@ -1436,7 +1441,7 @@
                 <p>Add names once under Settings → Manage People, then pick them as Owner or "Revised by" on any instruction instead of retyping — their phone and email show up automatically in Revision History. Anna and Martin are seeded for you the first time; delete them if they're not your people.</p>
 
                 <h4>Owner — whose job it is</h4>
-                <p>Set on any instruction while editing. It is the field behind the person filter and behind "No owner" in Library Health, so filling it in is what turns a pile of instructions into two shorter lists of somebody's work.</p>
+                <p>Set on any instruction while editing. It is the field behind the person filter and behind "No owner" in Library Health, so filling it in is what turns a pile of instructions into two shorter lists of somebody's work. It also shows on every list row, in that person's own colour, so the split is visible without opening anything.</p>
                 <p>An owner can reach an instruction two ways: <strong>picked from your People list</strong>, or <strong>arriving as a plain name</strong> inside imported data. Both work everywhere — the person filter finds them either way. If you open an instruction whose owner is a name belonging to nobody in People, the editor shows it as <em>"Bruno (not in People)"</em> so you can see it is there and why it looks different; saving keeps the name exactly as it was. And if the name does match somebody real, saving quietly upgrades it into a proper link to that person.</p>
 
                 <h4>Status</h4>
@@ -1537,6 +1542,19 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v39.0 (2026-08-18) - WHOSE JOB IT IS, WITHOUT OPENING IT</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>👤 <strong>The owner now shows on the row itself</strong>, as a small coloured name under the title. Until now the only way to see whose job something was, was to open it — one at a time, all the way down a list of two hundred</li>
+                            <li>🎨 <strong>Each person keeps their own colour</strong>, everywhere in the app, so you can see whose work fills a category before you have read a single name. Anna is blue, Martin is orange, and anybody you add gets the next colour along — adding somebody never changes the colours of the people already there</li>
+                            <li>📂 <strong>It shows inside a folded category as well as in a search or filter result.</strong> Open Maintenance and the split between the two of you is right there on screen</li>
+                            <li>🕵️ <strong>An owner that arrived as a plain name from an import gets a pill too</strong>, exactly like one picked from your People list. So does one whose person you have since deleted — the name is still shown rather than quietly dropped</li>
+                            <li>🤫 <strong>Nothing is shown where nobody is named.</strong> A "no owner" mark on every unclaimed instruction would drown the ones that have an owner — the <strong>Nobody named</strong> filter and Library Health are still the places to go hunting for those on purpose</li>
+                            <li>🩺 It appears on the Home <strong>Due now</strong> list and inside Library Health too, so an overdue job says who it belongs to at the same moment it says it is late</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v38.0 (2026-08-18) - THE EDITOR NO LONGER EATS OWNERS</strong></p>
                         <p><strong>Fixed:</strong></p>
@@ -2045,12 +2063,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=38.0&t=1787060839-e8deb813"></script>
-    <script src="js/qr.js?v=38.0&t=1787060839-e8deb813"></script>
-    <script src="js/version-sync.js?v=38.0&t=1787060839-e8deb813"></script>
-    <script src="js/persistence.js?v=38.0&t=1787060839-e8deb813"></script>
-    <script src="js/hybrid-storage.js?v=38.0&t=1787060839-e8deb813"></script>
-    <script src="js/ui.js?v=38.0&t=1787060839-e8deb813"></script>
-    <script src="js/app.js?v=38.0&t=1787060839-e8deb813"></script>
+    <script src="js/db.js?v=39.0&t=1787074057-48906cc4"></script>
+    <script src="js/qr.js?v=39.0&t=1787074057-48906cc4"></script>
+    <script src="js/version-sync.js?v=39.0&t=1787074057-48906cc4"></script>
+    <script src="js/persistence.js?v=39.0&t=1787074057-48906cc4"></script>
+    <script src="js/hybrid-storage.js?v=39.0&t=1787074057-48906cc4"></script>
+    <script src="js/ui.js?v=39.0&t=1787074057-48906cc4"></script>
+    <script src="js/app.js?v=39.0&t=1787074057-48906cc4"></script>
 </body>
 </html>

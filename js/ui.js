@@ -1,4 +1,4 @@
-const APP_VERSION = '38.0';
+const APP_VERSION = '39.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -708,6 +708,75 @@ function saveOpenGroups(set) {
     localStorage.setItem(OPEN_GROUPS_KEY, JSON.stringify([...set]));
 }
 
+// Names for the owner pills on list rows, keyed by person id. A row is built
+// synchronously and there are hundreds of them, so the People store is read once
+// per screenful into here rather than once per row. Kept up to date by
+// loadOwnerNames(), which every screen that draws rows awaits first.
+let ownerNamesById = new Map();
+let ownerHuesByName = new Map();
+
+// Colours for the owner pills. Picked to sit well apart on the wheel, so the
+// first few people are told apart by colour alone, and to stay clear of the
+// jade the Instructions tab paints everything else with.
+const OWNER_HUES = [205, 25, 280, 330, 95, 175, 55, 250];
+
+async function loadOwnerNames(people) {
+    const list = people || await getAllPeople();
+
+    ownerNamesById = new Map(list.map(person => [person.id, person.name]));
+
+    // Oldest person first, so adding somebody new gives them the next colour
+    // rather than shuffling the colours of the people already there.
+    ownerHuesByName = new Map(list
+        .slice()
+        .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+        .map((person, index) => [
+            person.name.trim().toLowerCase(),
+            OWNER_HUES[index % OWNER_HUES.length]
+        ]));
+}
+
+// Who owns this, as a name to print — or '' for nobody. Same two shapes the
+// person filter and the editor both have to cope with: a person id picked in
+// the editor, or a bare name that arrived inside imported data. A dangling id
+// (the person has since been deleted) falls back to the stored name rather than
+// printing an id at somebody.
+function ownerNameFor(instruction) {
+    if (instruction.ownerId && ownerNamesById.has(instruction.ownerId)) {
+        return ownerNamesById.get(instruction.ownerId);
+    }
+    return String(instruction.owner || '').trim();
+}
+
+// A stable colour per person, so Anna's rows and Martin's rows can be told
+// apart down a long list without reading either name. People get a colour from
+// the list above by how long they have been in People; a name belonging to
+// nobody — imported data, mostly — is hashed into the same set, so it is
+// coloured consistently too rather than looking broken. Nothing is stored: a
+// colour is worked out from what is already there, so there is no migration and
+// nothing to go stale. Only the hue is decided here — how light or dark that
+// hue has to be to stay readable differs between the two themes, and that is
+// the stylesheet's business.
+function ownerHue(name) {
+    const key = name.trim().toLowerCase();
+    if (ownerHuesByName.has(key)) return ownerHuesByName.get(key);
+
+    let hash = 0;
+    for (let i = 0; i < key.length; i++) {
+        hash = (hash * 31 + key.charCodeAt(i)) % 4096;
+    }
+    return OWNER_HUES[hash % OWNER_HUES.length];
+}
+
+function ownerPill(name) {
+    const pill = document.createElement('span');
+    pill.className = 'list-item-owner';
+    pill.style.setProperty('--owner-hue', ownerHue(name));
+    pill.appendChild(spriteIcon('person', 'owner-glyph'));
+    pill.appendChild(document.createTextNode(name));
+    return pill;
+}
+
 // One row in the list. Used both grouped and flat, so a search result and a
 // browsed result look and behave identically.
 function createInstructionRow(instr) {
@@ -740,13 +809,28 @@ function createInstructionRow(instr) {
     titleEl.className = 'list-item-title';
     titleEl.textContent = instr.title;
 
+    // Category and owner share one line. Inside a folded category group the
+    // category itself is hidden by CSS — the header already says it — and the
+    // owner pill stays, which is exactly the case the pill is most use in:
+    // one open category, and you want to see whose jobs are in it.
+    const metaEl = document.createElement('div');
+    metaEl.className = 'list-item-meta';
+
     const categoryEl = document.createElement('div');
     categoryEl.className = 'list-item-category';
     categoryEl.textContent = instr.category;
+    metaEl.appendChild(categoryEl);
+
+    // No pill where nobody is named. A "No owner" mark on the couple of hundred
+    // instructions that haven't got one would drown the ones that have; the
+    // "Nobody named" filter and Library Health are the places to go looking for
+    // those on purpose.
+    const owner = ownerNameFor(instr);
+    if (owner) metaEl.appendChild(ownerPill(owner));
 
     info.appendChild(numberEl);
     info.appendChild(titleEl);
-    info.appendChild(categoryEl);
+    info.appendChild(metaEl);
 
     const editBtn = document.createElement('button');
     editBtn.className = 'list-item-edit';
@@ -847,6 +931,10 @@ async function filterContext() {
     const [people, favourites, actions, audits] = await Promise.all([
         getAllPeople(), getFavorites(), getAllActions(), getAllAudits()
     ]);
+
+    // The rows about to be drawn need the same names for their owner pills.
+    // Handing over the list already fetched here saves reading the store twice.
+    await loadOwnerNames(people);
 
     return {
         people: people.slice().sort((a, b) => a.name.localeCompare(b.name)),
@@ -2612,6 +2700,7 @@ async function renderDueNudge() {
 async function renderDueList() {
     const list = document.getElementById('dueList');
     const due = await getDueInstructions();
+    await loadOwnerNames();
 
     list.innerHTML = '';
 
@@ -3023,6 +3112,7 @@ function buildWarningFixer(items, onDone) {
 async function renderHealth() {
     const container = document.getElementById('healthList');
     const groups = await healthGroups();
+    await loadOwnerNames();
     container.innerHTML = '';
 
     const clean = groups.every(group => group.items.length === 0);
