@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786993373-08515a98">
+    <meta name="cache-bust" content="1787054859-42921350">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=35.0&t=1786993373-08515a98">
+    <link rel="stylesheet" href="css/style.css?v=36.0&t=1787054859-42921350">
 </head>
 <body>
     <!--
@@ -83,7 +83,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v35.0</span>
+                <span class="version-badge" id="homeVersion">v36.0</span>
             </div>
         </header>
 
@@ -517,7 +517,12 @@
                 <div class="list-summary-buttons">
                     <button id="clearFiltersBtn" class="list-summary-btn" hidden>Clear filters</button>
                     <button id="toggleAllGroupsBtn" class="list-summary-btn">Expand all</button>
+                    <button id="sortBtn" class="list-summary-btn" aria-expanded="false" aria-controls="sortPanel" aria-label="Sort order">↕ Number ▾</button>
                 </div>
+            </div>
+
+            <div id="sortPanel" class="filter-panel sort-panel" hidden>
+                <div class="sort-panel-body"></div>
             </div>
             <!-- Only ever offered while a filter is on. Acting on a whole
                  unfiltered library from here is not something anyone means to do. -->
@@ -1129,10 +1134,22 @@
 
                 <h4>Search</h4>
                 <p>Type in the search box and the folders drop away, giving you one plain list of every match across all categories, with the category shown on each result. Searching by number works too. The box clears itself each time you come back to the tab, so you never land on a filtered list wondering where everything went.</p>
+                <p><strong>It also keeps your place while you work.</strong> Open a result, edit it, save — and you come back to the same search results rather than the whole library. The same is true of a filter, and of backing out of the editor without saving, or deleting an instruction. The one deliberate exception is restoring a backup: the whole library has just been replaced, so the search box and filters are cleared rather than left describing a library that no longer exists.</p>
 
                 <h4>Search reads the whole instruction, not just the title</h4>
                 <p>Steps, description, warnings, equipment, preparations, after-use, maintenance, notes, tags, location and owner are all searched. Where the match is somewhere you cannot see from the list, the result says so underneath — "matched in Steps" — so a hit on hidden text never looks like a mistake.</p>
                 <p class="guide-example"><strong>For example:</strong> you once typed the tyre pressure into step 4 of the pre-drive check and have long forgotten which instruction it was in. Search <strong>3.5</strong> and it comes back, marked "matched in Steps".</p>
+
+                <h4>Sorting the list</h4>
+                <p>Beside the count line is a small <strong>↕</strong> button showing the order you are in. Tap it for four:</p>
+                <ul>
+                    <li><strong>Number</strong> — the order on your printed cards, and the default.</li>
+                    <li><strong>Title A–Z</strong> — for when you remember the words but not the digits.</li>
+                    <li><strong>Most overdue first</strong> — the worst offender at the top. Anything that cannot fall due at all ("Before each trip", "As-needed", never yet marked Done) sits at the bottom rather than the top, because it isn't urgent and putting it above a month-overdue job would make the order actively misleading.</li>
+                    <li><strong>Recently changed</strong> — what you have been working on lately. Marking something Done and adding an audit don't count as changing it; this follows edits to the instruction itself.</li>
+                </ul>
+                <p>The order applies everywhere — inside each folded category as well as in a flat search or filter result — so it never quietly means something different depending on how you got there. <strong>Unlike the filters, the sort order is remembered between visits.</strong> A filter hides things, which is how a library comes to look like it has lost data; an order hides nothing, and re-picking "most overdue first" every single visit would be its own small daily annoyance. The button always says which order you are in, so a list that looks odd is never a mystery.</p>
+                <p class="guide-example"><strong>For example:</strong> set the order to <strong>Most overdue first</strong> and open the Maintenance group. The jobs that have slipped furthest are the first thing you see, every time you look, without filtering anything.</p>
 
                 <h4>Filters — narrowing the list rather than searching it</h4>
                 <p>Search answers <em>"where did I write that?"</em>. Filters answer <em>"what needs my attention?"</em>. Tap <strong>Filter</strong> beside the search box and a panel folds open with five groups of chips. Every chip carries a count, so you can see how much of each thing there is before you tap anything — and a chip nothing matches is greyed out rather than hidden, because "0 overdue" is worth knowing too.</p>
@@ -1326,6 +1343,20 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v36.0 (2026-08-17) - SORT, AND KEEPING YOUR PLACE</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>↕ <strong>Four ways to order the list</strong>, from a small button beside the count: <strong>Number</strong> (the order on your printed cards), <strong>Title A–Z</strong>, <strong>Most overdue first</strong> and <strong>Recently changed</strong></li>
+                            <li>⏰ <strong>"Most overdue first" puts what cannot fall due at the BOTTOM</strong> — "Before each trip", "As-needed", anything never yet marked Done. It isn't urgent, and floating it above a month-overdue job would make the order actively misleading</li>
+                            <li>📂 <strong>The order applies inside folded categories too</strong>, not just to a flat search result, so it never quietly means something different depending on how you got there</li>
+                            <li>💾 <strong>The sort order is remembered between visits</strong> — unlike the filters, which are cleared every time. A filter hides things, which is how a library comes to look like it has lost data; an order hides nothing. The button always says which order you are in</li>
+                            <li>🔍 <strong>Fixed a long-standing annoyance: the list now keeps your place.</strong> Search for something, open a result, edit it, save — and you come back to your search results instead of the whole library staring back at you with the search box still full of text</li>
+                            <li>↩︎ <strong>Same for backing out of the editor without saving, and for deleting an instruction</strong> — both used to quietly drop your search and your filters</li>
+                            <li>📥 <strong>Restoring a backup deliberately does the opposite</strong> and clears the search box and filters, because the library they were describing has just been replaced</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v35.0 (2026-08-17) - AN UNDO THAT WAITS</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1797,12 +1828,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=35.0&t=1786993373-08515a98"></script>
-    <script src="js/qr.js?v=35.0&t=1786993373-08515a98"></script>
-    <script src="js/version-sync.js?v=35.0&t=1786993373-08515a98"></script>
-    <script src="js/persistence.js?v=35.0&t=1786993373-08515a98"></script>
-    <script src="js/hybrid-storage.js?v=35.0&t=1786993373-08515a98"></script>
-    <script src="js/ui.js?v=35.0&t=1786993373-08515a98"></script>
-    <script src="js/app.js?v=35.0&t=1786993373-08515a98"></script>
+    <script src="js/db.js?v=36.0&t=1787054859-42921350"></script>
+    <script src="js/qr.js?v=36.0&t=1787054859-42921350"></script>
+    <script src="js/version-sync.js?v=36.0&t=1787054859-42921350"></script>
+    <script src="js/persistence.js?v=36.0&t=1787054859-42921350"></script>
+    <script src="js/hybrid-storage.js?v=36.0&t=1787054859-42921350"></script>
+    <script src="js/ui.js?v=36.0&t=1787054859-42921350"></script>
+    <script src="js/app.js?v=36.0&t=1787054859-42921350"></script>
 </body>
 </html>

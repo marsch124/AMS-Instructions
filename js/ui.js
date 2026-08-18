@@ -1,4 +1,4 @@
-const APP_VERSION = '35.0';
+const APP_VERSION = '36.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -214,6 +214,7 @@ async function openTab(tabName) {
             clearFilters();
             toggleFilterPanel(false);
             toggleBulkPanel(false);
+            toggleSortPanel(false);
             await renderInstructionsList();
             showScreen('instructionsListScreen');
             break;
@@ -979,7 +980,7 @@ function makeFilterChip(group, key, label, count, isOn) {
     chip.addEventListener('click', () => {
         const set = activeFilters[group];
         if (set.has(key)) { set.delete(key); } else { set.add(key); }
-        renderInstructionsList(document.getElementById('searchInput').value);
+        refreshInstructionsList();
     });
 
     return chip;
@@ -1051,9 +1052,162 @@ function toggleFilterPanel(force) {
     btn.setAttribute('aria-expanded', show ? 'true' : 'false');
 }
 
+// ---------------------------------------------------------------------------
+// Sort order for the Instructions tab
+//
+// Unlike the filters, this IS remembered between visits. A filter hides things,
+// so being left on one silently is how a library looks like it has lost data;
+// a sort order hides nothing, and having to re-pick "most overdue first" every
+// single visit would be its own small daily annoyance.
+//
+// It applies to the flat list and inside each category group alike, so the
+// order never changes meaning depending on how you got there.
+// ---------------------------------------------------------------------------
+
+const SORT_KEY = 'ams_instruction_sort';
+
+const byNumber = (a, b) => a.number.localeCompare(b.number);
+
+// Last time the instruction itself was edited. Marking Done and adding an audit
+// deliberately write no revision entry, so neither counts as "changed" here.
+function lastChangedAt(instruction) {
+    const history = instruction.revisionHistory || [];
+    const last = history[history.length - 1];
+    return last?.timestamp || instruction.createdAt || 0;
+}
+
+const SORT_OPTIONS = [
+    {
+        key: 'number',
+        label: 'Number',
+        short: 'Number',
+        blurb: 'The order on your printed cards.',
+        compare: byNumber
+    },
+    {
+        key: 'title',
+        label: 'Title A–Z',
+        short: 'Title',
+        blurb: 'When you remember the words, not the digits.',
+        compare: (a, b) => (a.title || '').localeCompare(b.title || '') || byNumber(a, b)
+    },
+    {
+        key: 'due',
+        label: 'Most overdue first',
+        short: 'Overdue',
+        blurb: 'Anything that cannot fall due sits at the bottom.',
+        // Never-due instructions sort last rather than first: they are not
+        // urgent, and putting "no repeat" above a month-overdue job would make
+        // the order actively misleading.
+        compare: (a, b) => {
+            const dueA = nextDueAt(a);
+            const dueB = nextDueAt(b);
+            if (dueA === null && dueB === null) return byNumber(a, b);
+            if (dueA === null) return 1;
+            if (dueB === null) return -1;
+            return dueA - dueB || byNumber(a, b);
+        }
+    },
+    {
+        key: 'changed',
+        label: 'Recently changed',
+        short: 'Changed',
+        blurb: 'What you have been working on lately.',
+        compare: (a, b) => lastChangedAt(b) - lastChangedAt(a) || byNumber(a, b)
+    }
+];
+
+function currentSort() {
+    const saved = localStorage.getItem(SORT_KEY);
+    return SORT_OPTIONS.find(option => option.key === saved) || SORT_OPTIONS[0];
+}
+
+function saveSort(key) {
+    localStorage.setItem(SORT_KEY, key);
+}
+
+// Never sorts in place: the array handed in belongs to the caller, and in the
+// grouped path it is the same array the group counts were taken from.
+function sortInstructions(items) {
+    return [...items].sort(currentSort().compare);
+}
+
+function renderSortPanel() {
+    const panel = document.getElementById('sortPanel');
+    if (!panel) return;
+
+    const body = panel.querySelector('.sort-panel-body');
+    body.innerHTML = '';
+
+    const active = currentSort();
+
+    SORT_OPTIONS.forEach(option => {
+        const row = document.createElement('button');
+        row.className = 'sort-option' + (option.key === active.key ? ' on' : '');
+        row.type = 'button';
+
+        const tick = document.createElement('span');
+        tick.className = 'sort-tick';
+        tick.textContent = option.key === active.key ? '✓' : '';
+
+        const text = document.createElement('span');
+        text.className = 'sort-option-text';
+
+        const label = document.createElement('span');
+        label.className = 'sort-option-label';
+        label.textContent = option.label;
+
+        const blurb = document.createElement('span');
+        blurb.className = 'sort-option-blurb';
+        blurb.textContent = option.blurb;
+
+        text.appendChild(label);
+        text.appendChild(blurb);
+
+        row.appendChild(tick);
+        row.appendChild(text);
+
+        row.addEventListener('click', async () => {
+            saveSort(option.key);
+            toggleSortPanel(false);
+            await refreshInstructionsList();
+        });
+
+        body.appendChild(row);
+    });
+}
+
+// The button says which order you are in, so a list that looks odd is never a
+// mystery — the answer is written on the control that caused it.
+function updateSortButton() {
+    const btn = document.getElementById('sortBtn');
+    if (btn) btn.textContent = '↕ ' + currentSort().short + ' ▾';
+}
+
+function toggleSortPanel(force) {
+    const panel = document.getElementById('sortPanel');
+    const btn = document.getElementById('sortBtn');
+    if (!panel || !btn) return;
+
+    const show = typeof force === 'boolean' ? force : panel.hidden;
+    panel.hidden = !show;
+    btn.setAttribute('aria-expanded', show ? 'true' : 'false');
+    if (show) renderSortPanel();
+}
+
+// Re-draw the list exactly as the user left it — same search term, same filters.
+//
+// Everything that changes an instruction and comes back to the list goes through
+// here. Calling renderInstructionsList() bare instead redraws the whole library
+// while the search box still shows your term, so saving an edit looked like the
+// search had quietly given up.
+async function refreshInstructionsList() {
+    await renderInstructionsList(document.getElementById('searchInput').value);
+}
+
 async function clearFiltersAndRender() {
     clearFilters();
-    await renderInstructionsList(document.getElementById('searchInput').value);
+    await refreshInstructionsList();
 }
 
 // ---------------------------------------------------------------------------
@@ -1116,7 +1270,7 @@ async function undoBulkChange() {
     if (updates.length > 0) await bulkUpdateInstructions(updates);
     await deleteSetting(BULK_UNDO_KEY);
 
-    await renderInstructionsList(document.getElementById('searchInput').value);
+    await refreshInstructionsList();
     await renderDataSafety();
 
     showToast(missing > 0
@@ -1143,7 +1297,7 @@ async function applyBulkChange(items, change, describe, toastText, fields) {
             entries
         });
 
-        await renderInstructionsList(document.getElementById('searchInput').value);
+        await refreshInstructionsList();
 
         showToast('✓ ' + toastText(count), { label: 'Undo', onClick: undoBulkChange });
     });
@@ -1285,6 +1439,7 @@ async function renderInstructionsList(filter = '') {
 
     renderFilterPanel(instructions, context);
     updateFilterButton();
+    updateSortButton();
 
     const term = filter.trim().toLowerCase();
     const filtering = activeFilterCount() > 0;
@@ -1342,8 +1497,7 @@ async function renderInstructionsList(filter = '') {
     // Searching or filtering shows a flat list. Grouping would bury results
     // behind folded headers, which is the opposite of what both are for.
     if (term || filtering) {
-        filtered.sort((a, b) => a.number.localeCompare(b.number));
-        filtered.forEach(instr => {
+        sortInstructions(filtered).forEach(instr => {
             const row = createInstructionRow(instr);
 
             const fields = matchedFields.get(instr.id) || [];
@@ -1383,7 +1537,7 @@ async function renderInstructionsList(filter = '') {
     const open = openGroups();
 
     ordered.forEach(cat => {
-        const items = byCategory.get(cat).sort((a, b) => a.number.localeCompare(b.number));
+        const items = sortInstructions(byCategory.get(cat));
         const isOpen = open.has(cat);
 
         const section = document.createElement('section');
@@ -1423,8 +1577,9 @@ async function renderInstructionsList(filter = '') {
 
     if (summary) {
         summary.hidden = false;
+        // Short enough to share one line with Expand all and the sort control
         summary.querySelector('.list-summary-text').textContent =
-            `${ordered.length} groups · ${filtered.length} instructions`;
+            `${ordered.length} groups · ${filtered.length}`;
         const btn = summary.querySelector('#toggleAllGroupsBtn');
         btn.hidden = false;
         btn.textContent = open.size >= ordered.length ? 'Collapse all' : 'Expand all';
@@ -1439,7 +1594,7 @@ async function toggleAllGroups() {
     // If everything is already open, this collapses; otherwise it opens everything.
     const shouldOpen = open.size < groups.length;
     saveOpenGroups(shouldOpen ? new Set(groups) : new Set());
-    await renderInstructionsList(document.getElementById('searchInput').value);
+    await refreshInstructionsList();
 }
 
 // Populates the Owner and Revised-by selects from the People store.
@@ -1506,7 +1661,7 @@ async function editInstruction(instruction) {
         showModal('Delete Instruction', `Delete "${instruction.title}"?`, async (confirmed) => {
             if (confirmed) {
                 await deleteInstruction(instruction.id);
-                await renderInstructionsList();
+                await refreshInstructionsList();
                 showScreen('instructionsListScreen');
             }
         });
@@ -1792,7 +1947,7 @@ async function handleSaveInstruction() {
 
     await saveInstructionDB(instruction);
     resetEditor();
-    await renderInstructionsList();
+    await refreshInstructionsList();
     showScreen('instructionsListScreen');
 }
 
@@ -2448,7 +2603,6 @@ function saveRun(run) {
 // things off, and you would never see the run finish.
 async function availableSets() {
     const instructions = await getAllInstructions();
-    const byNumber = (a, b) => a.number.localeCompare(b.number);
     const sets = [];
 
     const beforeTrip = instructions.filter(i => i.frequency === 'Before each trip').sort(byNumber);
@@ -3517,6 +3671,7 @@ async function initializeApp() {
         renderInstructionsList(e.target.value);
     });
 
+    document.getElementById('sortBtn').addEventListener('click', () => toggleSortPanel());
     document.getElementById('filterBtn').addEventListener('click', () => toggleFilterPanel());
     document.getElementById('clearFiltersBtn').addEventListener('click', clearFiltersAndRender);
     document.getElementById('filterPanelClearBtn').addEventListener('click', clearFiltersAndRender);
@@ -3529,7 +3684,7 @@ async function initializeApp() {
     document.getElementById('bulkStatusBtn').addEventListener('click', handleBulkStatus);
 
     document.getElementById('backFromEditorBtn').addEventListener('click', async () => {
-        await renderInstructionsList();
+        await refreshInstructionsList();
         showScreen('instructionsListScreen');
     });
 
@@ -3580,6 +3735,12 @@ async function initializeApp() {
                 await importData(data);
                 await renderHomeScreen();
                 alert('Backup restored: ' + (data.instructions || []).length + ' instructions');
+                // The whole library has just been replaced, so a search term or
+                // filter from the old one describes nothing. Start clean.
+                document.getElementById('searchInput').value = '';
+                clearFilters();
+                toggleFilterPanel(false);
+                toggleBulkPanel(false);
                 await renderInstructionsList();
                 showScreen('instructionsListScreen');
             } catch (error) {

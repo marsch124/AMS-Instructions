@@ -1475,6 +1475,64 @@ body {
     color: #fff;
 }
 
+/* Sort chooser — a plain list of orders, one ticked */
+.sort-panel[hidden] {
+    display: none;
+}
+
+.sort-panel-body {
+    display: flex;
+    flex-direction: column;
+}
+
+.sort-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    width: 100%;
+    padding: 0.65rem 0.25rem;
+    background: none;
+    border: none;
+    border-radius: 8px;
+    color: var(--color-text);
+    font-family: inherit;
+    text-align: left;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.sort-option + .sort-option {
+    border-top: 1px solid var(--color-border);
+}
+
+.sort-tick {
+    flex-shrink: 0;
+    width: 1rem;
+    color: var(--accent);
+    font-weight: 700;
+}
+
+.sort-option-text {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+
+.sort-option-label {
+    font-size: 0.92rem;
+    font-weight: 600;
+}
+
+.sort-option.on .sort-option-label {
+    color: var(--accent);
+}
+
+.sort-option-blurb {
+    font-size: 0.78rem;
+    line-height: 1.4;
+    color: var(--color-text-secondary);
+}
+
 /* Bulk actions on the filtered slice */
 .bulk-bar {
     display: flex;
@@ -1635,6 +1693,17 @@ body {
     display: flex;
     align-items: center;
     gap: 0.75rem;
+    flex-shrink: 0;
+}
+
+/* Three controls and a count on a 375px screen: let the row wrap rather than
+   squeezing the count text into a two-line column beside them. */
+.list-summary {
+    flex-wrap: wrap;
+}
+
+.list-summary-btn {
+    white-space: nowrap;
 }
 
 .list-summary-btn {
