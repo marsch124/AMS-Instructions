@@ -1,4 +1,4 @@
-const APP_VERSION = '37.0';
+const APP_VERSION = '38.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -1618,10 +1618,21 @@ async function toggleAllGroups() {
     await refreshInstructionsList();
 }
 
+// An owner stored as a bare name, with no matching person record. Kept as a
+// distinguishable select value so a save can write the name straight back.
+const OWNER_NAME_PREFIX = 'name:';
+
 // Populates the Owner and Revised-by selects from the People store.
-// selectedOwnerId pre-selects Owner (matches nothing for legacy instructions without an ownerId — by design, see plan).
-// Revised-by always defaults to the last person used, for one-tap convenience on repeat edits.
-async function populateOwnerAndRevisedBySelects(selectedOwnerId) {
+//
+// An instruction can carry its owner two ways: as a person id (picked here) or
+// as a bare name (imported, or typed before People existed). Both must survive
+// a trip through this editor. Resolving only by id — which is what this did
+// until v38 — left the select on "-- Select --" for a name-only owner, and
+// saving then wrote that empty value straight over the name. Opening an
+// instruction and saving it unchanged silently erased its owner.
+//
+// Revised-by always defaults to the last person used, for one-tap convenience.
+async function populateOwnerAndRevisedBySelects(selectedOwnerId, ownerName) {
     const people = await getAllPeople();
     people.sort((a, b) => a.name.localeCompare(b.name));
 
@@ -1633,7 +1644,27 @@ async function populateOwnerAndRevisedBySelects(selectedOwnerId) {
         opt.textContent = person.name;
         ownerSelect.appendChild(opt);
     });
-    ownerSelect.value = selectedOwnerId || '';
+
+    const name = String(ownerName || '').trim();
+    const byName = people.find(p => p.name.toLowerCase() === name.toLowerCase());
+
+    if (selectedOwnerId && people.some(p => p.id === selectedOwnerId)) {
+        ownerSelect.value = selectedOwnerId;
+    } else if (byName) {
+        // A name that matches somebody real: quietly adopt their record, so
+        // saving upgrades the instruction from a loose name to a proper link.
+        ownerSelect.value = byName.id;
+    } else if (name) {
+        // A name belonging to nobody in People. Shown rather than dropped, and
+        // labelled so it's clear why it looks different from the others.
+        const opt = document.createElement('option');
+        opt.value = OWNER_NAME_PREFIX + name;
+        opt.textContent = name + ' (not in People)';
+        ownerSelect.appendChild(opt);
+        ownerSelect.value = opt.value;
+    } else {
+        ownerSelect.value = '';
+    }
 
     const revisedBySelect = document.getElementById('editorRevisedBy');
     revisedBySelect.innerHTML = '<option value="">-- Select --</option>';
@@ -1659,7 +1690,7 @@ async function editInstruction(instruction) {
     document.getElementById('editorWhereDetailed').value = instruction.whereDetailed || '';
     document.getElementById('editorSteps').value = (instruction.steps || []).join('\n');
     document.getElementById('editorDescription').value = instruction.description || '';
-    await populateOwnerAndRevisedBySelects(instruction.ownerId || '');
+    await populateOwnerAndRevisedBySelects(instruction.ownerId || '', instruction.owner);
     document.getElementById('editorStatus').value = instruction.status || 'Auto';
     document.getElementById('editorFrequency').value = instruction.frequency || '';
     document.getElementById('editorTimeEstimate').value = instruction.timeEstimate || '';
@@ -1915,9 +1946,18 @@ async function handleSaveInstruction() {
         .map(s => s.trim())
         .filter(s => s);
 
+    // Three possible shapes: a real person, a bare name nobody in People matches,
+    // or genuinely nobody. Only the last one is allowed to clear the owner.
     const ownerSelect = document.getElementById('editorOwner');
-    const ownerId = ownerSelect.value || null;
-    const ownerName = ownerId ? ownerSelect.options[ownerSelect.selectedIndex].textContent : '';
+    const chosen = ownerSelect.value;
+    let ownerId = null;
+    let ownerName = '';
+    if (chosen.startsWith(OWNER_NAME_PREFIX)) {
+        ownerName = chosen.slice(OWNER_NAME_PREFIX.length);
+    } else if (chosen) {
+        ownerId = chosen;
+        ownerName = ownerSelect.options[ownerSelect.selectedIndex].textContent;
+    }
 
     const revisedBySelect = document.getElementById('editorRevisedBy');
     const revisedById = revisedBySelect.value || null;
