@@ -303,6 +303,53 @@ body {
     user-select: none;
 }
 
+/* Drawn icons in place of emoji, in three sizes.
+   All three are stroke-only and inherit currentColor, so they take the section
+   accent on a heading and the button's own text colour inside a button — which
+   is what stops them looking like stickers pasted onto the interface. */
+.head-glyph,
+.btn-glyph,
+.chip-glyph,
+.meta-glyph {
+    flex-shrink: 0;
+}
+
+.head-glyph {
+    width: 1.15rem;
+    height: 1.15rem;
+    color: var(--accent);
+}
+
+.btn-glyph {
+    width: 1.1rem;
+    height: 1.1rem;
+}
+
+.chip-glyph {
+    width: 0.95rem;
+    height: 0.95rem;
+}
+
+.meta-glyph {
+    width: 0.95rem;
+    height: 0.95rem;
+    vertical-align: -0.15em;
+    margin-right: 0.3rem;
+}
+
+/* Buttons become flex so an icon can sit beside the label without the two
+   drifting apart on the long ones ("Restore from a Backup File"). */
+.btn-primary,
+.btn-secondary,
+.btn-danger,
+.btn-done {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-align: center;
+}
+
 .btn-primary {
     background-color: var(--accent);
     color: var(--color-text);
@@ -842,6 +889,9 @@ body {
 
 .section-toggle h3 {
     flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
     font-size: 1rem;
     font-weight: 600;
     margin: 0;

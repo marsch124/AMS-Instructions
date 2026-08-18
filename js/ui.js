@@ -1,4 +1,4 @@
-const APP_VERSION = '36.0';
+const APP_VERSION = '37.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -298,7 +298,10 @@ function displayInstruction(instruction) {
     statusEl.className = 'status-badge ' + (instruction.status === 'Draft' ? 'draft' : instruction.status === 'Review Needed' ? 'review' : instruction.status === 'Archived' ? 'archived' : '');
 
     const diffEl = document.getElementById('instructionDifficulty');
-    const stars = ['', '⭐', '⭐⭐', '⭐⭐⭐'];
+    // Typographic stars, not the emoji: a rating is the one place a repeated
+    // character beats a drawn icon, and ★ inherits the text colour instead of
+    // dropping three yellow blobs into an otherwise monochrome interface.
+    const stars = ['', '★', '★★', '★★★'];
     diffEl.textContent = stars[instruction.difficulty || 0];
 
     // Quick info
@@ -918,50 +921,67 @@ const FILTER_SECTIONS = [
         group: 'due',
         title: "When it's due",
         chips: [
-            { key: 'overdue', label: '⏰ Overdue' },
-            { key: 'soon', label: '📅 Due within a week' },
-            { key: 'never', label: '🕰️ Never done' },
-            { key: 'noclock', label: '➰ No repeat' }
+            { key: 'overdue', label: 'Overdue', icon: 'due' },
+            { key: 'soon', label: 'Due within a week', icon: 'calendar' },
+            { key: 'never', label: 'Never done', icon: 'hourglass' },
+            { key: 'noclock', label: 'No repeat', icon: 'norepeat' }
         ]
     },
     {
         group: 'status',
         title: 'Status',
         chips: [
-            { key: 'Active', label: 'Active' },
-            { key: 'Draft', label: 'Draft' },
-            { key: 'Review Needed', label: 'Review Needed' },
-            { key: 'Archived', label: 'Archived' }
+            { key: 'Active', label: 'Active', icon: 'active' },
+            { key: 'Draft', label: 'Draft', icon: 'notes' },
+            { key: 'Review Needed', label: 'Review Needed', icon: 'review' },
+            { key: 'Archived', label: 'Archived', icon: 'archive' }
         ]
     },
     {
         group: 'gaps',
         title: 'Gaps worth a second look',
         chips: [
-            { key: 'warning', label: '⚠️ No warning' },
-            { key: 'photo', label: '🚫 No photo' },
-            { key: 'steps', label: '📝 Barely any steps' }
+            { key: 'warning', label: 'No warning', icon: 'warning' },
+            { key: 'photo', label: 'No photo', icon: 'nophoto' },
+            { key: 'steps', label: 'Barely any steps', icon: 'fewsteps' }
         ]
     },
     {
         group: 'marks',
         title: 'Quick marks',
         chips: [
-            { key: 'favourite', label: '★ Favourite' },
-            { key: 'hasphoto', label: '📷 Has a photo' },
-            { key: 'todo', label: '🗒️ Has an open to-do' },
-            { key: 'unaudited', label: '🔍 Never audited' }
+            { key: 'favourite', label: 'Favourite', icon: 'star' },
+            { key: 'hasphoto', label: 'Has a photo', icon: 'photo' },
+            { key: 'todo', label: 'Has an open to-do', icon: 'actions' },
+            { key: 'unaudited', label: 'Never audited', icon: 'audit' }
         ]
     }
 ];
 
-function makeFilterChip(group, key, label, count, isOn) {
+// One drawn icon from the sprite. Built with createElementNS because <use> lives
+// in the SVG namespace — createElement would make an inert HTML element that
+// renders as nothing at all.
+function spriteIcon(name, className) {
+    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    svg.setAttribute('class', className);
+    svg.setAttribute('aria-hidden', 'true');
+
+    const use = document.createElementNS('http://www.w3.org/2000/svg', 'use');
+    use.setAttribute('href', '#icon-' + name);
+    svg.appendChild(use);
+
+    return svg;
+}
+
+function makeFilterChip(group, key, label, count, isOn, icon) {
     const chip = document.createElement('button');
     chip.className = 'filter-chip' + (isOn ? ' on' : '');
     chip.type = 'button';
     chip.dataset.group = group;
     chip.dataset.key = key;
     chip.setAttribute('aria-pressed', isOn ? 'true' : 'false');
+
+    if (icon) chip.appendChild(spriteIcon(icon, 'chip-glyph'));
 
     const text = document.createElement('span');
     text.textContent = label;
@@ -1002,8 +1022,8 @@ function renderFilterPanel(instructions, context) {
             group: 'person',
             title: 'Whose job it is',
             chips: [
-                ...context.people.map(p => ({ key: p.id, label: '👤 ' + p.name })),
-                { key: 'none', label: '❓ Nobody named' }
+                ...context.people.map(p => ({ key: p.id, label: p.name, icon: 'person' })),
+                { key: 'none', label: 'Nobody named', icon: 'question' }
             ]
         },
         ...FILTER_SECTIONS
@@ -1022,7 +1042,8 @@ function renderFilterPanel(instructions, context) {
         section.chips.forEach(chip => {
             const count = instructions.filter(i => filterMatches(section.group, chip.key, i, context)).length;
             row.appendChild(makeFilterChip(
-                section.group, chip.key, chip.label, count, activeFilters[section.group].has(chip.key)
+                section.group, chip.key, chip.label, count,
+                activeFilters[section.group].has(chip.key), chip.icon
             ));
         });
         wrap.appendChild(row);
