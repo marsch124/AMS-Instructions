@@ -1,4 +1,4 @@
-const APP_VERSION = '34.0';
+const APP_VERSION = '35.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -1075,32 +1075,77 @@ let visibleInstructions = [];
 
 const BULK_STATUSES = ['Active', 'Draft', 'Review Needed', 'Archived'];
 
-// A shallow copy is enough to undo with, and much cheaper than cloning photos:
-// every change below builds NEW arrays rather than mutating the ones it found,
-// so the snapshot's shared references still hold the original values.
-function snapshotOf(items) {
-    return items.map(item => ({ ...item }));
+const BULK_UNDO_KEY = 'bulk_undo';
+
+// The snapshot records only the fields the change actually touches, not whole
+// instructions. That is the difference between a few kilobytes and a copy of
+// every photo in the library — and it means an undo three days later restores
+// the owner without also reverting the steps you rewrote yesterday.
+function snapshotOf(items, fields) {
+    return items.map(item => {
+        const before = { id: item.id };
+        fields.forEach(field => { before[field] = item[field]; });
+        return before;
+    });
 }
 
-async function applyBulkChange(items, change, describe, toastText) {
+// Puts back the last bulk change, whether that's five seconds later from the
+// toast or five days later from Data Safety. Consumed once used, so the same
+// change can't be undone twice.
+//
+// Instructions deleted since the change are skipped rather than resurrected:
+// undo restores the values of things that still exist, and is not a way of
+// bringing back something you meant to delete.
+async function undoBulkChange() {
+    const record = await getSetting(BULK_UNDO_KEY);
+    if (!record || !record.entries || record.entries.length === 0) return;
+
+    const byId = new Map((await getAllInstructions()).map(i => [i.id, i]));
+
+    const updates = [];
+    let missing = 0;
+    record.entries.forEach(entry => {
+        const current = byId.get(entry.id);
+        if (!current) { missing++; return; }
+
+        const restored = { ...current };
+        record.fields.forEach(field => { restored[field] = entry[field]; });
+        updates.push(restored);
+    });
+
+    if (updates.length > 0) await bulkUpdateInstructions(updates);
+    await deleteSetting(BULK_UNDO_KEY);
+
+    await renderInstructionsList(document.getElementById('searchInput').value);
+    await renderDataSafety();
+
+    showToast(missing > 0
+        ? '↩︎ Put back ' + updates.length + ' — ' + missing +
+          (missing === 1 ? ' no longer exists' : ' no longer exist')
+        : '↩︎ Put back as it was');
+}
+
+async function applyBulkChange(items, change, describe, toastText, fields) {
     if (items.length === 0) return;
 
     showModal(describe.title, describe.message, async (confirmed) => {
         if (!confirmed) return;
 
-        const before = snapshotOf(items);
+        const entries = snapshotOf(items, fields);
         const count = await bulkUpdateInstructions(items.map(change));
+
+        // Written after the change, not before: a snapshot offering to undo
+        // something that never happened would be worse than no snapshot.
+        await saveSetting(BULK_UNDO_KEY, {
+            label: toastText(count),
+            timestamp: Date.now(),
+            fields,
+            entries
+        });
 
         await renderInstructionsList(document.getElementById('searchInput').value);
 
-        showToast('✓ ' + toastText(count), {
-            label: 'Undo',
-            onClick: async () => {
-                await bulkUpdateInstructions(before);
-                await renderInstructionsList(document.getElementById('searchInput').value);
-                showToast('↩︎ Put back as it was');
-            }
-        });
+        showToast('✓ ' + toastText(count), { label: 'Undo', onClick: undoBulkChange });
     });
 }
 
@@ -1165,7 +1210,8 @@ async function handleBulkOwner() {
                 ' instructions currently listed' + bulkScopeNote() +
                 '. This replaces any owner they already have. You can undo it straight afterwards.'
         },
-        (count) => personName + ' set as owner on ' + count
+        (count) => personName + ' set as owner on ' + count,
+        ['owner', 'ownerId']
     );
 }
 
@@ -1192,7 +1238,8 @@ async function handleBulkTag() {
                 bulkScopeNote() + '. Any that already carry it are left alone, and nothing else changes. ' +
                 'Tags are searchable, so this is a way to mark a batch you want to find again.'
         },
-        (count) => '"' + tag + '" added to ' + count
+        (count) => '"' + tag + '" added to ' + count,
+        ['tags']
     );
 
     input.value = '';
@@ -1215,7 +1262,8 @@ async function handleBulkStatus() {
                 ' are set to ' + status + ', replacing whatever status they have now.' + extra +
                 ' You can undo it straight afterwards.'
         },
-        (count) => count + ' set to ' + status
+        (count) => count + ' set to ' + status,
+        ['status']
     );
 }
 
@@ -3068,8 +3116,43 @@ async function renderBackupNudge() {
     prepareBackup();   // the card is a backup button too — keep it gesture-ready
 }
 
+// The durable half of the bulk Undo. The toast is the one you catch in the
+// moment; this is the one still waiting when you reopen the app tomorrow and
+// realise you archived the wrong fifty-seven.
+async function renderBulkUndoSlot() {
+    const slot = document.getElementById('bulkUndoSlot');
+    if (!slot) return;
+
+    let record = null;
+    try {
+        record = await getSetting(BULK_UNDO_KEY);
+    } catch (error) {
+        console.warn('[Undo] Could not read the last bulk change:', error);
+    }
+
+    if (!record || !record.entries || record.entries.length === 0) {
+        slot.hidden = true;
+        return;
+    }
+
+    slot.hidden = false;
+    document.getElementById('bulkUndoLabel').textContent =
+        record.label + ' · ' + formatRelativeTime(record.timestamp);
+
+    // Naming the field is what makes this safe to tap: it says what will change
+    // back and, by omission, what will not.
+    const fieldNames = { owner: 'owner', ownerId: 'owner', tags: 'tags', status: 'status' };
+    const changed = [...new Set((record.fields || []).map(f => fieldNames[f] || f))].join(' and ');
+    document.getElementById('bulkUndoNote').textContent =
+        'Puts the ' + changed + ' back exactly as it was on those ' + record.entries.length +
+        ', and touches nothing else — any other edits you have made since are kept. ' +
+        'Only the most recent bulk change can be undone.';
+}
+
 async function renderDataSafety() {
     const status = hybridStorage.status();
+
+    await renderBulkUndoSlot();
 
     const warning = document.getElementById('backupWarning');
     if (status.failedAt) {
@@ -3464,6 +3547,19 @@ async function initializeApp() {
 
     document.getElementById('backFromDataSafetyBtn').addEventListener('click', () => {
         showScreen('settingsScreen');
+    });
+
+    document.getElementById('bulkUndoBtn').addEventListener('click', async () => {
+        const record = await getSetting(BULK_UNDO_KEY);
+        if (!record) return;
+
+        showModal('Undo "' + record.label + '"?',
+            'This puts that change back as it was on ' + record.entries.length +
+            ' instructions. Anything else you have edited since is left alone. ' +
+            'It can only be done once.',
+            async (confirmed) => {
+                if (confirmed) await undoBulkChange();
+            });
     });
 
     document.getElementById('restoreCurrentBtn').addEventListener('click', () => restoreFromSlot('current'));

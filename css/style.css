@@ -1556,6 +1556,21 @@ body {
     color: var(--color-text-secondary);
 }
 
+/* The undo card sits above the backups and is deliberately the one thing on the
+   Data Safety screen wearing the accent — it is the only item there that is
+   about something you did rather than something the app did. */
+.undo-slot {
+    border: 1px solid var(--accent);
+}
+
+.undo-slot[hidden] {
+    display: none;
+}
+
+.undo-slot h3 {
+    color: var(--accent);
+}
+
 /* A toast carrying an Undo stops being a passing note and becomes something to
    read, so it gets a left-aligned line and a button rather than centred text. */
 .toast.with-action {

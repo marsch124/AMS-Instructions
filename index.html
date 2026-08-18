@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1786992549-2a860833">
+    <meta name="cache-bust" content="1786993373-08515a98">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=34.0&t=1786992549-2a860833">
+    <link rel="stylesheet" href="css/style.css?v=35.0&t=1786993373-08515a98">
 </head>
 <body>
     <!--
@@ -83,7 +83,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v34.0</span>
+                <span class="version-badge" id="homeVersion">v35.0</span>
             </div>
         </header>
 
@@ -559,7 +559,7 @@
                     </div>
                 </div>
 
-                <p class="bulk-note">Each one asks before it changes anything, and leaves an Undo behind. Bulk changes are not written to Revision History.</p>
+                <p class="bulk-note">Each one asks before it changes anything, and leaves an Undo behind — in the bar at the bottom straight away, and on Settings → Data Safety for as long as you need it. Bulk changes are not written to Revision History.</p>
 
                 <div class="filter-panel-actions">
                     <button id="bulkCloseBtn" class="filter-panel-btn">Close</button>
@@ -708,6 +708,15 @@
 
         <div class="list-content">
             <div id="backupWarning" class="backup-warning" style="display: none;"></div>
+
+            <!-- Only present when there is something to undo. A change made
+                 before the app was last closed is still undoable from here. -->
+            <div class="backup-slot undo-slot" id="bulkUndoSlot" hidden>
+                <h3>Undo last bulk change</h3>
+                <p class="backup-date" id="bulkUndoLabel">--</p>
+                <p class="backup-note" id="bulkUndoNote">--</p>
+                <button id="bulkUndoBtn" class="btn-secondary">↩︎ Undo this change</button>
+            </div>
 
             <div class="backup-slot" id="liveDataSlot">
                 <h3>In the app right now</h3>
@@ -1146,8 +1155,17 @@
                     <li><strong>Add a tag</strong> — added to any that haven't already got it, nothing else touched. Tags are searchable, so this is how you mark a batch you want to find again later.</li>
                     <li><strong>Set status</strong> — including <strong>Archived</strong>, for a batch you want to keep but not be nagged about.</li>
                 </ul>
-                <p><strong>Every one of them asks first</strong>, naming the number and saying plainly what it replaces — and if a search is also narrowing the list, the question says so, because "all 12" should never be a surprise. <strong>Every one of them leaves an Undo</strong> in the bar at the bottom of the screen, which puts things back exactly as they were, including anything that already had the value you applied.</p>
-                <p>Bulk changes deliberately write nothing to Revision History: two hundred "Updated" entries would bury the real edits under bookkeeping. The safety copy on the phone is refreshed straight afterwards, as with every other change to your data.</p>
+                <p><strong>Every one of them asks first</strong>, naming the number and saying plainly what it replaces — and if a search is also narrowing the list, the question says so, because "all 12" should never be a surprise.</p>
+
+                <h4>Undoing a bulk change</h4>
+                <p>Every bulk change can be undone, and the offer does not expire when you look away.</p>
+                <ul>
+                    <li><strong>Straight away:</strong> tap <strong>Undo</strong> in the bar that appears at the bottom of the screen.</li>
+                    <li><strong>Later — hours or days later:</strong> Settings → <strong>Data Safety</strong>. If a bulk change can still be undone, a card sits at the top of that screen naming it and when you made it: "Anna set as owner on 57 · 2 days ago". It survives closing the app, and it survives restarting the phone.</li>
+                </ul>
+                <p><strong>It puts back only what that change touched.</strong> Undoing an owner change three days later restores the owner and nothing else — the steps you rewrote yesterday, the photo you added this morning, the times you marked things Done all stay exactly as they are. And anything that already carried the value you applied is left as it was, rather than being blanked.</p>
+                <p><strong>Only the most recent bulk change is held.</strong> Make a second one and it replaces the first in the queue, so if you are assigning owners category by category, undo reaches back one category, not all six. Using the undo consumes it — a change can be undone once. An instruction you have deleted since is skipped rather than resurrected, and the app tells you if that happened.</p>
+                <p>Bulk changes deliberately write nothing to Revision History: two hundred "Updated" entries would bury the real edits under bookkeeping. The safety copy on the phone is refreshed straight afterwards, as with every other change to your data — and the undo itself is kept outside your backup files on purpose, so restoring a backup never brings a half-finished change back with it.</p>
                 <p class="guide-example"><strong>For example:</strong> the starter library arrives with 205 instructions and no owners. Filter to <strong>Diving</strong>, ⚡ Apply to all → Anna. Filter to <strong>Cycling</strong>, ⚡ Apply to all → Martin. Six taps a category, and the person filter is suddenly worth having.</p>
                 <p>The button only ever appears while a filter is on. Acting on a whole unfiltered library from a button beside the search box is not something anybody means to do.</p>
 
@@ -1242,6 +1260,7 @@
 
                 <h4>Data Safety</h4>
                 <p>Settings → Data Safety shows every copy of your data the app can see — what's in the app right now, plus two automatic backups kept on this phone (a recent one and an older one), each with its date and how much it holds. If anything ever goes missing, you can put back either backup with one tap. It's also where a "Clear All Data" can be undone.</p>
+                <p><strong>It is also where the last bulk change waits.</strong> If you have used ⚡ Apply to all and want it back, the card at the top of this screen undoes precisely that change — which is a much finer instrument than restoring a backup. The older automatic backup is roughly a day behind by design, so restoring it would also throw away everything else you have done since; the undo card throws away nothing but the change itself.</p>
 
                 <h4>One phone, one copy</h4>
                 <p>The app keeps its data on the device it's running on — the Home Screen app and Safari each have their own separate copy and do not share. Treat the Home Screen app on your phone as the real one, and use backups rather than expecting the two to match.</p>
@@ -1307,6 +1326,21 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v35.0 (2026-08-17) - AN UNDO THAT WAITS</strong></p>
+                        <p><strong>What's New:</strong></p>
+                        <ul>
+                            <li>↩︎ <strong>Undoing a bulk change is no longer a six-second offer.</strong> Settings → Data Safety now carries an "Undo last bulk change" card naming what you did and when — "Anna set as owner on 57 · 2 days ago" — and it survives closing the app and restarting the phone</li>
+                            <li>🎯 <strong>It puts back only what that change touched.</strong> Undoing an owner change three days later restores the owner and nothing else: the steps you rewrote yesterday, the photo you added this morning and every Done you recorded in between all stay exactly as they are</li>
+                            <li>📦 <strong>That's why it can wait.</strong> The undo records the handful of fields that changed rather than a copy of the whole library, so it costs a few kilobytes instead of a copy of every photo — and it can't go stale the way a whole-library snapshot would</li>
+                            <li>1️⃣ <strong>One change is held at a time.</strong> A second bulk change replaces the first, so assigning owners category by category leaves you able to undo the last category, not all six. Using it consumes it</li>
+                            <li>🗑️ <strong>An instruction deleted since the change is skipped, not resurrected</strong> — undo restores values, it is not a way of bringing back something you meant to delete. The app says so when it happens</li>
+                            <li>❓ <strong>The card asks before it acts</strong>, and says which field it will change back — so you can see what it will do, and what it will leave alone</li>
+                            <li>🔒 <strong>The undo is deliberately kept out of your backup files</strong>, so restoring a backup never drags a half-finished change back with it. "Clear All Data" clears it too, rather than leaving an undo pointing at instructions that no longer exist</li>
+                            <li>📖 <strong>How This Works explains all of it</strong>, including why the undo card is a finer instrument than restoring the older automatic backup — that one is about a day behind by design, and would take everything else with it</li>
+                        </ul>
+                    </div>
+
                     <div class="version-entry">
                         <p><strong>v34.0 (2026-08-17) - DO SOMETHING TO THE WHOLE LIST</strong></p>
                         <p><strong>What's New:</strong></p>
@@ -1763,12 +1797,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=34.0&t=1786992549-2a860833"></script>
-    <script src="js/qr.js?v=34.0&t=1786992549-2a860833"></script>
-    <script src="js/version-sync.js?v=34.0&t=1786992549-2a860833"></script>
-    <script src="js/persistence.js?v=34.0&t=1786992549-2a860833"></script>
-    <script src="js/hybrid-storage.js?v=34.0&t=1786992549-2a860833"></script>
-    <script src="js/ui.js?v=34.0&t=1786992549-2a860833"></script>
-    <script src="js/app.js?v=34.0&t=1786992549-2a860833"></script>
+    <script src="js/db.js?v=35.0&t=1786993373-08515a98"></script>
+    <script src="js/qr.js?v=35.0&t=1786993373-08515a98"></script>
+    <script src="js/version-sync.js?v=35.0&t=1786993373-08515a98"></script>
+    <script src="js/persistence.js?v=35.0&t=1786993373-08515a98"></script>
+    <script src="js/hybrid-storage.js?v=35.0&t=1786993373-08515a98"></script>
+    <script src="js/ui.js?v=35.0&t=1786993373-08515a98"></script>
+    <script src="js/app.js?v=35.0&t=1786993373-08515a98"></script>
 </body>
 </html>

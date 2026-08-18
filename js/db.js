@@ -346,6 +346,48 @@ async function getAllPeople() {
     return getAllFromStore(STORE_PEOPLE);
 }
 
+// Small named values that belong to the app rather than to the library — at the
+// moment, just the snapshot behind "Undo last bulk change".
+//
+// Deliberately in IndexedDB rather than localStorage: localStorage is where the
+// photo-heavy safety mirror lives, and its budget is not something to spend on
+// anything that can live elsewhere. Just as deliberately outside exportData(),
+// so a half-undone change never travels inside a backup file — and inside
+// clearAllData()'s store list, so wiping the app doesn't leave an undo pointing
+// at instructions that no longer exist.
+async function saveSetting(key, value) {
+    const tx = db.transaction(STORE_SETTINGS, 'readwrite');
+    const store = tx.objectStore(STORE_SETTINGS);
+
+    return new Promise((resolve, reject) => {
+        const request = store.put({ ...value, key });
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function getSetting(key) {
+    const tx = db.transaction(STORE_SETTINGS, 'readonly');
+    const store = tx.objectStore(STORE_SETTINGS);
+
+    return new Promise((resolve, reject) => {
+        const request = store.get(key);
+        request.onsuccess = () => resolve(request.result || null);
+        request.onerror = () => reject(request.error);
+    });
+}
+
+async function deleteSetting(key) {
+    const tx = db.transaction(STORE_SETTINGS, 'readwrite');
+    const store = tx.objectStore(STORE_SETTINGS);
+
+    return new Promise((resolve, reject) => {
+        const request = store.delete(key);
+        request.onsuccess = () => resolve();
+        request.onerror = () => reject(request.error);
+    });
+}
+
 const PEOPLE_SEEDED_KEY = 'ams_people_seeded';
 const DEFAULT_PEOPLE = ['Anna', 'Martin'];
 
@@ -657,7 +699,7 @@ async function getDBSize() {
 async function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
         try {
-            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786992549-2a860833', {
+            await navigator.serviceWorker.register('/AMS-Instructions/sw.js?v=' + APP_VERSION + '&t=1786993373-08515a98', {
                 scope: '/AMS-Instructions/'
             });
         } catch (error) {
