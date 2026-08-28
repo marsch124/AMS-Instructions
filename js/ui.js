@@ -1,4 +1,4 @@
-const APP_VERSION = '40.0';
+const APP_VERSION = '41.0';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -4277,26 +4277,48 @@ async function initializeApp() {
 
     document.getElementById('importFile').addEventListener('change', async (e) => {
         const file = e.target.files[0];
+        // Cleared straight away, so picking the same file twice still counts as
+        // a change and offers the restore again.
+        e.target.value = '';
         if (!file) return;
 
         const reader = new FileReader();
         reader.onload = async (event) => {
+            let data;
             try {
-                const data = JSON.parse(event.target.result);
-                await importData(data);
-                await renderHomeScreen();
-                alert('Backup restored: ' + (data.instructions || []).length + ' instructions');
-                // The whole library has just been replaced, so a search term or
-                // filter from the old one describes nothing. Start clean.
-                document.getElementById('searchInput').value = '';
-                clearFilters();
-                toggleFilterPanel(false);
-                toggleBulkPanel(false);
-                await renderInstructionsList();
-                showScreen('instructionsListScreen');
+                data = JSON.parse(event.target.result);
             } catch (error) {
                 alert('Failed to import data: ' + error.message);
+                return;
             }
+
+            // Same confirmation the on-phone backups get. A file picked from
+            // Files or iCloud is the one restore where the app has no idea what
+            // it is about to write, so it says what it found and waits to be
+            // told to go ahead.
+            const count = (data.instructions || []).length;
+            const taken = formatBackupDate(data.timestamp);
+            showModal('Restore Backup',
+                `Put back ${count} ${count === 1 ? 'instruction' : 'instructions'} from ${taken ? file.name + ', backed up ' + taken : file.name}? Anything currently in the app with the same number will be replaced by the backup's version. Nothing else is deleted.`,
+                async (confirmed) => {
+                    if (!confirmed) return;
+                    try {
+                        await importData(data);
+                        await renderHomeScreen();
+                        alert('Backup restored: ' + count + (count === 1 ? ' instruction' : ' instructions'));
+                        // The whole library has just been replaced, so a search
+                        // term or filter from the old one describes nothing.
+                        // Start clean.
+                        document.getElementById('searchInput').value = '';
+                        clearFilters();
+                        toggleFilterPanel(false);
+                        toggleBulkPanel(false);
+                        await renderInstructionsList();
+                        showScreen('instructionsListScreen');
+                    } catch (error) {
+                        alert('Failed to import data: ' + error.message);
+                    }
+                });
         };
         reader.readAsText(file);
     });
