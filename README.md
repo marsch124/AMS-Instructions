@@ -1,18 +1,31 @@
 # AMS Instructions
 
-A mobile-first PWA (Progressive Web App) for quick-reference step-by-step instructions using QR codes. Perfect for RVs, workshops, or anywhere you need instant access to checklists and procedures.
+A mobile-first PWA (Progressive Web App) for quick-reference, step-by-step instructions,
+reached by a printed 3-digit number. Built for an RV, but it suits a workshop, a boat, a
+holiday let — anywhere a job has to be done the same way each time, by whoever happens to
+be standing in front of it.
 
 **Live:** https://marsch124.github.io/AMS-Instructions/
 
-## Features
+Everything lives on the device. No account, no server, no tracking.
 
-- 📱 **QR Code Scanning** — Point at a label and instantly get step-by-step instructions
-- ⭐ **Favorites** — Save frequently-used instructions for quick access
-- 📖 **Browse All** — Search and browse your complete instruction library
-- 🌙 **Dark Mode** — Eye-friendly interface, perfect for bedside or night use
-- 📡 **Fully Offline** — All data stored locally; works without internet
-- 💾 **Import/Export** — Backup and share your instructions as JSON
-- 📂 **Organized** — Categorize instructions (Bedroom, Driving, Maintenance, etc.)
+## What it does
+
+- 📱 **Numbered instructions** — point the camera at a printed number, or type it, and the job is on screen
+- 🔍 **Search that reads the whole instruction** — steps, warnings, equipment, notes, location and owner, not just the title, and it tells you which field matched
+- 🗂 **Grouped, filtered, sorted** — categories with their own colours, filters by owner, status and due state, and four sort orders (number, title, most overdue, recently changed) that are remembered between visits
+- ✅ **Keeps your place** — tick steps as you go; the progress survives leaving the screen
+- 📸 **Photos beside the step they belong to** — a picture pinned to step 4 shows up at step 4
+- 🕓 **Done, and who did it** — mark a job done, name the person, and it goes into the Done History with the date
+- 📅 **Due tracking** — give an instruction a frequency and it works out what is due or overdue
+- 🏃 **Run a Set** — work through several instructions as one checklist
+- 📋 **Actions** — a to-do list with priority and due dates, including findings promoted straight out of an audit
+- 👥 **People** — name the owner of a job once; their colour-coded pill follows them down the list
+- 🩺 **Library Health** — what is missing from the library itself (no owner, no steps, no category), with one-tap fixes for the groups that can fix themselves
+- 🧾 **Revision history and audit log** — what changed, when, and at whose hand
+- 💾 **Backups you can verify** — export to JSON, and a dry-run restore that says whether a backup would actually come back
+- 🌙 **Dark mode** and 📡 **offline**, by way of a service worker — only the camera's OCR
+  library is fetched from a CDN, and manual number entry works without it
 
 ## Getting Started
 
@@ -22,97 +35,88 @@ A mobile-first PWA (Progressive Web App) for quick-reference step-by-step instru
    - iOS: Safari → Share → Add to Home Screen
    - Android: Chrome → Menu → Install app
 
-2. **Add instructions:**
-   - Open Settings → Add New Instruction
-   - Assign a 3-digit number (001-999) and write your steps
-   - Save!
+2. **Fill the library:**
+   - Settings → **Restore from a Backup File** to load `AMS-Instructions-starter-library.json`
+     (205 instructions across 15 categories), or
+   - Instructions → **+** to write your own
 
-3. **Generate QR codes:**
-   - Use a free QR generator (e.g., qr-server.com)
-   - Encode each instruction number (e.g., "001")
-   - Print and attach to Duro tape at key locations
+3. **Add the people** who own the jobs: Settings → Manage People. Anna and Martin are
+   seeded on first run — delete them if they are not your people.
 
-4. **Scan and follow:**
-   - Tap "Scan Instruction"
-   - Point at a QR code
-   - Follow the numbered steps
+4. **Print the numbers.** Print each 3-digit number large and clear, and attach it where
+   the job happens.
+
+5. **Scan and follow.** Tap "Scan Instruction", hold the number in the scan box, work down
+   the steps, then mark it Done.
+
+6. **Back it up.** Settings → Back Up Now. Data Safety will tell you whether the backups
+   already on the phone would restore.
+
+There is a full guide inside the app: **Settings → How This Works**.
 
 ### For Developers
 
-**Requirements:**
-- Python 3 (for local server)
-- A modern web browser
+**Requirements:** Python 3 (or any static file server) and a modern browser.
 
-**Setup:**
 ```bash
-cd AMSInstructions
+cd AMS-Instructions
 python3 -m http.server 7793
 ```
 
-Then open `http://localhost:7793` in your browser.
+Then open `http://localhost:7793`.
 
-**Project Structure:**
+The service worker is registered under the `/AMS-Instructions/` scope to match GitHub
+Pages, so it will 404 when served from the root locally. The app itself works regardless;
+only offline caching is unavailable in that case.
+
+**Project structure:**
 ```
-├── index.html              # Main app shell
-├── manifest.json           # PWA configuration
+├── index.html                          # App shell — every screen lives here
+├── manifest.json                       # PWA configuration
+├── sw.js                               # Service worker (offline cache, versioned)
+├── AMS-Instructions-starter-library.json  # 205-instruction starter library
 ├── css/
-│   └── style.css          # Styling (dark mode, responsive)
-├── js/
-│   ├── app.js             # App initialization
-│   ├── db.js              # IndexedDB database helpers
-│   ├── qr.js              # QR code scanning
-│   └── ui.js              # Screen management & UI logic
-├── sw.js                  # Service worker (offline support)
-└── .claude/
-    └── launch.json        # Dev server config
+│   └── style.css                       # Styling (light/dark, responsive)
+├── icons/                              # App, maskable and favicon assets
+└── js/
+    ├── app.js                          # App-wide startup and mobile gesture guards
+    ├── ui.js                           # Screens, rendering, editors, APP_VERSION
+    ├── db.js                           # IndexedDB: instructions, people, audits,
+    │                                   #   actions, favorites, recents, settings
+    ├── qr.js                           # Camera number recognition (Tesseract.js OCR),
+    │                                   #   with manual entry as the fallback
+    ├── hybrid-storage.js               # On-device backup, two generations deep
+    ├── persistence.js                  # Recovery checks over those backup slots
+    └── version-sync.js                 # Detects a stale cache and reloads
 ```
 
-## Use Cases
+**Versioning:** `APP_VERSION` in `js/ui.js` and `CACHE_NAME` / `APP_VERSION` in `sw.js` must
+be bumped together — `version-sync.js` compares the running version against the served one
+and forces a reload when they drift. Asset links in `index.html` carry a cache-busting
+token that is refreshed on release.
 
-- **Bedtime (001):** Evening wind-down checklist
-- **Driving (002):** Pre-drive vehicle inspection
-- **Water (003):** Tank filling & maintenance
-- **Maintenance (004+):** Various RV systems
-- **Kitchen:** Appliance procedures
-- **Safety:** Emergency checklists
+## Data
+
+- **IndexedDB** holds instructions, people, audits, actions, favourites, recents and settings.
+- **localStorage** holds two generations of on-device backup (`hybrid-storage.js`), plus
+  small bits of UI state: open groups, sort order, step progress, the current run.
+- Nothing leaves the device unless you export it yourself.
 
 ## Version History
 
-**v1.0 (2026-08-12)**
-- Initial release with QR scanning, instruction management, favorites, and offline support
+**v40.0 (2026-08)** — Owner pills on list rows, coloured per person; four owner shapes;
+sorting the list; search across the whole instruction; photos beside their step;
+Library Health; Actions; Run a Set; backup verification.
 
-## Features in Detail
+**v1.0 (2026-08-12)** — Initial release: number scanning, instruction management,
+favourites, offline support.
 
-### QR Scanning
-- Uses jsQR library for real-time code detection
-- Fallback manual number entry if scanning fails
-- Auto-advances to instruction when code is recognized
-
-### Data Storage
-- IndexedDB for persistent local storage
-- Zero cloud dependency — your data stays on your device
-- Supports up to 999 unique instructions
-
-### Service Worker
-- Automatic offline caching
-- Works without internet connection
-- Cache invalidation & updates on new app versions
-
-### Categories & Styling
-- 6 built-in categories with color coding
-- Custom category support
-- Dark mode optimized for mobile
-
-## Tips
-
-- Use **Favorites (★)** for instructions you access frequently
-- **Recently Viewed** auto-populates as you scan codes
-- **Export** periodically to backup your instructions
-- **Search** by number, title, or category
+The full log is in the app: **Settings → Version Log**.
 
 ## Privacy
 
-AMS Instructions stores all data locally on your device. No data is sent to servers or external services.
+AMS Instructions stores all data locally on your device. No data is sent to servers or
+external services.
 
 ## License
 
