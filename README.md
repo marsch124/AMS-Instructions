@@ -4,7 +4,7 @@ A mobile-first PWA (Progressive Web App) for quick-reference step-by-step instru
 
 **Live:** https://marsch124.github.io/AMS-Instructions/
 
-> This repository also hosts **AMS Tracking**, a visual habit tracker PWA (daily check-offs plus start/stop timers such as intermittent fasting), at [`/tracking/`](https://marsch124.github.io/AMS-Instructions/tracking/) — see [tracking/README.md](tracking/README.md).
+> **AMS Tracking**, the visual habit tracker PWA that started here, now lives in its own repository: [marsch124/AMS-Tracking](https://github.com/marsch124/AMS-Tracking) (live at https://marsch124.github.io/AMS-Tracking/).
 
 ## Features
 
