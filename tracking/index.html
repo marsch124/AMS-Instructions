@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+    <meta name="theme-color" content="#f2f4f8" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#0d1117" media="(prefers-color-scheme: dark)">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="AMS Tracking">
+    <title>AMS Tracking</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="css/style.css?v=1">
+</head>
+<body>
+
+    <!-- ============ TODAY (main) SCREEN ============ -->
+    <main id="screen-today" class="screen">
+        <header class="topbar">
+            <button id="btn-settings" class="pill-btn icon-only" aria-label="Settings">⚙️</button>
+            <button id="btn-add" class="pill-btn icon-only accent" aria-label="Add habit">＋</button>
+        </header>
+        <h1 class="page-title">Today</h1>
+        <p id="today-date" class="page-subtitle"></p>
+
+        <div id="habit-list" class="habit-list"></div>
+
+        <div id="empty-state" class="empty-state" hidden>
+            <div class="empty-emoji">🌱</div>
+            <h2>No habits yet</h2>
+            <p>Tap <strong>＋</strong> to add your first habit.<br>
+               Daily check-offs and start/stop timers<br>(like intermittent fasting) are supported.</p>
+        </div>
+    </main>
+
+    <!-- ============ DETAIL SCREEN ============ -->
+    <main id="screen-detail" class="screen" hidden>
+        <header class="topbar">
+            <button id="btn-back" class="pill-btn" aria-label="Back">‹ Today</button>
+            <span></span>
+            <button id="btn-edit" class="pill-btn icon-only" aria-label="Edit habit">✏️</button>
+        </header>
+        <h1 id="detail-title" class="page-title"></h1>
+        <p id="detail-subtitle" class="page-subtitle"></p>
+        <div id="detail-body"></div>
+        <button id="btn-delete" class="danger-btn">Delete habit</button>
+    </main>
+
+    <!-- ============ ADD / EDIT SHEET ============ -->
+    <div id="sheet-edit" class="sheet-backdrop" hidden>
+        <div class="sheet">
+            <div class="sheet-handle"></div>
+            <h2 id="sheet-title">New habit</h2>
+
+            <label class="field-label" for="f-name">Name</label>
+            <input id="f-name" type="text" maxlength="40" placeholder="e.g. Meditate" autocomplete="off">
+
+            <label class="field-label">Icon</label>
+            <div id="f-icons" class="chip-row"></div>
+
+            <label class="field-label">Color</label>
+            <div id="f-colors" class="chip-row"></div>
+
+            <div id="f-type-wrap">
+                <label class="field-label">Type</label>
+                <div class="type-row">
+                    <button type="button" class="type-btn" data-type="daily">
+                        <span class="type-emoji">✔️</span>
+                        <span class="type-name">Daily check</span>
+                        <span class="type-desc">Tick it off once a day</span>
+                    </button>
+                    <button type="button" class="type-btn" data-type="timer">
+                        <span class="type-emoji">⏱️</span>
+                        <span class="type-name">Start / Stop</span>
+                        <span class="type-desc">One button toggles a timer, e.g. fasting</span>
+                    </button>
+                </div>
+            </div>
+
+            <div id="f-days-wrap">
+                <label class="field-label">On which days?</label>
+                <div id="f-days" class="chip-row"></div>
+            </div>
+
+            <div class="sheet-actions">
+                <button id="btn-sheet-cancel" class="ghost-btn">Cancel</button>
+                <button id="btn-sheet-save" class="primary-btn">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ============ SETTINGS SHEET ============ -->
+    <div id="sheet-settings" class="sheet-backdrop" hidden>
+        <div class="sheet">
+            <div class="sheet-handle"></div>
+            <h2>Settings</h2>
+            <button id="btn-export" class="list-btn">📤 Export backup (JSON)</button>
+            <button id="btn-import" class="list-btn">📥 Import backup</button>
+            <input id="import-file" type="file" accept="application/json,.json" hidden>
+            <p class="settings-note">All data is stored only on this device.<br><span id="app-version"></span></p>
+            <div class="sheet-actions">
+                <button id="btn-settings-close" class="ghost-btn">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/app.js?v=1"></script>
+</body>
+</html>

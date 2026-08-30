@@ -41,8 +41,9 @@ self.addEventListener('activate', (event) => {
             console.log('🔄 [SW Activate] Current cache:', CACHE_NAME, 'Found:', cacheNames);
             return Promise.all(
                 cacheNames.map((cacheName) => {
-                    // Delete ALL caches that don't match current version
-                    if (cacheName !== CACHE_NAME) {
+                    // Delete this app's outdated caches only — other apps hosted
+                    // under this origin (e.g. /tracking/) manage their own caches
+                    if (cacheName.startsWith('ams-instructions-') && cacheName !== CACHE_NAME) {
                         console.log('🗑️  [SW Activate] Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }

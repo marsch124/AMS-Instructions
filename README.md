@@ -4,6 +4,8 @@ A mobile-first PWA (Progressive Web App) for quick-reference step-by-step instru
 
 **Live:** https://marsch124.github.io/AMS-Instructions/
 
+> This repository also hosts **AMS Tracking**, a visual habit tracker PWA (daily check-offs plus start/stop timers such as intermittent fasting), at [`/tracking/`](https://marsch124.github.io/AMS-Instructions/tracking/) — see [tracking/README.md](tracking/README.md).
+
 ## Features
 
 - 📱 **QR Code Scanning** — Point at a label and instantly get step-by-step instructions
