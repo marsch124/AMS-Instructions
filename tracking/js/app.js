@@ -1,7 +1,7 @@
 /* AMS Tracking — simple, visual habit tracker (vanilla JS, localStorage) */
 'use strict';
 
-const APP_VERSION = '1.1';
+const APP_VERSION = '1.2';
 const STORE_KEY = 'amsTracking.v1';
 
 const PALETTE = [
@@ -153,8 +153,7 @@ function completionStats(habit) {
 /* ================= timer helpers ================= */
 
 function activeSession(habit) {
-    const s = (habit.sessions || [])[habit.sessions.length - 1];
-    return s && !s.e ? s : null;
+    return (habit.sessions || []).find(s => !s.e) || null;
 }
 
 function lastFinishedSession(habit) {
@@ -353,8 +352,13 @@ document.addEventListener('visibilitychange', () => {
 /* ================= detail screen ================= */
 
 let detailId = null;
+let calMonth = null; // {y, m} shown in the history calendar
 
-function openDetail(id) {
+function openDetail(id, keepMonth) {
+    if (!keepMonth || detailId !== id) {
+        const now = new Date();
+        calMonth = { y: now.getFullYear(), m: now.getMonth() };
+    }
     detailId = id;
     const habit = state.habits.find(h => h.id === id);
     if (!habit) return;
@@ -368,7 +372,10 @@ function openDetail(id) {
     const body = $('#detail-body');
     body.innerHTML = '';
 
-    // --- timer: session history first ---
+    // --- editable history calendar ---
+    body.appendChild(buildHistoryCard(habit));
+
+    // --- timer: session history ---
     if (habit.type === 'timer') {
         body.appendChild(buildSessionCard(habit));
     }
@@ -382,6 +389,123 @@ function openDetail(id) {
     });
 
     showScreen('detail');
+}
+
+/* Month calendar for fixing the past: tap a day to add a completion you
+   forgot to log, or remove one entered by mistake. Future days are locked. */
+function buildHistoryCard(habit) {
+    const card = document.createElement('div');
+    card.className = 'detail-card';
+
+    const head = document.createElement('div');
+    head.className = 'cal-head';
+    const title = document.createElement('h3');
+    title.textContent = new Date(calMonth.y, calMonth.m, 1)
+        .toLocaleDateString(undefined, { month: 'long', year: 'numeric' });
+    const nav = document.createElement('div');
+    nav.className = 'cal-nav';
+    const prev = document.createElement('button');
+    prev.className = 'pill-btn icon-only cal-nav-btn';
+    prev.innerHTML = icon('chevL');
+    prev.setAttribute('aria-label', 'Previous month');
+    const next = document.createElement('button');
+    next.className = 'pill-btn icon-only cal-nav-btn';
+    next.innerHTML = icon('chevR');
+    next.setAttribute('aria-label', 'Next month');
+    const now = new Date();
+    next.disabled = calMonth.y === now.getFullYear() && calMonth.m === now.getMonth();
+    prev.addEventListener('click', () => {
+        calMonth.m--;
+        if (calMonth.m < 0) { calMonth.m = 11; calMonth.y--; }
+        openDetail(habit.id, true);
+    });
+    next.addEventListener('click', () => {
+        calMonth.m++;
+        if (calMonth.m > 11) { calMonth.m = 0; calMonth.y++; }
+        openDetail(habit.id, true);
+    });
+    nav.appendChild(prev);
+    nav.appendChild(next);
+    head.appendChild(title);
+    head.appendChild(nav);
+    card.appendChild(head);
+
+    const hint = document.createElement('p');
+    hint.className = 'cal-hint';
+    hint.textContent = habit.type === 'timer'
+        ? 'Tap a day to record a forgotten fast, or to remove one.'
+        : 'Tap a day to check it off late, or to remove a mistake.';
+    card.appendChild(hint);
+
+    const grid = document.createElement('div');
+    grid.className = 'cal-grid';
+    DAY_NAMES.forEach(n => {
+        const el = document.createElement('span');
+        el.className = 'cal-dow';
+        el.textContent = n;
+        grid.appendChild(el);
+    });
+
+    const done = doneSet(habit);
+    const todayKey = dateKey(now);
+    const first = new Date(calMonth.y, calMonth.m, 1);
+    for (let i = 0; i < weekdayIdx(first); i++) {
+        grid.appendChild(document.createElement('span'));
+    }
+    const daysInMonth = new Date(calMonth.y, calMonth.m + 1, 0).getDate();
+    for (let day = 1; day <= daysInMonth; day++) {
+        const d = new Date(calMonth.y, calMonth.m, day);
+        const key = dateKey(d);
+        const el = document.createElement('button');
+        el.className = 'cal-day';
+        el.textContent = day;
+        if (key > todayKey) {
+            el.disabled = true;
+        } else {
+            if (done[key]) {
+                el.classList.add('on');
+                el.style.background = habit.color;
+            } else if (!isScheduled(habit, d)) {
+                el.classList.add('off-day');
+            }
+            if (key === todayKey) el.style.boxShadow = `inset 0 0 0 2px ${habit.color}`;
+            el.addEventListener('click', () => toggleHistoryDay(habit, d, !!done[key]));
+        }
+        grid.appendChild(el);
+    }
+    card.appendChild(grid);
+    return card;
+}
+
+function toggleHistoryDay(habit, d, wasDone) {
+    const key = dateKey(d);
+    if (habit.type === 'daily') {
+        habit.done = habit.done || {};
+        if (wasDone) delete habit.done[key];
+        else habit.done[key] = 1;
+    } else if (wasDone) {
+        const victims = (habit.sessions || []).filter(s => s.e && dateKey(new Date(s.e)) === key);
+        const label = victims.length === 1
+            ? `the ${fmtDuration(victims[0].e - victims[0].s)} h fast`
+            : `${victims.length} fasts`;
+        if (!confirm(`Remove ${label} recorded on ${d.toLocaleDateString()}?`)) return;
+        habit.sessions = habit.sessions.filter(s => !victims.includes(s));
+    } else {
+        const answer = prompt(`How many hours did you fast on ${d.toLocaleDateString()}?`, '16');
+        if (answer === null) return;
+        const hours = parseFloat(String(answer).replace(',', '.'));
+        if (!isFinite(hours) || hours <= 0 || hours > 48) {
+            alert('Please enter a fast length between 0 and 48 hours.');
+            return;
+        }
+        // Record it as ending at noon of that day, so it counts for that day
+        const end = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12).getTime();
+        habit.sessions = habit.sessions || [];
+        habit.sessions.push({ s: end - hours * 3600e3, e: end });
+        habit.sessions.sort((a, b) => a.s - b.s);
+    }
+    save();
+    openDetail(habit.id, true);
 }
 
 function buildYearCard(habit, done, year) {

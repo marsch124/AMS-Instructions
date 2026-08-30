@@ -12,7 +12,7 @@
     <link rel="manifest" href="manifest.json">
     <link rel="icon" type="image/png" sizes="64x64" href="icons/favicon-64.png">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
-    <link rel="stylesheet" href="css/style.css?v=2">
+    <link rel="stylesheet" href="css/style.css?v=3">
 </head>
 <body>
 
@@ -106,6 +106,7 @@
                     <p><strong>Daily habits</strong> — tap the big circle on a card to check the habit off for today; tap again to undo. The flame shows your current streak: consecutive scheduled days completed. Today doesn't break the streak until it's over.</p>
                     <p><strong>Start/stop habits</strong> (intermittent fasting) — the same button does both: tap <span data-hi="play" class="hi-inline"></span> in the evening to start the fast, and tap <span data-hi="stop" class="hi-inline"></span> when you eat again. While fasting, the card shows the live elapsed time; afterwards it shows how long your last fast was. A fast counts for the day it <em>ends</em> on.</p>
                     <p><strong>Week dots</strong> — the M–S dots show this week (Monday first); filled dots are completed days, dimmed dots are days the habit isn't scheduled, and the ratio (e.g. 5/7) is completed / scheduled this week.</p>
+                    <p><strong>Fixing the past</strong> — in a habit's detail view, the month calendar is editable: tap any past day to check it off late (you did it but forgot to log it) or tap a filled day to remove a mistaken entry. For fasting, tapping an empty day asks how long the fast was; tapping a filled day removes that day's fast. Use the arrows to move back through months; future days are locked. Streaks and stats update immediately.</p>
                     <p><strong>Details</strong> — tap anywhere else on a card for the year-by-year pixel grid, current and longest streak, and completion&nbsp;%. Timer habits also list recent fasts with average and longest duration; tap <span data-hi="x" class="hi-inline"></span> to remove a misrecorded fast. Stopping a fast under 5 minutes asks first, so a stray tap doesn't ruin one.</p>
                     <p><strong>Adding &amp; editing</strong> — ＋ creates a habit with a name, icon, color, and type; daily habits can be limited to certain weekdays. The pencil <span data-hi="pencil" class="hi-inline"></span> in the detail view edits it (the type is fixed once created).</p>
                     <p><strong>Your data</strong> — everything is stored only on this device. Use Export for a JSON backup and Import to restore it, e.g. on a new phone.</p>
@@ -115,6 +116,13 @@
             <details class="fold">
                 <summary><span class="fold-title"><span data-hi="scroll"></span> Version history</span></summary>
                 <div class="fold-body" id="version-history">
+                    <h4>v1.2 <span class="vh-date">— 30 Aug 2026</span></h4>
+                    <p>Edit the past.</p>
+                    <ul>
+                        <li><strong>Editable history calendar</strong> — each habit's detail view now starts with a month calendar where any past day can be toggled: tap an empty day to check it off late, tap a filled day to remove an entry made by mistake. Arrows navigate back through earlier months; future days are locked, today is outlined.</li>
+                        <li><strong>Backfilled fasts</strong> — for start/stop habits, tapping an empty past day asks for the fast's length in hours and records it against that day; tapping a filled day removes the fast(s) recorded there, after confirmation.</li>
+                        <li>Streaks, week dots, pixel grids, and completion stats all recompute immediately after an edit.</li>
+                    </ul>
                     <h4>v1.1 <span class="vh-date">— 30 Aug 2026</span></h4>
                     <p>Hand-drawn icons.</p>
                     <ul>
@@ -144,7 +152,7 @@
         </div>
     </div>
 
-    <script src="js/icons.js?v=2"></script>
-    <script src="js/app.js?v=2"></script>
+    <script src="js/icons.js?v=3"></script>
+    <script src="js/app.js?v=3"></script>
 </body>
 </html>
