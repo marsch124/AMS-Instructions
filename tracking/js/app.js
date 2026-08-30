@@ -1,7 +1,7 @@
 /* AMS Tracking — simple, visual habit tracker (vanilla JS, localStorage) */
 'use strict';
 
-const APP_VERSION = '1.0';
+const APP_VERSION = '1.1';
 const STORE_KEY = 'amsTracking.v1';
 
 const PALETTE = [
@@ -15,13 +15,20 @@ const PALETTE = [
     '#c9a227'  // yellow
 ];
 
-const ICONS = ['🧘', '💪', '📖', '🎸', '🏃', '🌅', '📚', '🌙', '💧', '🥗', '🚴', '✍️', '🦷', '🧹', '☀️', '⏱️'];
-
 const DAY_NAMES = ['M', 'T', 'W', 'T', 'F', 'S', 'S']; // Monday-first
 
 /* ================= storage ================= */
 
 let state = load();
+migrate(state);
+
+/* v1.0 stored emoji as habit icons; map them to hand-drawn icon names */
+function migrate(st) {
+    (st.habits || []).forEach(h => {
+        if (EMOJI_TO_ICON[h.icon]) h.icon = EMOJI_TO_ICON[h.icon];
+        else if (!ICON_PATHS[h.icon]) h.icon = 'sun';
+    });
+}
 
 function load() {
     try {
@@ -36,7 +43,7 @@ function load() {
         habits: [{
             id: newId(),
             name: 'Intermittent Fasting',
-            icon: '🌙',
+            icon: 'moon',
             color: '#7a5af8',
             type: 'timer',
             days: [true, true, true, true, true, true, true],
@@ -206,22 +213,21 @@ function buildCard(habit) {
     if (habit.type === 'daily') {
         if (doneToday) {
             btn.style.background = habit.color;
-            btn.textContent = '✓';
+            btn.innerHTML = icon('check');
         } else {
             btn.classList.add('undone');
             btn.style.color = habit.color;
-            btn.textContent = '';
         }
     } else {
         if (active) {
             btn.classList.add('running');
             btn.style.background = habit.color;
             btn.style.setProperty('--pulse', tint(habit.color, 30));
-            btn.textContent = '⏹';
+            btn.innerHTML = icon('stop');
         } else {
             btn.classList.add('undone');
             btn.style.color = habit.color;
-            btn.textContent = '▶';
+            btn.innerHTML = icon('play');
         }
     }
     btn.addEventListener('click', (e) => {
@@ -235,7 +241,7 @@ function buildCard(habit) {
     main.className = 'habit-main';
     const name = document.createElement('p');
     name.className = 'habit-name';
-    name.innerHTML = `<span class="habit-icon">${habit.icon || ''}</span>${escapeHtml(habit.name)}`;
+    name.innerHTML = `<span class="habit-icon" style="color:${habit.color}">${icon(habit.icon)}</span>${escapeHtml(habit.name)}`;
     main.appendChild(name);
     main.appendChild(buildWeekDots(habit, done));
 
@@ -249,7 +255,7 @@ function buildCard(habit) {
 
     if (habit.type === 'daily') {
         const streak = currentStreak(habit);
-        num.innerHTML = `${streak} <span class="flame">🔥</span>`;
+        num.innerHTML = `${streak}${icon('flame', 'flame')}`;
         num.style.color = habit.color;
         label.textContent = streak === 1 ? 'day' : 'days';
     } else {
@@ -264,7 +270,7 @@ function buildCard(habit) {
                 num.textContent = fmtDuration(last.e - last.s);
                 label.textContent = 'last fast';
             } else {
-                num.textContent = '▶';
+                num.innerHTML = icon('play');
                 label.textContent = 'tap to start';
             }
         }
@@ -353,7 +359,8 @@ function openDetail(id) {
     const habit = state.habits.find(h => h.id === id);
     if (!habit) return;
 
-    $('#detail-title').textContent = `${habit.icon || ''} ${habit.name}`.trim();
+    $('#detail-title').innerHTML =
+        `<span class="habit-icon" style="color:${habit.color}">${icon(habit.icon)}</span>${escapeHtml(habit.name)}`;
     $('#detail-subtitle').textContent = habit.type === 'timer'
         ? 'Start / stop timer habit'
         : 'Daily habit';
@@ -455,7 +462,7 @@ function buildSessionCard(habit) {
     const recent = finished.slice(-10).reverse();
     if (!recent.length) {
         const li = document.createElement('li');
-        li.innerHTML = '<span class="session-when">No completed fasts yet — press ▶ on the card to start one.</span>';
+        li.innerHTML = '<span class="session-when">No completed fasts yet — press the round button on the card to start one.</span>';
         ul.appendChild(li);
     }
     recent.forEach(s => {
@@ -464,7 +471,7 @@ function buildSessionCard(habit) {
         del.className = 'pill-btn icon-only';
         del.style.width = del.style.height = '30px';
         del.style.fontSize = '13px';
-        del.textContent = '✕';
+        del.innerHTML = icon('x');
         del.setAttribute('aria-label', 'Delete this fast');
         del.addEventListener('click', () => {
             if (!confirm('Delete this recorded fast?')) return;
@@ -505,7 +512,7 @@ function showScreen(which) {
 
 const sheet = {
     editingId: null,
-    icon: ICONS[0],
+    icon: ICON_NAMES_HABIT[0],
     color: PALETTE[0],
     type: 'daily',
     days: [true, true, true, true, true, true, true]
@@ -514,7 +521,7 @@ const sheet = {
 function openSheet(editId) {
     sheet.editingId = editId || null;
     const habit = editId ? state.habits.find(h => h.id === editId) : null;
-    sheet.icon = habit ? habit.icon : ICONS[0];
+    sheet.icon = habit ? habit.icon : ICON_NAMES_HABIT[0];
     sheet.color = habit ? habit.color : PALETTE[state.habits.length % PALETTE.length];
     sheet.type = habit ? habit.type : 'daily';
     sheet.days = habit && habit.days ? [...habit.days] : [true, true, true, true, true, true, true];
@@ -530,11 +537,11 @@ function renderSheetChips() {
     // icons
     const iconRow = $('#f-icons');
     iconRow.innerHTML = '';
-    ICONS.forEach(ic => {
+    ICON_NAMES_HABIT.forEach(ic => {
         const c = document.createElement('button');
         c.type = 'button';
         c.className = 'chip' + (ic === sheet.icon ? ' sel' : '');
-        c.textContent = ic;
+        c.innerHTML = icon(ic);
         c.addEventListener('click', () => { sheet.icon = ic; renderSheetChips(); });
         iconRow.appendChild(c);
     });
@@ -666,6 +673,8 @@ if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('sw.js').catch(err => console.error('SW registration failed', err));
     });
 }
+
+document.querySelectorAll('[data-hi]').forEach(el => { el.innerHTML = icon(el.dataset.hi); });
 
 save();
 renderToday();

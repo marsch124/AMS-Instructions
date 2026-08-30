@@ -1,10 +1,11 @@
-const CACHE_NAME = 'ams-tracking-v1';
+const CACHE_NAME = 'ams-tracking-v2';
 
 const urlsToCache = [
     '/AMS-Instructions/tracking/',
     '/AMS-Instructions/tracking/index.html',
     '/AMS-Instructions/tracking/css/style.css',
     '/AMS-Instructions/tracking/js/app.js',
+    '/AMS-Instructions/tracking/js/icons.js',
     '/AMS-Instructions/tracking/manifest.json',
     '/AMS-Instructions/tracking/icons/icon-192.png',
     '/AMS-Instructions/tracking/icons/icon-512.png',
