@@ -15,6 +15,7 @@ An easy-to-use, visually pleasing habit tracker PWA. The main screen shows the t
 - 🎨 **8 colors and emoji icons** per habit, automatic dark mode
 - 📡 **Fully offline** — installable PWA, all data stays on the device (localStorage)
 - 💾 **Backup** — export/import all data as JSON from Settings
+- ❓ **In-app help** — collapsible "How it works" and version history sections under Settings
 
 ## Usage
 

@@ -99,6 +99,37 @@
             <button id="btn-export" class="list-btn">📤 Export backup (JSON)</button>
             <button id="btn-import" class="list-btn">📥 Import backup</button>
             <input id="import-file" type="file" accept="application/json,.json" hidden>
+
+            <details class="fold">
+                <summary>❓ How it works</summary>
+                <div class="fold-body">
+                    <p><strong>Daily habits</strong> — tap the big circle on a card to check the habit off for today; tap again to undo. The flame shows your current streak: consecutive scheduled days completed. Today doesn't break the streak until it's over.</p>
+                    <p><strong>Start/stop habits</strong> (intermittent fasting) — the same button does both: tap ▶ in the evening to start the fast, and tap ⏹ when you eat again. While fasting, the card shows the live elapsed time; afterwards it shows how long your last fast was. A fast counts for the day it <em>ends</em> on.</p>
+                    <p><strong>Week dots</strong> — the M–S dots show this week (Monday first); filled dots are completed days, dimmed dots are days the habit isn't scheduled, and the ratio (e.g. 5/7) is completed / scheduled this week.</p>
+                    <p><strong>Details</strong> — tap anywhere else on a card for the year-by-year pixel grid, current and longest streak, and completion&nbsp;%. Timer habits also list recent fasts with average and longest duration; tap ✕ to remove a misrecorded fast. Stopping a fast under 5 minutes asks first, so a stray tap doesn't ruin one.</p>
+                    <p><strong>Adding &amp; editing</strong> — ＋ creates a habit with a name, icon, color, and type; daily habits can be limited to certain weekdays. ✏️ in the detail view edits it (the type is fixed once created).</p>
+                    <p><strong>Your data</strong> — everything is stored only on this device. Use Export for a JSON backup and Import to restore it, e.g. on a new phone.</p>
+                </div>
+            </details>
+
+            <details class="fold">
+                <summary>📋 Version history</summary>
+                <div class="fold-body" id="version-history">
+                    <h4>v1.0 <span class="vh-date">— 30 Aug 2026</span></h4>
+                    <p>Initial release of AMS Tracking.</p>
+                    <ul>
+                        <li><strong>Today overview</strong> — all habits as colored cards in one scrolling area: emoji icon, habit color, check circle, current streak with 🔥, and Monday-first week dots with a completed/scheduled ratio.</li>
+                        <li><strong>Daily habit type</strong> — one tap checks off today, one tap undoes it; optional weekday scheduling (e.g. Mon/Wed/Fri only) where off-days neither count nor break streaks.</li>
+                        <li><strong>Start/stop timer habit type</strong> — built for intermittent fasting: a single toggle button starts the fast in the evening and stops it when eating again; the card shows the live elapsed time (h:mm) while running and the last fast's duration when stopped. An "Intermittent Fasting" habit is pre-created on first launch.</li>
+                        <li><strong>Fast history</strong> — the detail view lists the last 10 fasts with date and duration, plus average, longest, and total count; individual fasts can be deleted. Accidental stops under 5 minutes require confirmation.</li>
+                        <li><strong>Pixel year view</strong> — a "365 days, pixel by pixel" grid per year (all years with data), with current streak, longest streak, and completion percentage.</li>
+                        <li><strong>Habit management</strong> — create and edit habits with 16 emoji icons and an 8-color palette; delete with confirmation removes the habit and its history.</li>
+                        <li><strong>Backup</strong> — export all data as a JSON file and import it back, with a confirmation before anything is replaced.</li>
+                        <li><strong>App platform</strong> — installable PWA with generated icons, offline via service worker (network-first pages so updates arrive), automatic light/dark mode, and all data kept in local storage on the device — no servers, no accounts.</li>
+                    </ul>
+                </div>
+            </details>
+
             <p class="settings-note">All data is stored only on this device.<br><span id="app-version"></span></p>
             <div class="sheet-actions">
                 <button id="btn-settings-close" class="ghost-btn">Close</button>

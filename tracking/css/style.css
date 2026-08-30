@@ -443,6 +443,49 @@ html, body {
     cursor: pointer;
 }
 
+/* collapsible info sections (Settings) */
+.fold {
+    background: var(--surface);
+    border-radius: 14px;
+    box-shadow: var(--shadow);
+    margin-bottom: 10px;
+}
+
+.fold summary {
+    list-style: none;
+    padding: 15px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.fold summary::-webkit-details-marker { display: none; }
+
+.fold summary::after {
+    content: "›";
+    font-size: 20px;
+    color: var(--text-dim);
+    transition: transform 0.15s ease;
+}
+
+.fold[open] summary::after { transform: rotate(90deg); }
+
+.fold-body {
+    padding: 0 15px 6px;
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--text);
+}
+
+.fold-body p, .fold-body ul { margin: 0 0 10px; }
+.fold-body ul { padding-left: 20px; }
+.fold-body li { margin-bottom: 7px; }
+.fold-body h4 { margin: 4px 0 6px; font-size: 15.5px; }
+.fold-body .vh-date { color: var(--text-dim); font-weight: 500; }
+
 .settings-note {
     color: var(--text-dim);
     font-size: 13px;
