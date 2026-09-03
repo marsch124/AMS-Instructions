@@ -142,6 +142,8 @@ const Sound = (() => {
 
 function vibrate(pattern) {
     if (!Store.getSettings().vibrate) return;
+    // Browsers ignore vibration before the first tap (e.g. a session restored on reload).
+    if (navigator.userActivation && !navigator.userActivation.hasBeenActive) return;
     try { if (navigator.vibrate) navigator.vibrate(pattern); } catch (e) { /* ignore */ }
 }
 

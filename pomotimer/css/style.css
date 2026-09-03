@@ -310,7 +310,16 @@ input[type="text"], input[type="number"], select {
     outline: none;
 }
 input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
-select { appearance: none; -webkit-appearance: none; }
+/* Native dropdown arrow is replaced with a hand-drawn chevron */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    padding-right: 2.2rem;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23b9b1e0' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9.4l6.1 6.2 5.9-6.2'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 0.7rem center;
+    background-size: 1.1rem;
+}
 
 /* ---------- Cards ---------- */
 .card {
