@@ -4,6 +4,8 @@ A mobile-first PWA (Progressive Web App) for quick-reference step-by-step instru
 
 **Live:** https://marsch124.github.io/AMS-Instructions/
 
+> **Also in this repo:** [AMS PomoTimer](pomotimer/README.md) — a phased Pomodoro timer PWA (start-up, preparation, Pomodoro, pause, cool-down) with templates and quick start. Live at https://marsch124.github.io/AMS-Instructions/pomotimer/
+
 ## Features
 
 - 📱 **QR Code Scanning** — Point at a label and instantly get step-by-step instructions
