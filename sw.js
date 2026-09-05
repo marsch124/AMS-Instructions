@@ -1,5 +1,8 @@
-const CACHE_NAME = 'ams-instructions-v41';
-const APP_VERSION = '41.0';
+const APP_VERSION = '41.1';
+/* The store is named after the app version, and clearing out old copies only
+   ever touches ours — the sibling AMS apps share this web address. */
+const CACHE_PREFIX = 'ams-instructions-v';
+const CACHE_NAME = CACHE_PREFIX + APP_VERSION;
 
 const urlsToCache = [
     '/AMS-Instructions/',
@@ -41,8 +44,8 @@ self.addEventListener('activate', (event) => {
             console.log('🔄 [SW Activate] Current cache:', CACHE_NAME, 'Found:', cacheNames);
             return Promise.all(
                 cacheNames.map((cacheName) => {
-                    // Delete ALL caches that don't match current version
-                    if (cacheName !== CACHE_NAME) {
+                    // Delete our OWN older caches — never a sibling app's
+                    if (cacheName.startsWith(CACHE_PREFIX) && cacheName !== CACHE_NAME) {
                         console.log('🗑️  [SW Activate] Deleting old cache:', cacheName);
                         return caches.delete(cacheName);
                     }
