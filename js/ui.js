@@ -1,4 +1,4 @@
-const APP_VERSION = '41.15';
+const APP_VERSION = '41.16';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -1449,6 +1449,9 @@ function renderSortPanel() {
         const row = document.createElement('button');
         row.className = 'sort-option' + (option.key === active.key ? ' on' : '');
         row.type = 'button';
+        row.dataset.testid = 'sort-option';
+        row.dataset.key = option.key;
+        row.dataset.on = option.key === active.key ? '1' : '0';
 
         const tick = document.createElement('span');
         tick.className = 'sort-tick';
@@ -1485,7 +1488,10 @@ function renderSortPanel() {
 // mystery — the answer is written on the control that caused it.
 function updateSortButton() {
     const btn = document.getElementById('sortBtn');
-    if (btn) btn.textContent = '↕ ' + currentSort().short + ' ▾';
+    if (!btn) return;
+    btn.textContent = '↕ ' + currentSort().short + ' ▾';
+    // Which order is in force, as data — the button's words are for you.
+    btn.dataset.sort = currentSort().key;
 }
 
 function toggleSortPanel(force) {

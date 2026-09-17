@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.15&t=1789648143-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.16&t=1789651493-9543933">
 </head>
 <body>
     <!--
@@ -698,7 +698,7 @@
                 <button id="filterBtn" data-testid="filter-open" class="filter-btn" aria-expanded="false" aria-controls="filterPanel">
                     <svg class="filter-glyph" aria-hidden="true"><use href="#icon-filter"/></svg>
                     <span>Filter</span>
-                    <span id="filterCount" class="filter-btn-count" hidden>0</span>
+                    <span id="filterCount" data-testid="filter-count" class="filter-btn-count" hidden>0</span>
                 </button>
             </div>
 
@@ -1577,6 +1577,12 @@
         <div class="how-it-works-content">
                 <section class="version-log">
                     <div class="version-entry">
+                        <p><strong>v41.16 (2026-09-17) - FINDING THINGS IS TESTED TOO</strong></p>
+                        <p>Nothing changes on screen. A seventeenth automatic test covers the filters and the sort order, which carry two <strong>opposite</strong> decisions that would be easy to swap by accident. A sort order is <strong>remembered</strong> between visits — it hides nothing, and re-picking "most overdue first" every time would be a daily annoyance. A filter is <strong>dropped</strong> every time you arrive at the Instructions tab — it hides things, and being left on one without noticing is exactly how a library comes to look as though it has lost instructions.</p>
+                        <p>So the test writes three instructions whose number order is the exact reverse of their title order, checks they come out by number, switches to Title A–Z and checks they genuinely turn round, and checks that order is still in force after the app is closed and reopened. Then it switches a filter on, checks the app <strong>says</strong> so — the count on the Filter button and a Clear filters button — leaves the tab and comes back, and insists the whole library is showing again.</p>
+                        <p>Proved three ways: the sort order forgotten, a filter that stays on silently, and the count that says a filter is on suppressed. All three went red.</p>
+                    </div>
+                    <div class="version-entry">
                         <p><strong>v41.15 (2026-09-17) - ARCHIVING IS TESTED TOO</strong></p>
                         <p>Nothing changes on screen. A sixteenth automatic test covers <strong>Archived</strong> — the status you give something you want to keep but not be nagged about. The test lets a daily job go genuinely overdue, archives it, and insists the nagging stops at once and stays stopped on every start afterwards.</p>
                         <p>Then the other half, which matters just as much: an archive you cannot open again is only a delete with extra steps. It opens the filter panel, checks the <strong>Archived</strong> chip counts the instruction, taps it, and checks the instruction is listed and opens properly. Last it takes it back out of the archive and checks it goes back on the list — the decision has to be reversible, which is the whole reason the status exists rather than deleting things.</p>
@@ -2227,12 +2233,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.15&t=1789648143-9543933"></script>
-    <script src="js/qr.js?v=41.15&t=1789648143-9543933"></script>
-    <script src="js/version-sync.js?v=41.15&t=1789648143-9543933"></script>
-    <script src="js/persistence.js?v=41.15&t=1789648143-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.15&t=1789648143-9543933"></script>
-    <script src="js/ui.js?v=41.15&t=1789648143-9543933"></script>
-    <script src="js/app.js?v=41.15&t=1789648143-9543933"></script>
+    <script src="js/db.js?v=41.16&t=1789651493-9543933"></script>
+    <script src="js/qr.js?v=41.16&t=1789651493-9543933"></script>
+    <script src="js/version-sync.js?v=41.16&t=1789651493-9543933"></script>
+    <script src="js/persistence.js?v=41.16&t=1789651493-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.16&t=1789651493-9543933"></script>
+    <script src="js/ui.js?v=41.16&t=1789651493-9543933"></script>
+    <script src="js/app.js?v=41.16&t=1789651493-9543933"></script>
 </body>
 </html>
