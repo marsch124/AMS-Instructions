@@ -1,4 +1,4 @@
-const APP_VERSION = '41.5';
+const APP_VERSION = '41.6';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -617,6 +617,7 @@ function renderDoneLog(instruction) {
     log.forEach(entry => {
         const div = document.createElement('div');
         div.className = 'history-entry done-entry';
+        div.dataset.testid = 'done-entry';
 
         const when = document.createElement('div');
         when.className = 'history-date';
@@ -908,6 +909,7 @@ function choosePerson(title, message, people) {
         people.forEach(person => {
             const row = document.createElement('button');
             row.className = 'choice-option';
+            row.dataset.testid = 'choice-option';
             row.type = 'button';
             row.appendChild(ownerPill(person.name));
             row.addEventListener('click', () => close(person));
@@ -916,6 +918,7 @@ function choosePerson(title, message, people) {
 
         const none = document.createElement('button');
         none.className = 'choice-option choice-none';
+        none.dataset.testid = 'choice-none';
         none.type = 'button';
         none.textContent = people.length > 0 ? 'Don\'t record a name' : 'Nobody is in your People list yet';
         none.addEventListener('click', () => close(null));

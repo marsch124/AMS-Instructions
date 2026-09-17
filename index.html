@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.5&t=1789635046-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.6&t=1789635224-9543933">
 </head>
 <body>
     <!--
@@ -443,11 +443,11 @@
             <div class="quick-info-row">
                 <div class="info-item">
                     <span class="info-label">Completed:</span>
-                    <span id="instructionCompletionCount" class="info-value">0 times</span>
+                    <span id="instructionCompletionCount" data-testid="completion-count" class="info-value">0 times</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Last Done:</span>
-                    <span id="instructionLastCompleted" class="info-value">Never</span>
+                    <span id="instructionLastCompleted" data-testid="last-completed" class="info-value">Never</span>
                 </div>
                 <div class="info-item">
                     <span class="info-label">Next Due:</span>
@@ -576,13 +576,13 @@
 
             <!-- Done History -->
             <section class="instruction-section">
-                <div id="doneLogToggle" class="section-toggle">
+                <div id="doneLogToggle" data-testid="fold-done-log" class="section-toggle">
                     <h3><svg class="head-glyph" aria-hidden="true"><use href="#icon-due"/></svg><span>Done History</span></h3>
                     <span class="preview-indicator" id="doneLogPreview"></span>
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div id="doneLogContent" class="section-content">
-                    <div id="instructionDoneLog" class="history-list"></div>
+                    <div id="instructionDoneLog" data-testid="done-log" class="history-list"></div>
                 </div>
             </section>
 
@@ -632,7 +632,7 @@
 
             <!-- Buttons -->
             <div class="instruction-buttons">
-                <button id="doneBtn" class="btn-done">✓ Mark Done</button>
+                <button id="doneBtn" data-testid="instruction-done" class="btn-done">✓ Mark Done</button>
                 <button id="shareBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-share"/></svg><span>Share</span></button>
                 <button id="editInstructionBtn" data-testid="instruction-edit" class="btn-secondary">Edit</button>
             </div>
@@ -861,7 +861,7 @@
         </header>
 
         <div class="list-content">
-            <div id="peopleList" class="full-instructions-list">
+            <div id="peopleList" data-testid="people-list" class="full-instructions-list">
                 <p class="empty-state">No people yet.</p>
             </div>
         </div>
@@ -880,7 +880,7 @@
                 <h3>Contact Info</h3>
                 <div class="form-group">
                     <label for="personEditorName">Name *</label>
-                    <input id="personEditorName" type="text" placeholder="e.g., Martin">
+                    <input id="personEditorName" data-testid="person-name" type="text" placeholder="e.g., Martin">
                 </div>
                 <div class="form-group">
                     <label for="personEditorPhone">Phone</label>
@@ -897,7 +897,7 @@
             </div>
 
             <div class="editor-buttons">
-                <button id="savePersonBtn" class="btn-primary">Save Person</button>
+                <button id="savePersonBtn" data-testid="person-save" class="btn-primary">Save Person</button>
                 <button id="deletePersonBtn" class="btn-danger" style="display: none;">Delete Person</button>
             </div>
         </div>
@@ -1577,6 +1577,11 @@
         <div class="how-it-works-content">
                 <section class="version-log">
                     <div class="version-entry">
+                        <p><strong>v41.6 (2026-09-17) - WHO DID IT IS TESTED TOO</strong></p>
+                        <p>Nothing changes on screen. A sixth automatic test guards the thing this app exists for on a shared job: <strong>the record of who did it</strong>. It adds a person, writes an instruction, taps Mark Done, picks that person when asked, and then insists the name is on the job, the counter says once, and the Done History holds one entry with that name on it. Then it restarts the app and insists all of it is still there — written down, not merely on screen.</p>
+                        <p>The second half holds the app to its own promise: asked once, remembered after. The second Mark Done must ask nothing at all and must still land under the same name. It was proved by throwing the name away on saving, and by making the app forget who — both went red.</p>
+                    </div>
+                    <div class="version-entry">
                         <p><strong>v41.5 (2026-09-17) - THE TO-DOS ARE TESTED TOO</strong></p>
                         <p>Nothing changes on screen. A fifth automatic test joins the others: it writes a to-do with a priority and a due date, checks it appears in the open list, <strong>ticks it off with one tap</strong> and checks it moves into the Done fold — then restarts the app and checks it is <em>still</em> ticked, because done has to be a saved fact and not just something the screen remembers. Last of all it taps the tick again and checks the to-do comes back, since a tick should never be a trap.</p>
                         <p>It was proved by breaking ticking and by making the editor drop the title — both went red.</p>
@@ -2145,13 +2150,13 @@
     <!-- Pick one person from a list. Used by Mark Done, and by the correction
          offered straight afterwards. Cancel is the only way out that records
          nobody, so a mis-tap never silently credits the wrong person. -->
-    <div id="choiceModal" class="modal" hidden>
+    <div id="choiceModal" data-testid="choice-modal" class="modal" hidden>
         <div class="modal-content">
             <h3 id="choiceTitle">Who did it?</h3>
             <p id="choiceMessage" class="choice-message"></p>
-            <div id="choiceOptions" class="choice-options"></div>
+            <div id="choiceOptions" data-testid="choice-options" class="choice-options"></div>
             <div class="modal-buttons">
-                <button id="choiceCancel" class="btn-secondary">Cancel</button>
+                <button id="choiceCancel" data-testid="choice-cancel" class="btn-secondary">Cancel</button>
             </div>
         </div>
     </div>
@@ -2168,12 +2173,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.5&t=1789635046-9543933"></script>
-    <script src="js/qr.js?v=41.5&t=1789635046-9543933"></script>
-    <script src="js/version-sync.js?v=41.5&t=1789635046-9543933"></script>
-    <script src="js/persistence.js?v=41.5&t=1789635046-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.5&t=1789635046-9543933"></script>
-    <script src="js/ui.js?v=41.5&t=1789635046-9543933"></script>
-    <script src="js/app.js?v=41.5&t=1789635046-9543933"></script>
+    <script src="js/db.js?v=41.6&t=1789635224-9543933"></script>
+    <script src="js/qr.js?v=41.6&t=1789635224-9543933"></script>
+    <script src="js/version-sync.js?v=41.6&t=1789635224-9543933"></script>
+    <script src="js/persistence.js?v=41.6&t=1789635224-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.6&t=1789635224-9543933"></script>
+    <script src="js/ui.js?v=41.6&t=1789635224-9543933"></script>
+    <script src="js/app.js?v=41.6&t=1789635224-9543933"></script>
 </body>
 </html>
