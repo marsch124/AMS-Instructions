@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.2&t=1789633394-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.3&t=1789634538-9543933">
 </head>
 <body>
     <!--
@@ -342,7 +342,7 @@
     <!-- Scan Screen -->
     <div id="scanScreen" class="screen">
         <header class="app-header">
-            <button id="backFromScanBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromScanBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2>Seek the Answer</h2>
             <div></div>
         </header>
@@ -371,7 +371,7 @@
     <!-- Instruction Screen -->
     <div id="instructionScreen" class="screen">
         <header class="app-header">
-            <button id="backFromInstructionBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromInstructionBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <span id="instructionNumber" class="instruction-number">001</span>
             <button id="favoriteBtn" class="icon-btn favorite-toggle" aria-label="Add to favorites">☆</button>
         </header>
@@ -634,7 +634,7 @@
             <div class="instruction-buttons">
                 <button id="doneBtn" class="btn-done">✓ Mark Done</button>
                 <button id="shareBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-share"/></svg><span>Share</span></button>
-                <button id="editInstructionBtn" class="btn-secondary">Edit</button>
+                <button id="editInstructionBtn" data-testid="instruction-edit" class="btn-secondary">Edit</button>
             </div>
         </div>
     </div>
@@ -651,27 +651,27 @@
             <div class="settings-section">
                 <h3>Checklists</h3>
                 <button id="runSetBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-run"/></svg><span>Run a Set</span></button>
-                <button id="healthBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-health"/></svg><span>Library Health</span></button>
+                <button id="healthBtn" data-testid="go-health" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-health"/></svg><span>Library Health</span></button>
             </div>
 
             <div class="settings-section">
                 <h3>People</h3>
-                <button id="managePeopleBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-people"/></svg><span>Manage People</span></button>
-                <button id="addPersonBtn" class="btn-secondary">+ Add Person</button>
+                <button id="managePeopleBtn" data-testid="go-people" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-people"/></svg><span>Manage People</span></button>
+                <button id="addPersonBtn" data-testid="person-new" class="btn-secondary">+ Add Person</button>
             </div>
 
             <div class="settings-section">
                 <h3>Data</h3>
                 <button id="exportBtn" class="btn-primary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-backup"/></svg><span>Back Up Now</span></button>
-                <button id="dataSafetyBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-shield"/></svg><span>Data Safety</span></button>
+                <button id="dataSafetyBtn" data-testid="go-datasafety" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-shield"/></svg><span>Data Safety</span></button>
                 <button id="importBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-restore"/></svg><span>Restore from a Backup File</span></button>
                 <input id="importFile" type="file" accept=".json,application/json" hidden>
             </div>
 
             <div class="settings-section">
                 <h3>About</h3>
-                <button id="howItWorksBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-guide"/></svg><span>How This Works</span></button>
-                <button id="versionLogBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-versions"/></svg><span>Version Log</span></button>
+                <button id="howItWorksBtn" data-testid="go-howitworks" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-guide"/></svg><span>How This Works</span></button>
+                <button id="versionLogBtn" data-testid="go-versionlog" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-versions"/></svg><span>Version Log</span></button>
                 <p class="app-info">
                     <strong>Version:</strong> <span id="versionNumber"></span><br>
                     <strong>Database:</strong> <span id="dbSize">calculating...</span>
@@ -780,7 +780,7 @@
     <!-- Run a Set: pick which set to work through -->
     <div id="runPickerScreen" class="screen">
         <header class="app-header">
-            <button id="backFromRunPickerBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromRunPickerBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2>Run a Set</h2>
             <div></div>
         </header>
@@ -806,7 +806,7 @@
     <!-- Run a Set: the run itself -->
     <div id="runScreen" class="screen">
         <header class="app-header">
-            <button id="backFromRunBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromRunBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2 id="runTitle">Run</h2>
             <div></div>
         </header>
@@ -826,7 +826,7 @@
     <!-- Library Health Screen -->
     <div id="healthScreen" class="screen">
         <header class="app-header">
-            <button id="backFromHealthBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromHealthBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2>Library Health</h2>
             <div></div>
         </header>
@@ -840,7 +840,7 @@
     <!-- Due Now Screen -->
     <div id="dueScreen" class="screen">
         <header class="app-header">
-            <button id="backFromDueBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromDueBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2>Due Now</h2>
             <div></div>
         </header>
@@ -855,7 +855,7 @@
     <!-- People List Screen -->
     <div id="peopleScreen" class="screen">
         <header class="app-header">
-            <button id="backFromPeopleBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromPeopleBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2>People</h2>
             <div></div>
         </header>
@@ -870,7 +870,7 @@
     <!-- Person Editor Screen -->
     <div id="personEditorScreen" class="screen">
         <header class="app-header">
-            <button id="backFromPersonEditorBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromPersonEditorBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2 id="personEditorTitle">New Person</h2>
             <div></div>
         </header>
@@ -906,7 +906,7 @@
     <!-- Data Safety Screen -->
     <div id="dataSafetyScreen" class="screen">
         <header class="app-header">
-            <button id="backFromDataSafetyBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromDataSafetyBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2>Data Safety</h2>
             <div></div>
         </header>
@@ -965,7 +965,7 @@
         <header class="app-header">
             <div class="header-spacer"></div>
             <h2>Actions</h2>
-            <button id="newActionBtn" class="icon-btn" aria-label="New action">＋</button>
+            <button id="newActionBtn" data-testid="action-new" class="icon-btn" aria-label="New action">＋</button>
         </header>
 
         <div class="list-content">
@@ -988,7 +988,7 @@
     <!-- Action Editor Screen -->
     <div id="actionEditorScreen" class="screen">
         <header class="app-header">
-            <button id="backFromActionEditorBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromActionEditorBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2 id="actionEditorTitle">New Action</h2>
             <div></div>
         </header>
@@ -1042,7 +1042,7 @@
     <!-- Editor Screen -->
     <div id="editorScreen" class="screen">
         <header class="app-header">
-            <button id="backFromEditorBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromEditorBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2 id="editorTitle">New Instruction</h2>
             <div></div>
         </header>
@@ -1281,7 +1281,7 @@
     <!-- How It Works Screen -->
     <div id="howItWorksScreen" class="screen">
         <header class="app-header">
-            <button id="backFromHowBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromHowBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2>How This Works</h2>
             <div></div>
         </header>
@@ -1569,13 +1569,18 @@
     <!-- Version Log Screen -->
     <div id="versionLogScreen" class="screen">
         <header class="app-header">
-            <button id="backFromVersionLogBtn" class="back-btn" aria-label="Back">← Back</button>
+            <button id="backFromVersionLogBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <h2>Version Log</h2>
             <div></div>
         </header>
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v41.3 (2026-09-17) - A THIRD TEST: EVERY SCREEN</strong></p>
+                        <p>Nothing changes on screen. A third automatic test joins the two from v41.2, and like them it has to pass before a new version can reach your phone. This one <strong>walks the whole app</strong> — Home, Instructions, Actions, Settings, People, Library health, Data safety, How this works, the version log, one instruction, its editor, a new to-do and a new person: twelve screens in all. On each one it checks the screen really came up, that it has something written on it, that nothing spills off the side of the phone, and that the app raised no error along the way.</p>
+                        <p>It walks the way you do: it taps the button that leads to each screen and presses <strong>← Back</strong> to come out again, so it tests the wiring between screens as much as the screens themselves. It was proved by breaking a screen on purpose and checking the test went red.</p>
+                    </div>
                     <div class="version-entry">
                         <p><strong>v41.2 (2026-09-17) - AUTOMATIC TESTS</strong></p>
                         <p>Nothing changes on screen. From this version, <strong>automatic tests run on every publish</strong>, on GitHub, before the version can reach your phone: one starts the app and checks it opens its database and names its own version, the other writes an instruction, finds it by searching, restarts the app and checks it is still there and still opens. If either fails, <strong>nothing is published</strong> and the app stays as it is.</p>
@@ -2153,12 +2158,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.2&t=1789633394-9543933"></script>
-    <script src="js/qr.js?v=41.2&t=1789633394-9543933"></script>
-    <script src="js/version-sync.js?v=41.2&t=1789633394-9543933"></script>
-    <script src="js/persistence.js?v=41.2&t=1789633394-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.2&t=1789633394-9543933"></script>
-    <script src="js/ui.js?v=41.2&t=1789633394-9543933"></script>
-    <script src="js/app.js?v=41.2&t=1789633394-9543933"></script>
+    <script src="js/db.js?v=41.3&t=1789634538-9543933"></script>
+    <script src="js/qr.js?v=41.3&t=1789634538-9543933"></script>
+    <script src="js/version-sync.js?v=41.3&t=1789634538-9543933"></script>
+    <script src="js/persistence.js?v=41.3&t=1789634538-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.3&t=1789634538-9543933"></script>
+    <script src="js/ui.js?v=41.3&t=1789634538-9543933"></script>
+    <script src="js/app.js?v=41.3&t=1789634538-9543933"></script>
 </body>
 </html>

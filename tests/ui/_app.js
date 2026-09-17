@@ -26,7 +26,23 @@ async function settled(page) {
 }
 
 // Move to one of the four tabs and wait for its screen to actually be on show.
+//
+// 🪤 The tab bar is HIDDEN on any detail screen (an instruction, an editor, the
+// People list) — by design: you get a ← Back instead. So step back out first, or
+// the tab is in the DOM but unclickable and the test hangs until it times out.
 export async function openTab(page, tab, screenId) {
+  await goBackToATab(page);
   await page.getByTestId(`tab-${tab}`).click();
   await expect(page.locator(`body[data-screen="${screenId}"]`)).toBeAttached();
+}
+
+// Press ← Back until the tab bar is showing again.
+export async function goBackToATab(page) {
+  for (let i = 0; i < 6; i++) {
+    if (await page.locator('#tabbar:not([hidden])').count()) return;
+    const back = page.locator('.screen.active [data-testid="back"]');
+    if (!(await back.count())) return;
+    await back.first().click();
+    await page.waitForTimeout(80);
+  }
 }
