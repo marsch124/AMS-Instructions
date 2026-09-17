@@ -119,3 +119,15 @@ export function freeNumber() {
   }
   throw new Error('no free instruction number left');
 }
+
+// Somebody to name. Several tests need a person before they can record who did
+// what; none of them are about the People editor.
+export async function addPerson(page, name) {
+  await openTab(page, 'settings', 'settingsScreen');
+  await page.getByTestId('person-new').click();
+  await expect(page.locator('body[data-screen="personEditorScreen"]')).toBeAttached();
+  await page.getByTestId('person-name').fill(name);
+  await page.getByTestId('person-save').click();
+  await expect(page.locator('body[data-screen="personEditorScreen"]')).not.toBeAttached();
+  return name;
+}

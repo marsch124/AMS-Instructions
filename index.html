@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.12&t=1789643048-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.13&t=1789646987-9543933">
 </head>
 <body>
     <!--
@@ -599,19 +599,19 @@
 
             <!-- Audit Log -->
             <section class="instruction-section">
-                <div id="auditToggle" class="section-toggle">
+                <div id="auditToggle" data-testid="fold-audit" class="section-toggle">
                     <h3><svg class="head-glyph" aria-hidden="true"><use href="#icon-audit"/></svg><span>Audit Log</span></h3>
                     <span class="preview-indicator" id="auditPreview"></span>
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div id="auditContent" class="section-content">
-                    <div id="instructionAudits" class="history-list"></div>
+                    <div id="instructionAudits" data-testid="audit-log" class="history-list"></div>
 
                     <div class="audit-form">
                         <div class="form-group">
                             <label for="auditAuditor">Audited by</label>
                             <div class="select-with-add">
-                                <select id="auditAuditor">
+                                <select id="auditAuditor" data-testid="audit-who">
                                     <option value="">-- Select --</option>
                                 </select>
                                 <button id="auditAddPersonBtn" class="btn-secondary btn-inline-add">+ Person</button>
@@ -619,13 +619,13 @@
                         </div>
                         <div class="form-group">
                             <label for="auditDate">Date</label>
-                            <input id="auditDate" type="date">
+                            <input id="auditDate" data-testid="audit-date" type="date">
                         </div>
                         <div class="form-group">
                             <label for="auditFindings">Findings</label>
-                            <textarea id="auditFindings" rows="3" placeholder="What did you find?"></textarea>
+                            <textarea id="auditFindings" data-testid="audit-findings" rows="3" placeholder="What did you find?"></textarea>
                         </div>
-                        <button id="addAuditBtn" class="btn-secondary">+ Add Audit Entry</button>
+                        <button id="addAuditBtn" data-testid="audit-add" class="btn-secondary">+ Add Audit Entry</button>
                     </div>
                 </div>
             </section>
@@ -1577,6 +1577,12 @@
         <div class="how-it-works-content">
                 <section class="version-log">
                     <div class="version-entry">
+                        <p><strong>v41.13 (2026-09-17) - THE AUDIT LOG IS TESTED TOO</strong></p>
+                        <p>Nothing changes on screen. The automatic tests now cover the audit log — another place where a failure would be <strong>silent</strong>: you write down what an inspection found and then rely on it being there months later, and if it had quietly failed to save you would only discover that when you went looking for it.</p>
+                        <p>On every publish the test now checks that an audit with <strong>nobody's name on it is refused</strong>, and so is one with nothing written in it — an unattributed finding is not a record, and silently keeping one would be worse than refusing it. Then it records a real one, restarts the app and checks it is still there, with the name and the finding on it.</p>
+                        <p>Last it follows the thing the audit log exists for: turning a finding into a <strong>to-do</strong>. It checks the to-do arrives ready-written from the finding, saves it, checks the audit is then marked as dealt with so the same finding cannot be raised twice, and checks the to-do really is on the Actions tab with the instruction's number on it.</p>
+                    </div>
+                    <div class="version-entry">
                         <p><strong>v41.12 (2026-09-17) - A DELIBERATE WIPE NOW STAYS WIPED</strong></p>
                         <p><strong>Fixed, and this one mattered:</strong> if you used <strong>Clear All Data</strong>, or deleted your last remaining instruction, the app <strong>put it all back by itself</strong> the next time you opened it. Two safety features were cancelling each other out. Clear All Data deliberately keeps the copy from just beforehand, so you can undo it by hand from Data Safety. Separately, the app watches for coming up with no instructions at all — the shape of the real data loss in 2026 — and quietly restores from the newest backup it can find. It found that kept copy and restored it, unasked.</p>
                         <p>An undo you did not ask for is not an undo. The app now <strong>remembers when you emptied it on purpose</strong> and leaves it alone: what you deleted stays deleted, and the backup is still sitting in Data Safety if you change your mind. The moment there is anything in the app again, the automatic rescue goes back on guard — so an unexplained empty app on some future morning is still put back for you, exactly as before. Both halves are now held down by their own tests, because fixing the first by breaking the second would have been far worse than the bug.</p>
@@ -2209,12 +2215,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.12&t=1789643048-9543933"></script>
-    <script src="js/qr.js?v=41.12&t=1789643048-9543933"></script>
-    <script src="js/version-sync.js?v=41.12&t=1789643048-9543933"></script>
-    <script src="js/persistence.js?v=41.12&t=1789643048-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.12&t=1789643048-9543933"></script>
-    <script src="js/ui.js?v=41.12&t=1789643048-9543933"></script>
-    <script src="js/app.js?v=41.12&t=1789643048-9543933"></script>
+    <script src="js/db.js?v=41.13&t=1789646987-9543933"></script>
+    <script src="js/qr.js?v=41.13&t=1789646987-9543933"></script>
+    <script src="js/version-sync.js?v=41.13&t=1789646987-9543933"></script>
+    <script src="js/persistence.js?v=41.13&t=1789646987-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.13&t=1789646987-9543933"></script>
+    <script src="js/ui.js?v=41.13&t=1789646987-9543933"></script>
+    <script src="js/app.js?v=41.13&t=1789646987-9543933"></script>
 </body>
 </html>

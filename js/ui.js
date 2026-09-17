@@ -1,4 +1,4 @@
-const APP_VERSION = '41.12';
+const APP_VERSION = '41.13';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -2452,6 +2452,8 @@ async function renderAuditLog(instruction) {
     audits.forEach(audit => {
         const div = document.createElement('div');
         div.className = 'history-entry';
+        div.dataset.testid = 'audit-entry';
+        div.dataset.actioned = audit.convertedToActionId ? '1' : '0';
 
         const date = new Date(audit.timestamp).toLocaleDateString();
         const auditorName = audit.auditorName || 'Unknown';
@@ -2482,11 +2484,13 @@ async function renderAuditLog(instruction) {
         if (audit.convertedToActionId) {
             const badge = document.createElement('span');
             badge.className = 'audit-converted-badge';
+            badge.dataset.testid = 'audit-actioned';
             badge.textContent = '✓ Already actioned';
             actions.appendChild(badge);
         } else {
             const convertBtn = document.createElement('button');
             convertBtn.className = 'btn-secondary';
+            convertBtn.dataset.testid = 'audit-convert';
             convertBtn.textContent = '→ Convert to Action';
             convertBtn.addEventListener('click', () => convertAuditToAction(audit));
             actions.appendChild(convertBtn);
@@ -2494,6 +2498,7 @@ async function renderAuditLog(instruction) {
 
         const deleteBtn = document.createElement('button');
         deleteBtn.className = 'btn-danger';
+        deleteBtn.dataset.testid = 'audit-delete';
         deleteBtn.textContent = 'Delete';
         deleteBtn.addEventListener('click', () => {
             showModal('Delete Audit Entry', `Delete this audit entry by ${auditorName}?`, async (confirmed) => {
