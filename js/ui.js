@@ -1,4 +1,4 @@
-const APP_VERSION = '41.1';
+const APP_VERSION = '41.2';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -173,6 +173,10 @@ function showScreen(screenId) {
     if (screen) {
         screen.classList.add('active');
     }
+    // Which screen is actually on show. Written AFTER the swap, so anything waiting
+    // on it (the UI tests) can tell the new screen from the one being replaced —
+    // without it a check can pass against the previous screen and prove nothing.
+    document.body.dataset.screen = screen ? screenId : '';
     updateTabBar(screenId);
 }
 
@@ -716,6 +720,8 @@ async function renderHomeScreen() {
 function createInstructionCard(instruction) {
     const card = document.createElement('div');
     card.className = 'instruction-card ' + instruction.category.toLowerCase();
+    card.dataset.testid = 'instruction-card';
+    card.dataset.number = instruction.number;
 
     const number = document.createElement('div');
     number.className = 'instruction-card-number';
@@ -952,6 +958,8 @@ function doneByLabel(entry) {
 function createInstructionRow(instr) {
     const item = document.createElement('div');
     item.className = 'list-item';
+    item.dataset.testid = 'instruction-row';
+    item.dataset.number = instr.number;
 
     const info = document.createElement('div');
     info.className = 'list-item-info';
@@ -4380,6 +4388,12 @@ async function initializeApp() {
     } catch (error) {
         console.error('Initialization error:', error);
         alert('Failed to initialize app: ' + error.message);
+    } finally {
+        // Start-up is settled: the database is open, the backup has been restored
+        // if there was one, and the first screen is drawn. The UI tests wait for
+        // this rather than for a screen, so they measure the app rather than the
+        // race between it starting and them touching it.
+        document.documentElement.dataset.ready = '1';
     }
 }
 

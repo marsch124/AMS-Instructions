@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.1&t=1788542232-e57056b0">
+    <link rel="stylesheet" href="css/style.css?v=41.2&t=1789633394-9543933">
 </head>
 <body>
     <!--
@@ -271,7 +271,7 @@
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
                 <h1>Instructions</h1>
-                <span class="version-badge" id="homeVersion">v41.1</span>
+                <span class="version-badge" id="homeVersion" data-testid="app-version"></span>
             </div>
         </header>
 
@@ -673,7 +673,7 @@
                 <button id="howItWorksBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-guide"/></svg><span>How This Works</span></button>
                 <button id="versionLogBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-versions"/></svg><span>Version Log</span></button>
                 <p class="app-info">
-                    <strong>Version:</strong> <span id="versionNumber">3.0</span><br>
+                    <strong>Version:</strong> <span id="versionNumber"></span><br>
                     <strong>Database:</strong> <span id="dbSize">calculating...</span>
                 </p>
             </div>
@@ -689,12 +689,12 @@
         <header class="app-header">
             <div class="header-spacer"></div>
             <h2>All Instructions</h2>
-            <button id="newInstructionBtn" class="icon-btn" aria-label="New instruction">＋</button>
+            <button id="newInstructionBtn" class="icon-btn" data-testid="instruction-new" aria-label="New instruction">＋</button>
         </header>
 
         <div class="list-content">
             <div class="search-row">
-                <input id="searchInput" type="text" placeholder="Search..." class="search-input">
+                <input id="searchInput" data-testid="instruction-search" type="text" placeholder="Search..." class="search-input">
                 <button id="filterBtn" class="filter-btn" aria-expanded="false" aria-controls="filterPanel">
                     <svg class="filter-glyph" aria-hidden="true"><use href="#icon-filter"/></svg>
                     <span>Filter</span>
@@ -1053,11 +1053,11 @@
                 <h3>Basic Info</h3>
                 <div class="form-group">
                     <label for="editorNumber">Number (001-999)</label>
-                    <input id="editorNumber" type="text" maxlength="3" inputmode="numeric" placeholder="001">
+                    <input id="editorNumber" data-testid="editor-number" type="text" maxlength="3" inputmode="numeric" placeholder="001">
                 </div>
                 <div class="form-group">
                     <label for="editorName">Title *</label>
-                    <input id="editorName" type="text" placeholder="e.g., Bedtime Routine">
+                    <input id="editorName" data-testid="editor-name" type="text" placeholder="e.g., Bedtime Routine">
                 </div>
                 <div class="form-group">
                     <label for="editorCategory">Category</label>
@@ -1211,7 +1211,7 @@
             <div class="editor-section">
                 <h3><svg class="head-glyph" aria-hidden="true"><use href="#icon-steps"/></svg><span>Instructions (one per line) *</span></h3>
                 <div class="form-group">
-                    <textarea id="editorSteps" placeholder="Step 1&#10;Step 2&#10;Step 3" rows="6"></textarea>
+                    <textarea id="editorSteps" data-testid="editor-steps" placeholder="Step 1&#10;Step 2&#10;Step 3" rows="6"></textarea>
                 </div>
             </div>
 
@@ -1272,7 +1272,7 @@
 
             <!-- Buttons -->
             <div class="editor-buttons">
-                <button id="saveBtn" class="btn-primary">Save Instruction</button>
+                <button id="saveBtn" class="btn-primary" data-testid="editor-save">Save Instruction</button>
                 <button id="deleteEditorBtn" class="btn-danger" style="display: none;">Delete Instruction</button>
             </div>
         </div>
@@ -1577,6 +1577,9 @@
         <div class="how-it-works-content">
                 <section class="version-log">
                     <div class="version-entry">
+                        <p><strong>v41.2 (2026-09-17) - AUTOMATIC TESTS</strong></p>
+                        <p>Nothing changes on screen. From this version, <strong>automatic tests run on every publish</strong>, on GitHub, before the version can reach your phone: one starts the app and checks it opens its database and names its own version, the other writes an instruction, finds it by searching, restarts the app and checks it is still there and still opens. If either fails, <strong>nothing is published</strong> and the app stays as it is.</p>
+                        <p>Every control the tests use is found by a hidden identifier rather than by the words on it, so wording can change freely and a test only fails when something has actually stopped working. One small fix came with it: the version shown on the Home screen is now written by the app itself — it used to be typed into the page as well, so a version could go on looking right after the code that sets it had stopped running.</p>
                         <p><strong>v41.1 (2026-09-04) - BETTER NEIGHBOURS</strong></p>
                         <p><strong>What's New:</strong></p>
                         <ul>
@@ -2109,17 +2112,17 @@
 
     <!-- Tab Bar — only shown on the four root screens (see TAB_SCREENS in ui.js) -->
     <nav id="tabbar" class="tabbar" hidden>
-        <button class="tab" data-tab="home" aria-label="Home">
+        <button class="tab" data-tab="home" data-testid="tab-home" aria-label="Home">
             <svg class="tab-glyph" aria-hidden="true"><use href="#icon-home"/></svg><span class="tab-label">Home</span>
         </button>
-        <button class="tab" data-tab="instructions" aria-label="Instructions">
+        <button class="tab" data-tab="instructions" data-testid="tab-instructions" aria-label="Instructions">
             <svg class="tab-glyph" aria-hidden="true"><use href="#icon-instructions"/></svg><span class="tab-label">Instructions</span>
         </button>
-        <button class="tab" data-tab="actions" aria-label="Actions">
+        <button class="tab" data-tab="actions" data-testid="tab-actions" aria-label="Actions">
             <svg class="tab-glyph" aria-hidden="true"><use href="#icon-actions"/></svg><span class="tab-label">Actions</span>
             <span class="tab-badge" id="tabActionsBadge" hidden>0</span>
         </button>
-        <button class="tab" data-tab="settings" aria-label="Settings">
+        <button class="tab" data-tab="settings" data-testid="tab-settings" aria-label="Settings">
             <svg class="tab-glyph" aria-hidden="true"><use href="#icon-settings"/></svg><span class="tab-label">Settings</span>
         </button>
     </nav>
@@ -2150,12 +2153,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.1&t=1788542232-e57056b0"></script>
-    <script src="js/qr.js?v=41.1&t=1788542232-e57056b0"></script>
-    <script src="js/version-sync.js?v=41.1&t=1788542232-e57056b0"></script>
-    <script src="js/persistence.js?v=41.1&t=1788542232-e57056b0"></script>
-    <script src="js/hybrid-storage.js?v=41.1&t=1788542232-e57056b0"></script>
-    <script src="js/ui.js?v=41.1&t=1788542232-e57056b0"></script>
-    <script src="js/app.js?v=41.1&t=1788542232-e57056b0"></script>
+    <script src="js/db.js?v=41.2&t=1789633394-9543933"></script>
+    <script src="js/qr.js?v=41.2&t=1789633394-9543933"></script>
+    <script src="js/version-sync.js?v=41.2&t=1789633394-9543933"></script>
+    <script src="js/persistence.js?v=41.2&t=1789633394-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.2&t=1789633394-9543933"></script>
+    <script src="js/ui.js?v=41.2&t=1789633394-9543933"></script>
+    <script src="js/app.js?v=41.2&t=1789633394-9543933"></script>
 </body>
 </html>

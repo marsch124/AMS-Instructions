@@ -1,0 +1,68 @@
+# Every push and pull request runs the tests. A push to main that passes them is
+# then PUBLISHED to GitHub Pages by the deploy job — and only then. A red run
+# stops the release: the site simply stays at the previous version.
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+      - name: UI tests
+        run: npx playwright test
+      - name: Keep the report when something fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 14
+
+  # The release. `needs: tests` is the gate — GitHub does not start this job unless
+  # the tests job succeeded. Only a push to main publishes; branches and pull
+  # requests are tested but never deployed.
+  deploy:
+    needs: tests
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Assemble the site (the app's files only — no tests, no tooling)
+        run: |
+          mkdir -p _site
+          cp index.html manifest.json sw.js _site/
+          cp -R css _site/css
+          cp -R js _site/js
+          cp -R icons _site/icons
+          [ -f AMS-Instructions-starter-library.json ] && cp AMS-Instructions-starter-library.json _site/ || true
+          [ -f README.md ] && cp README.md _site/ || true
+          touch _site/.nojekyll
+          ls -la _site
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+      - id: deployment
+        uses: actions/deploy-pages@v4
