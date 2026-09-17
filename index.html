@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.3&t=1789634538-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.4&t=1789634835-9543933">
 </head>
 <body>
     <!--
@@ -925,14 +925,14 @@
 
             <div class="backup-slot" id="liveDataSlot">
                 <h3>In the app right now</h3>
-                <p class="backup-counts" id="liveDataCounts">--</p>
+                <p class="backup-counts" id="liveDataCounts" data-testid="live-counts">--</p>
             </div>
 
             <div class="backup-slot" id="currentBackupSlot">
                 <h3>Automatic backup</h3>
                 <p class="backup-date" id="currentBackupDate">--</p>
-                <p class="backup-counts" id="currentBackupCounts">--</p>
-                <button id="restoreCurrentBtn" class="btn-secondary">Restore this backup</button>
+                <p class="backup-counts" id="currentBackupCounts" data-testid="backup-counts">--</p>
+                <button id="restoreCurrentBtn" data-testid="backup-restore-current" class="btn-secondary">Restore this backup</button>
             </div>
 
             <div class="backup-slot" id="previousBackupSlot">
@@ -945,17 +945,17 @@
             <div class="backup-slot check-slot">
                 <h3>Check a backup really works</h3>
                 <p class="backup-note">This doesn't just count what's in a backup — it puts it back, into a scratch copy of the app that's thrown away straight afterwards, and tells you what actually arrived. Nothing you can see changes.</p>
-                <button id="checkBackupsBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-shield"/></svg><span>Check the backups on this phone</span></button>
-                <button id="checkBackupFileBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-restore"/></svg><span>Check a backup file…</span></button>
-                <input type="file" id="checkBackupFileInput" accept=".json,application/json" hidden>
-                <div id="checkResults" class="check-results" hidden></div>
+                <button id="checkBackupsBtn" data-testid="backup-check" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-shield"/></svg><span>Check the backups on this phone</span></button>
+                <button id="checkBackupFileBtn" data-testid="backup-check-file" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-restore"/></svg><span>Check a backup file…</span></button>
+                <input type="file" id="checkBackupFileInput" data-testid="backup-file-input" accept=".json,application/json" hidden>
+                <div id="checkResults" data-testid="check-results" class="check-results" hidden></div>
             </div>
 
             <div class="backup-slot">
                 <h3>Your own backup file</h3>
                 <p class="backup-date" id="lastExportDate">Never backed up</p>
                 <p class="backup-note">The app keeps its own backups on this phone. A backup file kept in Files or iCloud also survives if the app itself is ever removed.</p>
-                <button id="exportFromSafetyBtn" class="btn-primary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-backup"/></svg><span>Back Up Now</span></button>
+                <button id="exportFromSafetyBtn" data-testid="backup-export" class="btn-primary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-backup"/></svg><span>Back Up Now</span></button>
             </div>
         </div>
     </div>
@@ -1577,6 +1577,11 @@
         <div class="how-it-works-content">
                 <section class="version-log">
                     <div class="version-entry">
+                        <p><strong>v41.4 (2026-09-17) - THE SAFETY NET IS TESTED TOO</strong></p>
+                        <p>Nothing changes on screen. A fourth automatic test joins the three before it, and it watches the one thing in this app whose failure you would not see: <strong>the backup</strong>. On every publish it writes an instruction, then makes the app check its own backups the way you can on the Data Safety screen — putting each one back into a scratch copy — and insists the newest one restores <em>and</em> is not a single instruction behind what the app is holding.</p>
+                        <p>Then it presses <strong>Back Up Now</strong>, catches the file that comes out, and reads it: the file must not be empty and the instruction just written must be inside it. Finally it hands that same file back to <strong>Check a backup file…</strong> and requires it to restore. An empty backup once wrote over good data, so the test was proved by emptying the backup on purpose, and by stopping it keeping up — both went red.</p>
+                    </div>
+                    <div class="version-entry">
                         <p><strong>v41.3 (2026-09-17) - A THIRD TEST: EVERY SCREEN</strong></p>
                         <p>Nothing changes on screen. A third automatic test joins the two from v41.2, and like them it has to pass before a new version can reach your phone. This one <strong>walks the whole app</strong> — Home, Instructions, Actions, Settings, People, Library health, Data safety, How this works, the version log, one instruction, its editor, a new to-do and a new person: twelve screens in all. On each one it checks the screen really came up, that it has something written on it, that nothing spills off the side of the phone, and that the app raised no error along the way.</p>
                         <p>It walks the way you do: it taps the button that leads to each screen and presses <strong>← Back</strong> to come out again, so it tests the wiring between screens as much as the screens themselves. It was proved by breaking a screen on purpose and checking the test went red.</p>
@@ -2158,12 +2163,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.3&t=1789634538-9543933"></script>
-    <script src="js/qr.js?v=41.3&t=1789634538-9543933"></script>
-    <script src="js/version-sync.js?v=41.3&t=1789634538-9543933"></script>
-    <script src="js/persistence.js?v=41.3&t=1789634538-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.3&t=1789634538-9543933"></script>
-    <script src="js/ui.js?v=41.3&t=1789634538-9543933"></script>
-    <script src="js/app.js?v=41.3&t=1789634538-9543933"></script>
+    <script src="js/db.js?v=41.4&t=1789634835-9543933"></script>
+    <script src="js/qr.js?v=41.4&t=1789634835-9543933"></script>
+    <script src="js/version-sync.js?v=41.4&t=1789634835-9543933"></script>
+    <script src="js/persistence.js?v=41.4&t=1789634835-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.4&t=1789634835-9543933"></script>
+    <script src="js/ui.js?v=41.4&t=1789634835-9543933"></script>
+    <script src="js/app.js?v=41.4&t=1789634835-9543933"></script>
 </body>
 </html>

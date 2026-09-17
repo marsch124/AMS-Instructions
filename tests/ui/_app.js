@@ -46,3 +46,16 @@ export async function goBackToATab(page) {
     await page.waitForTimeout(80);
   }
 }
+
+// Write one instruction and land back on the list. Three tests need something of
+// their own to look at, and none of them are about the editor.
+export async function writeInstruction(page, { number, name, steps = 'One\nTwo' }) {
+  await openTab(page, 'instructions', 'instructionsListScreen');
+  await page.getByTestId('instruction-new').click();
+  await expect(page.locator('body[data-screen="editorScreen"]')).toBeAttached();
+  await page.getByTestId('editor-number').fill(number);
+  await page.getByTestId('editor-name').fill(name);
+  await page.getByTestId('editor-steps').fill(steps);
+  await page.getByTestId('editor-save').click();
+  await expect(page.locator('body[data-screen="instructionsListScreen"]')).toBeAttached();
+}

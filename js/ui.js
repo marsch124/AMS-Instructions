@@ -1,4 +1,4 @@
-const APP_VERSION = '41.3';
+const APP_VERSION = '41.4';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -3754,6 +3754,9 @@ function renderCheckResult(panel, label, result) {
     const problemCount = (result.problems || []).length;
     const state = !result.readable ? 'bad' : result.restorable ? (problemCount > 0 ? 'warn' : 'ok') : 'bad';
     card.className = 'check-card ' + state;
+    // The verdict as data, so a test reads the answer rather than the wording.
+    card.dataset.testid = 'check-card';
+    card.dataset.state = state;
 
     const verdict = document.createElement('p');
     verdict.className = 'check-verdict';
@@ -3843,6 +3846,8 @@ async function checkOnPhoneBackups() {
     summary.textContent = behind > 0
         ? '⚠ The app currently holds ' + live + ' instructions — ' + behind + ' more than the best backup.'
         : 'The app holds ' + live + ' instructions, and the backups have them.';
+    summary.dataset.testid = 'check-summary';
+    summary.dataset.behind = String(Math.max(0, behind));
     panel.appendChild(summary);
 }
 
