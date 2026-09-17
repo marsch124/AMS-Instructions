@@ -1,4 +1,4 @@
-const APP_VERSION = '41.16';
+const APP_VERSION = '41.17';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -3300,6 +3300,7 @@ async function buildOwnerFixer(items, onDone) {
     }
 
     const select = document.createElement('select');
+    select.dataset.testid = 'health-owner-pick';
     select.setAttribute('aria-label', 'Who owns these');
     people.forEach(person => {
         const option = document.createElement('option');
@@ -3310,6 +3311,7 @@ async function buildOwnerFixer(items, onDone) {
 
     const button = document.createElement('button');
     button.className = 'btn-secondary';
+    button.dataset.testid = 'health-owner-apply';
     button.textContent = 'Set as owner on all ' + items.length;
 
     button.addEventListener('click', () => {
@@ -3380,9 +3382,13 @@ async function renderHealth() {
     for (const group of groups) {
         const section = document.createElement('section');
         section.className = 'instruction-section';
+        section.dataset.testid = 'health-group';
+        section.dataset.key = group.key;
+        section.dataset.count = String(group.items.length);
 
         const toggle = document.createElement('div');
         toggle.className = 'section-toggle collapsed';
+        toggle.dataset.testid = 'health-toggle';
 
         const heading = document.createElement('h3');
         heading.textContent = group.title;

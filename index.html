@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.16&t=1789651493-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.17&t=1789656854-9543933">
 </head>
 <body>
     <!--
@@ -833,7 +833,7 @@
 
         <div class="list-content">
             <p class="screen-blurb">Gaps in the library itself, rather than jobs on the RV. Nothing here is wrong as such — it's what's worth a second look. Tap any heading to open it.</p>
-            <div id="healthList"></div>
+            <div id="healthList" data-testid="health-list"></div>
         </div>
     </div>
 
@@ -1577,6 +1577,12 @@
         <div class="how-it-works-content">
                 <section class="version-log">
                     <div class="version-entry">
+                        <p><strong>v41.17 (2026-09-17) - LIBRARY HEALTH IS TESTED TOO</strong></p>
+                        <p>Nothing changes on screen. An eighteenth automatic test covers <strong>Library Health</strong>, whose failure mode is being believed: a screen that says "nothing to tidy up" while instructions sit there with nobody's name on them is worse than no screen at all, because you stop checking by hand.</p>
+                        <p>So the test plants exactly the gaps the screen claims to find — two instructions with no owner, never marked Done, and not yet complete — and checks it counts all three groups correctly and <strong>names</strong> the instructions rather than only counting them. Then it uses the fix offered on that screen to give them both an owner in one go, and insists the count comes down to zero: a list of problems with a button that does not actually fix anything would be the same lie in a different hat. It also checks the other counts <em>don't</em> move — naming an owner does not mark anything Done — and that the owner really was written to the instructions and not just to the screen.</p>
+                        <p>Proved by making the screen blind to a missing owner, and by making its fix button write nothing — both went red.</p>
+                    </div>
+                    <div class="version-entry">
                         <p><strong>v41.16 (2026-09-17) - FINDING THINGS IS TESTED TOO</strong></p>
                         <p>Nothing changes on screen. A seventeenth automatic test covers the filters and the sort order, which carry two <strong>opposite</strong> decisions that would be easy to swap by accident. A sort order is <strong>remembered</strong> between visits — it hides nothing, and re-picking "most overdue first" every time would be a daily annoyance. A filter is <strong>dropped</strong> every time you arrive at the Instructions tab — it hides things, and being left on one without noticing is exactly how a library comes to look as though it has lost instructions.</p>
                         <p>So the test writes three instructions whose number order is the exact reverse of their title order, checks they come out by number, switches to Title A–Z and checks they genuinely turn round, and checks that order is still in force after the app is closed and reopened. Then it switches a filter on, checks the app <strong>says</strong> so — the count on the Filter button and a Clear filters button — leaves the tab and comes back, and insists the whole library is showing again.</p>
@@ -2233,12 +2239,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.16&t=1789651493-9543933"></script>
-    <script src="js/qr.js?v=41.16&t=1789651493-9543933"></script>
-    <script src="js/version-sync.js?v=41.16&t=1789651493-9543933"></script>
-    <script src="js/persistence.js?v=41.16&t=1789651493-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.16&t=1789651493-9543933"></script>
-    <script src="js/ui.js?v=41.16&t=1789651493-9543933"></script>
-    <script src="js/app.js?v=41.16&t=1789651493-9543933"></script>
+    <script src="js/db.js?v=41.17&t=1789656854-9543933"></script>
+    <script src="js/qr.js?v=41.17&t=1789656854-9543933"></script>
+    <script src="js/version-sync.js?v=41.17&t=1789656854-9543933"></script>
+    <script src="js/persistence.js?v=41.17&t=1789656854-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.17&t=1789656854-9543933"></script>
+    <script src="js/ui.js?v=41.17&t=1789656854-9543933"></script>
+    <script src="js/app.js?v=41.17&t=1789656854-9543933"></script>
 </body>
 </html>
