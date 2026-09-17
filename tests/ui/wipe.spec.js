@@ -19,6 +19,13 @@ const held = (page) => page.evaluate(async () => (await getAllInstructions()).le
 
 test('deleting the last instruction keeps it deleted', async ({ page }) => {
   page.on('dialog', (d) => d.dismiss());
+
+  // The app says out loud when its rescue runs. Listening for that is the only
+  // way to know the check actually HAPPENED — a plain wait only hopes it did,
+  // and a rescue that never runs would pass a test that just waits.
+  const checks = [];
+  page.on('console', (m) => { if (m.text().includes('[Integrity]')) checks.push(m.text()); });
+
   await openApp(page);
   const number = freeNumber();
   await writeInstruction(page, { number, name: 'The only one', steps: 'A\nB' });
@@ -31,9 +38,18 @@ test('deleting the last instruction keeps it deleted', async ({ page }) => {
   await expect(page.locator('body[data-screen="instructionsListScreen"]')).toBeAttached();
   await expect.poll(() => held(page), { message: 'it is gone' }).toBe(0);
 
-  // The old bug: it came back by itself on the next start.
+  // 🪤 Sit still past the second-chance check, which runs a second after the app
+  // loads. On a slower machine that timer lands AFTER the delete rather than
+  // before it — which is how CI caught a first version of this fix that marked
+  // the deliberate wipe only once the delete had finished.
+  await expect.poll(() => checks.length, { message: 'the rescue check really ran' }).toBeGreaterThan(0);
+  expect(await held(page), 'it stays deleted while the app is still open').toBe(0);
+
+  // And it must not come back by itself on the next start either.
+  checks.length = 0;
   await restartApp(page);
-  await page.waitForTimeout(1600);   // the second-chance check runs a second after load
+  await expect.poll(() => checks.length, { message: 'the rescue check runs again on start-up' })
+    .toBeGreaterThan(0);
   expect(await held(page), 'it stays deleted').toBe(0);
 
   await openTab(page, 'instructions', 'instructionsListScreen');

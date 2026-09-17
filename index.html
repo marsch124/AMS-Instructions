@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.13&t=1789646987-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.14&t=1789647377-9543933">
 </head>
 <body>
     <!--
@@ -1577,6 +1577,11 @@
         <div class="how-it-works-content">
                 <section class="version-log">
                     <div class="version-entry">
+                        <p><strong>v41.14 (2026-09-17) - THE WIPE FIX, PROPERLY THIS TIME</strong></p>
+                        <p>v41.12 stopped the app from putting back data you had deliberately deleted — but it noted the deletion as deliberate <strong>just after</strong> emptying the database rather than just before, and the app's own rescue runs on a timer. On a slower machine that timer landed in the gap, found an empty database, and restored anyway. It was caught on GitHub rather than on your phone, which is the entire purpose of the tests running there before a version is published.</p>
+                        <p>The deliberate deletion is now noted <strong>before</strong> anything is removed, so there is no gap left to land in. The test was tightened at the same time: rather than waiting a second or two and hoping the rescue had run, it now <strong>listens for the rescue running</strong> and only then checks that what you deleted is still gone — a test that waits would have passed even if the rescue had stopped running altogether.</p>
+                    </div>
+                    <div class="version-entry">
                         <p><strong>v41.13 (2026-09-17) - THE AUDIT LOG IS TESTED TOO</strong></p>
                         <p>Nothing changes on screen. The automatic tests now cover the audit log — another place where a failure would be <strong>silent</strong>: you write down what an inspection found and then rely on it being there months later, and if it had quietly failed to save you would only discover that when you went looking for it.</p>
                         <p>On every publish the test now checks that an audit with <strong>nobody's name on it is refused</strong>, and so is one with nothing written in it — an unattributed finding is not a record, and silently keeping one would be worse than refusing it. Then it records a real one, restarts the app and checks it is still there, with the name and the finding on it.</p>
@@ -2215,12 +2220,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.13&t=1789646987-9543933"></script>
-    <script src="js/qr.js?v=41.13&t=1789646987-9543933"></script>
-    <script src="js/version-sync.js?v=41.13&t=1789646987-9543933"></script>
-    <script src="js/persistence.js?v=41.13&t=1789646987-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.13&t=1789646987-9543933"></script>
-    <script src="js/ui.js?v=41.13&t=1789646987-9543933"></script>
-    <script src="js/app.js?v=41.13&t=1789646987-9543933"></script>
+    <script src="js/db.js?v=41.14&t=1789647377-9543933"></script>
+    <script src="js/qr.js?v=41.14&t=1789647377-9543933"></script>
+    <script src="js/version-sync.js?v=41.14&t=1789647377-9543933"></script>
+    <script src="js/persistence.js?v=41.14&t=1789647377-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.14&t=1789647377-9543933"></script>
+    <script src="js/ui.js?v=41.14&t=1789647377-9543933"></script>
+    <script src="js/app.js?v=41.14&t=1789647377-9543933"></script>
 </body>
 </html>

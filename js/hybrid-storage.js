@@ -240,11 +240,14 @@ amendLastCompletion = async function(...args) {
 // an empty backup — otherwise the deleted instructions would reappear on restart.
 const originalDeleteInstruction = deleteInstruction;
 deleteInstruction = async function(id) {
+    // Deleting the last one is the same deliberate act as clearing them all: it
+    // must not be undone behind your back. Worked out and marked BEFORE the
+    // delete, for the timing reason above.
+    const left = (await getAllInstructions()).filter(instruction => instruction.id !== id);
+    if (left.length === 0) markEmptiedOnPurpose();
+
     const result = await originalDeleteInstruction(id);
     await hybridStorage.mirrorToLocalStorage({ allowEmpty: true });
-    // Deleting the last one is the same deliberate act as clearing them all: it
-    // must not be undone behind your back on the next start.
-    if ((await getAllInstructions()).length === 0) markEmptiedOnPurpose();
     return result;
 };
 
@@ -313,9 +316,14 @@ clearAllData = async function() {
     if (!backupIsEmpty(existing)) {
         hybridStorage.persist(BACKUP_PREVIOUS_KEY, existing);
     }
+    // 🪤 Marked BEFORE the write, not after. The second-chance rescue runs on a
+    // timer, so it can fire in the gap between the database emptying and
+    // anything we do next — and then it restores what was just cleared. A stale
+    // mark is harmless: the rescue only ever acts on an empty database anyway,
+    // and the next non-empty backup clears it.
+    markEmptiedOnPurpose();
     const result = await originalClearAllData();
     await hybridStorage.mirrorToLocalStorage({ allowEmpty: true });
-    markEmptiedOnPurpose();
     return result;
 };
 
