@@ -1,4 +1,4 @@
-const APP_VERSION = '41.4';
+const APP_VERSION = '41.5';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -2568,9 +2568,12 @@ function isOverdue(dueDate) {
 function createActionRow(action, done) {
     const item = document.createElement('div');
     item.className = 'list-item action-item' + (done ? ' done' : '');
+    item.dataset.testid = 'action-row';
+    item.dataset.done = done ? '1' : '0';
 
     const tickBtn = document.createElement('button');
     tickBtn.className = 'action-tick' + (done ? ' ticked' : '');
+    tickBtn.dataset.testid = 'action-tick';
     tickBtn.textContent = done ? '☑' : '☐';
     tickBtn.setAttribute('aria-label', done ? 'Mark as not done' : 'Mark as done');
     tickBtn.addEventListener('click', async (e) => {
