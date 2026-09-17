@@ -1,4 +1,4 @@
-const APP_VERSION = '41.6';
+const APP_VERSION = '41.7';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -482,6 +482,7 @@ function displayInstruction(instruction) {
     // Favorites
     isFavorited(instruction.id).then(favorited => {
         const btn = document.getElementById('favoriteBtn');
+        btn.dataset.on = favorited ? '1' : '0';
         if (favorited) {
             btn.textContent = '★';
             btn.classList.add('favorited');
@@ -2999,6 +3000,9 @@ async function renderRunPicker() {
     sets.forEach(set => {
         const row = document.createElement('button');
         row.className = 'set-row';
+        row.dataset.testid = 'run-set';
+        row.dataset.set = set.id;
+        row.dataset.count = String(set.instructions.length);
 
         const name = document.createElement('span');
         name.className = 'set-row-name';
@@ -3038,8 +3042,10 @@ async function renderRun() {
     }
 
     document.getElementById('runTitle').textContent = run.name;
-    document.getElementById('runProgress').textContent =
-        run.ticked.length + ' of ' + run.numbers.length + ' done';
+    const progress = document.getElementById('runProgress');
+    progress.textContent = run.ticked.length + ' of ' + run.numbers.length + ' done';
+    progress.dataset.ticked = String(run.ticked.length);
+    progress.dataset.total = String(run.numbers.length);
 
     const list = document.getElementById('runList');
     list.innerHTML = '';
@@ -3053,9 +3059,13 @@ async function renderRun() {
         const done = run.ticked.includes(number);
         const item = document.createElement('div');
         item.className = 'list-item run-item' + (done ? ' done' : '');
+        item.dataset.testid = 'run-row';
+        item.dataset.number = number;
+        item.dataset.done = done ? '1' : '0';
 
         const tick = document.createElement('button');
         tick.className = 'action-tick' + (done ? ' ticked' : '');
+        tick.dataset.testid = 'run-tick';
         tick.textContent = done ? '☑' : '☐';
         tick.setAttribute('aria-label', done ? 'Mark as not done' : 'Mark as done');
         tick.addEventListener('click', (event) => {

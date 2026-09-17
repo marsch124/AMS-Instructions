@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.6&t=1789635224-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.7&t=1789635721-9543933">
 </head>
 <body>
     <!--
@@ -293,7 +293,7 @@
             <!-- A run you are in the middle of. Above everything else, because a
                  half-finished departure checklist is the most urgent thing the
                  app can be holding on to. -->
-            <button id="runNudge" class="nudge-card run" style="display: none;">
+            <button id="runNudge" data-testid="run-nudge" class="nudge-card run" style="display: none;">
                 <svg class="nudge-glyph" aria-hidden="true"><use href="#icon-run"/></svg>
                 <span class="nudge-text">
                     <span class="nudge-title" id="runNudgeTitle">Run in progress</span>
@@ -373,7 +373,7 @@
         <header class="app-header">
             <button id="backFromInstructionBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
             <span id="instructionNumber" class="instruction-number">001</span>
-            <button id="favoriteBtn" class="icon-btn favorite-toggle" aria-label="Add to favorites">☆</button>
+            <button id="favoriteBtn" data-testid="instruction-favourite" class="icon-btn favorite-toggle" aria-label="Add to favorites">☆</button>
         </header>
 
         <div class="instruction-content">
@@ -650,7 +650,7 @@
         <div class="settings-content">
             <div class="settings-section">
                 <h3>Checklists</h3>
-                <button id="runSetBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-run"/></svg><span>Run a Set</span></button>
+                <button id="runSetBtn" data-testid="go-run" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-run"/></svg><span>Run a Set</span></button>
                 <button id="healthBtn" data-testid="go-health" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-health"/></svg><span>Library Health</span></button>
             </div>
 
@@ -788,7 +788,7 @@
         <div class="list-content">
             <!-- Offered before the list of sets: starting a second run would
                  silently throw the first one away. -->
-            <button id="resumeRunCard" class="nudge-card run" hidden>
+            <button id="resumeRunCard" data-testid="resume-run" class="nudge-card run" hidden>
                 <svg class="nudge-glyph" aria-hidden="true"><use href="#icon-run"/></svg>
                 <span class="nudge-text">
                     <span class="nudge-title" id="resumeRunName">Run in progress</span>
@@ -799,7 +799,7 @@
 
             <p class="screen-blurb">Work through several instructions as one checklist. Tap any of them to open it in full — you'll come back here afterwards.</p>
 
-            <div id="runPickerList" class="set-list"></div>
+            <div id="runPickerList" data-testid="run-sets" class="set-list"></div>
         </div>
     </div>
 
@@ -807,18 +807,18 @@
     <div id="runScreen" class="screen">
         <header class="app-header">
             <button id="backFromRunBtn" data-testid="back" class="back-btn" aria-label="Back">← Back</button>
-            <h2 id="runTitle">Run</h2>
+            <h2 id="runTitle" data-testid="run-title">Run</h2>
             <div></div>
         </header>
 
         <div class="list-content">
-            <p id="runProgress" class="run-progress">0 of 0 done</p>
+            <p id="runProgress" data-testid="run-progress" class="run-progress">0 of 0 done</p>
 
-            <div id="runList" class="full-instructions-list"></div>
+            <div id="runList" data-testid="run-list" class="full-instructions-list"></div>
 
             <div class="instruction-buttons">
-                <button id="finishRunBtn" class="btn-done">✓ Finish run</button>
-                <button id="abandonRunBtn" class="btn-danger">Abandon run</button>
+                <button id="finishRunBtn" data-testid="run-finish" class="btn-done">✓ Finish run</button>
+                <button id="abandonRunBtn" data-testid="run-abandon" class="btn-danger">Abandon run</button>
             </div>
         </div>
     </div>
@@ -1577,6 +1577,12 @@
         <div class="how-it-works-content">
                 <section class="version-log">
                     <div class="version-entry">
+                        <p><strong>v41.7 (2026-09-17) - RUNS ARE TESTED TOO</strong></p>
+                        <p>Nothing changes on screen. A seventh automatic test guards <strong>Run a Set</strong> — the departure-checklist flow, which until now had no test at all. It stars two instructions, starts the Favourites set, checks the run opens with both of them and nothing to finish yet, and ticks one.</p>
+                        <p>Then it checks the thing a checklist must never do: <strong>lose your place</strong>. It walks away to Home (the run must be offered back there), closes and reopens the app, and insists the tick is still there. Finally it finishes the run and checks that the instruction it ticked is marked Done <strong>once</strong> — and that the one it left alone was not touched at all.</p>
+                        <p>Proved by making a run forget where you were, and by making Finish mark everything instead of only what you ticked — both went red.</p>
+                    </div>
+                    <div class="version-entry">
                         <p><strong>v41.6 (2026-09-17) - WHO DID IT IS TESTED TOO</strong></p>
                         <p>Nothing changes on screen. A sixth automatic test guards the thing this app exists for on a shared job: <strong>the record of who did it</strong>. It adds a person, writes an instruction, taps Mark Done, picks that person when asked, and then insists the name is on the job, the counter says once, and the Done History holds one entry with that name on it. Then it restarts the app and insists all of it is still there — written down, not merely on screen.</p>
                         <p>The second half holds the app to its own promise: asked once, remembered after. The second Mark Done must ask nothing at all and must still land under the same name. It was proved by throwing the name away on saving, and by making the app forget who — both went red.</p>
@@ -2162,23 +2168,23 @@
     </div>
 
     <!-- Modals -->
-    <div id="modal" class="modal" hidden>
+    <div id="modal" data-testid="confirm-modal" class="modal" hidden>
         <div class="modal-content">
             <h3 id="modalTitle">Confirm</h3>
             <p id="modalMessage">Are you sure?</p>
             <div class="modal-buttons">
-                <button id="modalCancel" class="btn-secondary">Cancel</button>
-                <button id="modalConfirm" class="btn-danger">Confirm</button>
+                <button id="modalCancel" data-testid="confirm-no" class="btn-secondary">Cancel</button>
+                <button id="modalConfirm" data-testid="confirm-yes" class="btn-danger">Confirm</button>
             </div>
         </div>
     </div>
 
-    <script src="js/db.js?v=41.6&t=1789635224-9543933"></script>
-    <script src="js/qr.js?v=41.6&t=1789635224-9543933"></script>
-    <script src="js/version-sync.js?v=41.6&t=1789635224-9543933"></script>
-    <script src="js/persistence.js?v=41.6&t=1789635224-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.6&t=1789635224-9543933"></script>
-    <script src="js/ui.js?v=41.6&t=1789635224-9543933"></script>
-    <script src="js/app.js?v=41.6&t=1789635224-9543933"></script>
+    <script src="js/db.js?v=41.7&t=1789635721-9543933"></script>
+    <script src="js/qr.js?v=41.7&t=1789635721-9543933"></script>
+    <script src="js/version-sync.js?v=41.7&t=1789635721-9543933"></script>
+    <script src="js/persistence.js?v=41.7&t=1789635721-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.7&t=1789635721-9543933"></script>
+    <script src="js/ui.js?v=41.7&t=1789635721-9543933"></script>
+    <script src="js/app.js?v=41.7&t=1789635721-9543933"></script>
 </body>
 </html>
