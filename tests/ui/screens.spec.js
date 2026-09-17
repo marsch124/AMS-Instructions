@@ -4,7 +4,7 @@
 // reaches it — through the button that leads there — so this checks the wiring as
 // well as the screen itself.
 import { test, expect } from '@playwright/test';
-import { openApp, openTab } from './_app.js';
+import { openApp, openTab, freeNumber, openInstruction } from './_app.js';
 
 test.setTimeout(120_000);
 
@@ -20,7 +20,7 @@ test('every screen opens without an error', async ({ page }) => {
   await openApp(page);
 
   // Something to look at on the screens that show one instruction.
-  const number = String(710 + (Date.now() % 80));
+  const number = freeNumber();
   await openTab(page, 'instructions', 'instructionsListScreen');
   await page.getByTestId('instruction-new').click();
   await expect(page.locator('body[data-screen="editorScreen"]')).toBeAttached();
@@ -59,9 +59,7 @@ test('every screen opens without an error', async ({ page }) => {
   }
 
   // One instruction, and its editor.
-  await openTab(page, 'instructions', 'instructionsListScreen');
-  await page.getByTestId('instruction-search').fill(number);
-  await page.getByTestId('instruction-row').first().click();
+  await openInstruction(page, number);
   await at('instructionScreen', 'One instruction');
   await page.getByTestId('instruction-edit').click();
   await at('editorScreen', 'The editor');

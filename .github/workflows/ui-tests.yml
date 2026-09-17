@@ -30,6 +30,15 @@ jobs:
           path: playwright-report
           retention-days: 14
 
+      # The traces and screenshots, which is what actually says WHY.
+      - name: Keep the traces when something fails
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: test-results
+          retention-days: 14
+
   # The release. `needs: tests` is the gate — GitHub does not start this job unless
   # the tests job succeeded. Only a push to main publishes; branches and pull
   # requests are tested but never deployed.

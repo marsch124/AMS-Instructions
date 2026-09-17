@@ -17,7 +17,11 @@ export default defineConfig({
   reporter: process.env.CI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL: 'http://127.0.0.1:4174',
-    trace: 'on-first-retry',
+    // Retries are 0 on purpose, so 'on-first-retry' would never record anything.
+    // A red run has to be diagnosable from what it left behind — that is how the
+    // one CI failure this suite has had was solved.
+    trace: 'retain-on-failure',
+    screenshot: 'only-on-failure',
     // 🚨 Service workers OFF. This app installs one, and it serves its cached copy
     // on every load after the first — so a test that reloads would be testing the
     // CACHE, not the code just changed. (Learned the hard way in AMS Packing.)

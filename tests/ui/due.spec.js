@@ -7,7 +7,7 @@
 // waiting a month, and holds the whole loop to account: not due → due → done →
 // not due again.
 import { test, expect } from '@playwright/test';
-import { openApp, openTab, restartApp, writeInstruction, openInstruction } from './_app.js';
+import { openApp, openTab, restartApp, writeInstruction, openInstruction, freeNumber } from './_app.js';
 
 test.setTimeout(120_000);
 
@@ -21,7 +21,7 @@ test('something done today falls due again, and marking it done clears it', asyn
   await page.clock.resume();
 
   await openApp(page);
-  const number = String(200 + (Date.now() % 40));
+  const number = freeNumber();
   const name = `Daily check ${Date.now()}`;
 
   // An instruction with a clock: Daily.

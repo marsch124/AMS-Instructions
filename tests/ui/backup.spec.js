@@ -7,14 +7,14 @@
 // assertion that matters most here is "the instruction I just wrote is inside".
 import { test, expect } from '@playwright/test';
 import { readFile } from 'node:fs/promises';
-import { openApp, openTab, writeInstruction } from './_app.js';
+import { openApp, openTab, writeInstruction, freeNumber } from './_app.js';
 
 test.setTimeout(120_000);
 
 test('a backup holds the work, and proves it by restoring', async ({ page }, testInfo) => {
   await openApp(page);
 
-  const number = String(600 + (Date.now() % 90));
+  const number = freeNumber();
   const name = `Backup witness ${Date.now()}`;
   await writeInstruction(page, { number, name });
 

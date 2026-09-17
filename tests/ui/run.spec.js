@@ -5,34 +5,33 @@
 // because that is exactly when you are interrupted. Finishing then has to record
 // a completion for everything you ticked, and for nothing you didn't.
 import { test, expect } from '@playwright/test';
-import { openApp, openTab, restartApp, writeInstruction } from './_app.js';
+import { openApp, openTab, restartApp, writeInstruction, freeNumber, openInstruction } from './_app.js';
 
 test.setTimeout(120_000);
 
 test('a run keeps your place and marks only what you ticked', async ({ page }) => {
   await openApp(page);
-  const a = String(400 + (Date.now() % 40));
-  const b = String(Number(a) + 40);
+  const a = freeNumber();
+  const b = freeNumber();
   const nameA = `Run first ${Date.now()}`;
   const nameB = `Run second ${Date.now()}`;
 
-  // Two instructions, both starred — Favourites is a set of exactly these two.
+  // Two instructions. A fresh app holds nothing else, so the General category is
+  // a set of exactly these two.
+  //
+  // 🪤 This used to star them and run the Favourites set — which put the star
+  // between the test and its subject. It went red in CI on nothing to do with
+  // runs. A test about runs picks the set that needs no other feature to work.
   for (const [number, name] of [[a, nameA], [b, nameB]]) {
     await writeInstruction(page, { number, name });
-    await page.getByTestId('instruction-search').fill(number);
-    await page.getByTestId('instruction-row').first().click();
-    await expect(page.locator('body[data-screen="instructionScreen"]')).toBeAttached();
-    await page.getByTestId('instruction-favourite').click();
-    await expect(page.getByTestId('instruction-favourite')).toHaveAttribute('data-on', '1');
   }
 
-  // Start the Favourites set.
   await openTab(page, 'settings', 'settingsScreen');
   await page.getByTestId('go-run').click();
   await expect(page.locator('body[data-screen="runPickerScreen"]')).toBeAttached();
-  const favourites = page.locator('[data-testid="run-set"][data-set="favourites"]');
-  await expect(favourites).toHaveAttribute('data-count', '2');
-  await favourites.click();
+  const set = page.locator('[data-testid="run-set"][data-set="category:General"]');
+  await expect(set).toHaveAttribute('data-count', '2');
+  await set.click();
 
   // Two rows, nothing done, and nothing to finish yet.
   await expect(page.locator('body[data-screen="runScreen"]')).toBeAttached();
@@ -70,14 +69,10 @@ test('a run keeps your place and marks only what you ticked', async ({ page }) =
   await expect(page.getByTestId('run-nudge'), 'the run is over').toBeHidden();
 
   // The ticked one is Done once; the untouched one was left alone.
-  await openTab(page, 'instructions', 'instructionsListScreen');
-  await page.getByTestId('instruction-search').fill(a);
-  await page.getByTestId('instruction-row').first().click();
+  await openInstruction(page, a);
   await expect(page.getByTestId('completion-count')).toContainText('1');
 
-  await openTab(page, 'instructions', 'instructionsListScreen');
-  await page.getByTestId('instruction-search').fill(b);
-  await page.getByTestId('instruction-row').first().click();
+  await openInstruction(page, b);
   await expect(page.getByTestId('completion-count'), 'an unticked instruction is untouched')
     .toContainText('0');
 });

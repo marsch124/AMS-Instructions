@@ -2,6 +2,7 @@
 // by the words on them — so the wording can change freely and a test only fails
 // when something has actually stopped working.
 import { expect } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 
 // Open the app fresh and wait until it has finished starting.
 export async function openApp(page) {
@@ -67,9 +68,54 @@ export async function writeInstruction(page, { number, name, steps = 'One\nTwo',
 // Open the instruction with this number, from the list. Browsing folds them into
 // category folders, so searching is both what a person does and what puts the row
 // in the DOM at all.
+//
+// 🪤 Click the row that CARRIES THE NUMBER, never `.first()`. Filling the search
+// box and clicking whatever is first is a race: the list has not necessarily
+// narrowed yet, so the tap lands on the previous instruction. The test then fails
+// further down, reading the wrong instruction's numbers, and only sometimes —
+// which is exactly how it reached CI green locally and red there.
 export async function openInstruction(page, number) {
   await openTab(page, 'instructions', 'instructionsListScreen');
   await page.getByTestId('instruction-search').fill(number);
-  await page.getByTestId('instruction-row').first().click();
+  await expect(rows(page, number)).toHaveCount(1);
+  await rows(page, number).click();
   await expect(page.locator('body[data-screen="instructionScreen"]')).toBeAttached();
+}
+
+// Instruction rows ON THE SCREEN YOU ARE LOOKING AT.
+//
+// 🪤 Every screen stays in the DOM — only one carries `.active` — and the same row
+// markup is used by the instructions list AND the Due screen. A page-wide
+// getByTestId('instruction-row') therefore counts rows nobody can see, and
+// "3 elements" is how that shows up. Scope to the active screen, as a person does.
+export function rows(page, number) {
+  const suffix = number ? `[data-number="${number}"]` : '';
+  return page.locator(`.screen.active [data-testid="instruction-row"]${suffix}`);
+}
+
+// A three-digit number no starter-library instruction is already using.
+//
+// 🪤 This bit me: the starter library holds 205 instructions spread over 100–909,
+// and a test that picked its own number "out of the way" was really tossing a
+// coin. The app does not refuse a duplicate number — it just writes a second
+// instruction with the same one — so a collision does not fail loudly, it makes
+// the test open the wrong row and fail somewhere else entirely, and only
+// sometimes. Read the library and pick from what is actually free.
+const LIBRARY_NUMBERS = (() => {
+  const file = new URL('../../AMS-Instructions-starter-library.json', import.meta.url);
+  const parsed = JSON.parse(readFileSync(file, 'utf8'));
+  const items = Array.isArray(parsed) ? parsed : (parsed.instructions || []);
+  return new Set(items.map(item => String(item.number)));
+})();
+
+const usedThisRun = new Set();
+
+export function freeNumber() {
+  for (let n = 100; n <= 999; n++) {
+    const number = String(n);
+    if (LIBRARY_NUMBERS.has(number) || usedThisRun.has(number)) continue;
+    usedThisRun.add(number);
+    return number;
+  }
+  throw new Error('no free instruction number left');
 }

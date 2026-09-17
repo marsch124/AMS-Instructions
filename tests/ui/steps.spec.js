@@ -6,13 +6,13 @@
 // you have done is worse than one that forgot. The app keeps the step count
 // alongside the ticks so it can spot that and drop them; this holds it to that.
 import { test, expect } from '@playwright/test';
-import { openApp, openTab, restartApp, writeInstruction, openInstruction } from './_app.js';
+import { openApp, openTab, restartApp, writeInstruction, openInstruction, freeNumber } from './_app.js';
 
 test.setTimeout(120_000);
 
 test('step ticks stay put, clear on Done, and are dropped if the steps change', async ({ page }) => {
   await openApp(page);
-  const number = String(100 + (Date.now() % 40));
+  const number = freeNumber();
   const name = `Stepped job ${Date.now()}`;
 
   await writeInstruction(page, { number, name, steps: 'Open the valve\nDrain it\nClose the valve' });

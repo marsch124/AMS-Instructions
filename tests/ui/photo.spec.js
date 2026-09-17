@@ -6,7 +6,7 @@
 // anything you would notice adding a picture. So the test feeds it a deliberately
 // oversized image and holds it to what it actually stored.
 import { test, expect } from '@playwright/test';
-import { openApp, openTab, restartApp } from './_app.js';
+import { openApp, openTab, restartApp, freeNumber, openInstruction, rows } from './_app.js';
 import { makePng } from './_png.js';
 
 test.setTimeout(120_000);
@@ -15,7 +15,7 @@ const PHOTO_MAX_EDGE = 1400;   // the app's own limit, in js/ui.js
 
 test('a photo is kept with the instruction, and shrunk on the way in', async ({ page }) => {
   await openApp(page);
-  const number = String(300 + (Date.now() % 40));
+  const number = freeNumber();
   const name = `Photo job ${Date.now()}`;
   const big = makePng(2400, 1600);
 
@@ -46,7 +46,8 @@ test('a photo is kept with the instruction, and shrunk on the way in', async ({ 
   // The list row carries a thumbnail, which is how you spot an instruction that
   // has a picture worth opening.
   await page.getByTestId('instruction-search').fill(number);
-  const row = page.getByTestId('instruction-row').first();
+  const row = rows(page, number);
+  await expect(row).toHaveCount(1);
   await expect(row.getByTestId('row-thumb')).toHaveCount(1);
 
   // And the instruction shows it.
@@ -59,9 +60,7 @@ test('a photo is kept with the instruction, and shrunk on the way in', async ({ 
 
   // A photo is the heaviest thing in the database. It has to survive a restart.
   await restartApp(page);
-  await openTab(page, 'instructions', 'instructionsListScreen');
-  await page.getByTestId('instruction-search').fill(number);
-  await page.getByTestId('instruction-row').first().click();
+  await openInstruction(page, number);
   await expect(page.getByTestId('photo-gallery').getByTestId('photo')).toHaveCount(1);
   await expect(page.getByTestId('photo-gallery').getByTestId('photo'))
     .toHaveJSProperty('naturalWidth', width);

@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.10&t=1789637789-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.11&t=1789639300-9543933">
 </head>
 <body>
     <!--
@@ -325,7 +325,7 @@
 
             <div class="home-section">
                 <h2>Favorites</h2>
-                <div id="favoritesList" class="instructions-grid">
+                <div id="favoritesList" data-testid="favourites-list" class="instructions-grid">
                     <p class="empty-state">No favorites yet. Tap ★ on an instruction to add.</p>
                 </div>
             </div>
@@ -1577,6 +1577,12 @@
         <div class="how-it-works-content">
                 <section class="version-log">
                     <div class="version-entry">
+                        <p><strong>v41.11 (2026-09-17) - A REAL BUG, FOUND BY THE TESTS</strong></p>
+                        <p><strong>Fixed:</strong> giving an instruction a number another instruction already has used to fail <strong>silently</strong>. The database has always refused it — two instructions may not share a number — but nothing said so: you tapped Save, nothing was written, nothing was said, and the editor simply sat there. With 200-odd instructions in the library, reaching for a number already in use is an ordinary mistake, and it would have cost you whatever you had just typed.</p>
+                        <p>Now it says so, and it says <strong>which instruction already has that number</strong>, leaves everything you have written exactly where it is, and puts the cursor back in the number box. This was found while writing the tests, not by anything going wrong on your phone.</p>
+                        <p>Also three more automatic tests — the twelfth joins on this fix — and a round of work on the tests themselves after one of them went red on GitHub and green here. Two faults in the tests, both real: they tapped whichever instruction was <em>first</em> in the list rather than the one carrying the number they were after, and they counted rows on screens nobody was looking at. Both are the sort of thing that fails one time in ten, which is worse than failing always. A red run now also keeps its trace and screenshots, so the next one can be answered with evidence instead of guesswork.</p>
+                    </div>
+                    <div class="version-entry">
                         <p><strong>v41.10 (2026-09-17) - THE STEP TICKS ARE TESTED TOO</strong></p>
                         <p>Nothing changes on screen. A tenth automatic test guards the ticks you put against the steps while you are actually doing a job. It checks the four promises they make: nothing is shown until you tick something, a tick survives leaving the instruction <strong>and closing the app</strong> (being interrupted mid-job is the whole reason they exist), Reset clears them, and marking the job Done clears them too — so the next time you open it you are not looking at a list that appears already finished.</p>
                         <p>The fifth check is the subtle one. A tick is remembered as a <strong>position</strong> in the list, so if the steps are rewritten the old ticks would point at whichever lines now sit in those places — a checklist that lies about what you have done is worse than one that forgot. The app keeps the step count alongside the ticks so it can notice and drop them, and the test rewrites a three-step job into a four-step one and insists nothing comes back falsely ticked.</p>
@@ -2197,12 +2203,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.10&t=1789637789-9543933"></script>
-    <script src="js/qr.js?v=41.10&t=1789637789-9543933"></script>
-    <script src="js/version-sync.js?v=41.10&t=1789637789-9543933"></script>
-    <script src="js/persistence.js?v=41.10&t=1789637789-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.10&t=1789637789-9543933"></script>
-    <script src="js/ui.js?v=41.10&t=1789637789-9543933"></script>
-    <script src="js/app.js?v=41.10&t=1789637789-9543933"></script>
+    <script src="js/db.js?v=41.11&t=1789639300-9543933"></script>
+    <script src="js/qr.js?v=41.11&t=1789639300-9543933"></script>
+    <script src="js/version-sync.js?v=41.11&t=1789639300-9543933"></script>
+    <script src="js/persistence.js?v=41.11&t=1789639300-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.11&t=1789639300-9543933"></script>
+    <script src="js/ui.js?v=41.11&t=1789639300-9543933"></script>
+    <script src="js/app.js?v=41.11&t=1789639300-9543933"></script>
 </body>
 </html>

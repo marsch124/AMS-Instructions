@@ -1,4 +1,4 @@
-const APP_VERSION = '41.10';
+const APP_VERSION = '41.11';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -2214,6 +2214,18 @@ async function handleSaveInstruction() {
 
     if (!number || !title || !stepsText) {
         alert('Please fill in: Number, Title, and Instructions');
+        return;
+    }
+
+    // Two instructions may not share a number — the database enforces it, and
+    // until v41.11 it enforced it SILENTLY: the save threw behind the scenes,
+    // nothing was written, and Save simply appeared to do nothing. With 200-odd
+    // instructions in the library, reaching for a number already in use is an
+    // ordinary mistake, so say which one has it and leave the editing alone.
+    const clash = await getInstruction(number);
+    if (clash && clash.id !== window.currentEditingId) {
+        alert('Number ' + number + ' is already used by "' + clash.title + '".\n\nGive this one a different number.');
+        document.getElementById('editorNumber').focus();
         return;
     }
 

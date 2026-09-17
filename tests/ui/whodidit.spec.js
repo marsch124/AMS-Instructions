@@ -4,14 +4,14 @@
 // with it. The second half tests the promise the app makes out loud: it asks who
 // once and remembers, so the fifth time is still one tap.
 import { test, expect } from '@playwright/test';
-import { openApp, openTab, restartApp, writeInstruction } from './_app.js';
+import { openApp, openTab, restartApp, writeInstruction, freeNumber, openInstruction } from './_app.js';
 
 test.setTimeout(120_000);
 
 test('marking done records who did it, and remembers them next time', async ({ page }) => {
   await openApp(page);
   const who = `Tester ${Date.now()}`;
-  const number = String(500 + (Date.now() % 90));
+  const number = freeNumber();
   const name = `Shared job ${Date.now()}`;
 
   // Somebody to credit.
@@ -24,9 +24,7 @@ test('marking done records who did it, and remembers them next time', async ({ p
 
   // Something to do.
   await writeInstruction(page, { number, name });
-  await page.getByTestId('instruction-search').fill(number);
-  await page.getByTestId('instruction-row').first().click();
-  await expect(page.locator('body[data-screen="instructionScreen"]')).toBeAttached();
+  await openInstruction(page, number);
 
   // Mark Done: it asks who, the first time.
   await page.getByTestId('instruction-done').click();
@@ -44,9 +42,7 @@ test('marking done records who did it, and remembers them next time', async ({ p
 
   // It is written down, not merely displayed.
   await restartApp(page);
-  await openTab(page, 'instructions', 'instructionsListScreen');
-  await page.getByTestId('instruction-search').fill(number);
-  await page.getByTestId('instruction-row').first().click();
+  await openInstruction(page, number);
   await page.getByTestId('fold-done-log').click();
   await expect(page.getByTestId('done-log').getByTestId('done-entry')).toHaveCount(1);
   await expect(page.getByTestId('done-log').getByTestId('done-entry').first()).toContainText(who);
