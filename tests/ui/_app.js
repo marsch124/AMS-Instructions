@@ -49,13 +49,27 @@ export async function goBackToATab(page) {
 
 // Write one instruction and land back on the list. Three tests need something of
 // their own to look at, and none of them are about the editor.
-export async function writeInstruction(page, { number, name, steps = 'One\nTwo' }) {
+export async function writeInstruction(page, { number, name, steps = 'One\nTwo', frequency }) {
   await openTab(page, 'instructions', 'instructionsListScreen');
   await page.getByTestId('instruction-new').click();
   await expect(page.locator('body[data-screen="editorScreen"]')).toBeAttached();
   await page.getByTestId('editor-number').fill(number);
   await page.getByTestId('editor-name').fill(name);
   await page.getByTestId('editor-steps').fill(steps);
+  if (frequency) await page.getByTestId('editor-frequency').selectOption(frequency);
   await page.getByTestId('editor-save').click();
+  // 🪤 Wait for the list before doing anything else. Saving is asynchronous, and a
+  // tab tapped while the editor is still on screen hits a button that is on its
+  // way out — the click then waits for a visibility that never comes.
   await expect(page.locator('body[data-screen="instructionsListScreen"]')).toBeAttached();
+}
+
+// Open the instruction with this number, from the list. Browsing folds them into
+// category folders, so searching is both what a person does and what puts the row
+// in the DOM at all.
+export async function openInstruction(page, number) {
+  await openTab(page, 'instructions', 'instructionsListScreen');
+  await page.getByTestId('instruction-search').fill(number);
+  await page.getByTestId('instruction-row').first().click();
+  await expect(page.locator('body[data-screen="instructionScreen"]')).toBeAttached();
 }

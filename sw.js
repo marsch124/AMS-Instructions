@@ -1,4 +1,4 @@
-const APP_VERSION = '41.8';
+const APP_VERSION = '41.9';
 /* The store is named after the app version, and clearing out old copies only
    ever touches ours — the sibling AMS apps share this web address. */
 const CACHE_PREFIX = 'ams-instructions-v';

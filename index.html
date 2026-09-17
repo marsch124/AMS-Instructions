@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.8&t=1789635982-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.9&t=1789636605-9543933">
 </head>
 <body>
     <!--
@@ -305,16 +305,16 @@
             <!-- Everything whose frequency says it should have come round again by
                  now. Sits above the to-dos because an overdue safety check is a
                  heavier thing than a to-do you wrote yourself. -->
-            <button id="dueNudge" class="nudge-card due" style="display: none;">
+            <button id="dueNudge" data-testid="due-nudge" class="nudge-card due" style="display: none;">
                 <svg class="nudge-glyph" aria-hidden="true"><use href="#icon-due"/></svg>
                 <span class="nudge-text">
                     <span class="nudge-title">Due now</span>
-                    <span class="nudge-detail" id="dueNudgeDetail">0 due</span>
+                    <span class="nudge-detail" id="dueNudgeDetail" data-testid="due-nudge-detail">0 due</span>
                 </span>
                 <span class="nudge-chevron">›</span>
             </button>
 
-            <button id="actionsNudge" class="nudge-card actions" style="display: none;">
+            <button id="actionsNudge" data-testid="actions-nudge" class="nudge-card actions" style="display: none;">
                 <svg class="nudge-glyph" aria-hidden="true"><use href="#icon-actions"/></svg>
                 <span class="nudge-text">
                     <span class="nudge-title">To-dos to tackle</span>
@@ -846,7 +846,7 @@
         </header>
 
         <div class="list-content">
-            <div id="dueList" class="full-instructions-list">
+            <div id="dueList" data-testid="due-list" class="full-instructions-list">
                 <p class="empty-state">Nothing is due.</p>
             </div>
         </div>
@@ -1139,7 +1139,7 @@
                 <div class="form-row">
                     <div class="form-group">
                         <label for="editorFrequency">Frequency</label>
-                        <select id="editorFrequency">
+                        <select id="editorFrequency" data-testid="editor-frequency">
                             <option value="">-- Select --</option>
                             <option value="Daily">Daily</option>
                             <option value="Weekly">Weekly</option>
@@ -1576,6 +1576,12 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v41.9 (2026-09-17) - DUE DATES ARE TESTED TOO</strong></p>
+                        <p>Nothing changes on screen. A ninth automatic test guards the one part of this app whose failure would be <strong>completely silent</strong>. Everything else announces itself — a lost instruction is missing, a broken screen is blank — but a due date that stops coming round just means a check quietly never happens again, and there is nothing on screen to notice.</p>
+                        <p>Rather than wait a month, the test moves the clock. It writes a Daily instruction, checks that a never-done job is <em>not</em> treated as overdue (or the starter library would bury the Home screen on day one), marks it Done, checks nothing is due the same day — then jumps two days forward, restarts the app, and insists it is now due and named on the Due screen. Finally it does the job again and insists that clears it, which is the whole point of a reminder.</p>
+                        <p>Proved by making nothing ever fall due, and by making a second Done not reset the clock — both went red.</p>
+                    </div>
                     <div class="version-entry">
                         <p><strong>v41.8 (2026-09-17) - PHOTOS ARE TESTED TOO</strong></p>
                         <p>Nothing changes on screen. An eighth automatic test guards photos — and in particular the part of them you cannot see. A photo straight off the camera is several megabytes; if the app kept what it was handed, a couple of dozen pictures would quietly fill up the phone's allowance and the backup with it, and you would find out weeks later as lost data rather than at the moment you added one.</p>
@@ -2185,12 +2191,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.8&t=1789635982-9543933"></script>
-    <script src="js/qr.js?v=41.8&t=1789635982-9543933"></script>
-    <script src="js/version-sync.js?v=41.8&t=1789635982-9543933"></script>
-    <script src="js/persistence.js?v=41.8&t=1789635982-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.8&t=1789635982-9543933"></script>
-    <script src="js/ui.js?v=41.8&t=1789635982-9543933"></script>
-    <script src="js/app.js?v=41.8&t=1789635982-9543933"></script>
+    <script src="js/db.js?v=41.9&t=1789636605-9543933"></script>
+    <script src="js/qr.js?v=41.9&t=1789636605-9543933"></script>
+    <script src="js/version-sync.js?v=41.9&t=1789636605-9543933"></script>
+    <script src="js/persistence.js?v=41.9&t=1789636605-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.9&t=1789636605-9543933"></script>
+    <script src="js/ui.js?v=41.9&t=1789636605-9543933"></script>
+    <script src="js/app.js?v=41.9&t=1789636605-9543933"></script>
 </body>
 </html>
