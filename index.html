@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.11&t=1789639300-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.12&t=1789643048-9543933">
 </head>
 <body>
     <!--
@@ -662,10 +662,10 @@
 
             <div class="settings-section">
                 <h3>Data</h3>
-                <button id="exportBtn" class="btn-primary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-backup"/></svg><span>Back Up Now</span></button>
+                <button id="exportBtn" data-testid="backup-export-settings" class="btn-primary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-backup"/></svg><span>Back Up Now</span></button>
                 <button id="dataSafetyBtn" data-testid="go-datasafety" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-shield"/></svg><span>Data Safety</span></button>
-                <button id="importBtn" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-restore"/></svg><span>Restore from a Backup File</span></button>
-                <input id="importFile" type="file" accept=".json,application/json" hidden>
+                <button id="importBtn" data-testid="restore-file" class="btn-secondary"><svg class="btn-glyph" aria-hidden="true"><use href="#icon-restore"/></svg><span>Restore from a Backup File</span></button>
+                <input id="importFile" data-testid="restore-file-input" type="file" accept=".json,application/json" hidden>
             </div>
 
             <div class="settings-section">
@@ -1273,7 +1273,7 @@
             <!-- Buttons -->
             <div class="editor-buttons">
                 <button id="saveBtn" class="btn-primary" data-testid="editor-save">Save Instruction</button>
-                <button id="deleteEditorBtn" class="btn-danger" style="display: none;">Delete Instruction</button>
+                <button id="deleteEditorBtn" data-testid="instruction-delete" class="btn-danger" style="display: none;">Delete Instruction</button>
             </div>
         </div>
     </div>
@@ -1576,6 +1576,12 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v41.12 (2026-09-17) - A DELIBERATE WIPE NOW STAYS WIPED</strong></p>
+                        <p><strong>Fixed, and this one mattered:</strong> if you used <strong>Clear All Data</strong>, or deleted your last remaining instruction, the app <strong>put it all back by itself</strong> the next time you opened it. Two safety features were cancelling each other out. Clear All Data deliberately keeps the copy from just beforehand, so you can undo it by hand from Data Safety. Separately, the app watches for coming up with no instructions at all — the shape of the real data loss in 2026 — and quietly restores from the newest backup it can find. It found that kept copy and restored it, unasked.</p>
+                        <p>An undo you did not ask for is not an undo. The app now <strong>remembers when you emptied it on purpose</strong> and leaves it alone: what you deleted stays deleted, and the backup is still sitting in Data Safety if you change your mind. The moment there is anything in the app again, the automatic rescue goes back on guard — so an unexplained empty app on some future morning is still put back for you, exactly as before. Both halves are now held down by their own tests, because fixing the first by breaking the second would have been far worse than the bug.</p>
+                        <p>Also new: a test for <strong>restoring from a backup file</strong> — the half you only need on the worst day. It takes a backup, deletes the instruction, offers the file and presses <strong>Cancel</strong> (nothing may come back), then says yes and checks the whole instruction is back, steps and all, and still there after a restart. This is what turned up the bug above.</p>
+                    </div>
                     <div class="version-entry">
                         <p><strong>v41.11 (2026-09-17) - A REAL BUG, FOUND BY THE TESTS</strong></p>
                         <p><strong>Fixed:</strong> giving an instruction a number another instruction already has used to fail <strong>silently</strong>. The database has always refused it — two instructions may not share a number — but nothing said so: you tapped Save, nothing was written, nothing was said, and the editor simply sat there. With 200-odd instructions in the library, reaching for a number already in use is an ordinary mistake, and it would have cost you whatever you had just typed.</p>
@@ -2195,7 +2201,7 @@
     <div id="modal" data-testid="confirm-modal" class="modal" hidden>
         <div class="modal-content">
             <h3 id="modalTitle">Confirm</h3>
-            <p id="modalMessage">Are you sure?</p>
+            <p id="modalMessage" data-testid="confirm-message">Are you sure?</p>
             <div class="modal-buttons">
                 <button id="modalCancel" data-testid="confirm-no" class="btn-secondary">Cancel</button>
                 <button id="modalConfirm" data-testid="confirm-yes" class="btn-danger">Confirm</button>
@@ -2203,12 +2209,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.11&t=1789639300-9543933"></script>
-    <script src="js/qr.js?v=41.11&t=1789639300-9543933"></script>
-    <script src="js/version-sync.js?v=41.11&t=1789639300-9543933"></script>
-    <script src="js/persistence.js?v=41.11&t=1789639300-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.11&t=1789639300-9543933"></script>
-    <script src="js/ui.js?v=41.11&t=1789639300-9543933"></script>
-    <script src="js/app.js?v=41.11&t=1789639300-9543933"></script>
+    <script src="js/db.js?v=41.12&t=1789643048-9543933"></script>
+    <script src="js/qr.js?v=41.12&t=1789643048-9543933"></script>
+    <script src="js/version-sync.js?v=41.12&t=1789643048-9543933"></script>
+    <script src="js/persistence.js?v=41.12&t=1789643048-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.12&t=1789643048-9543933"></script>
+    <script src="js/ui.js?v=41.12&t=1789643048-9543933"></script>
+    <script src="js/app.js?v=41.12&t=1789643048-9543933"></script>
 </body>
 </html>

@@ -58,6 +58,13 @@ async function verifyDataIntegrity() {
         console.log(`[Integrity] DB: ${dbCount} instructions, Backup: ${backupCount} instructions`);
 
         if (dbCount === 0 && backupCount > 0) {
+            // ...unless you emptied it yourself. The same guard the start-up
+            // restore uses: a deliberate wipe stays wiped, and stays undoable by
+            // hand from Settings → Data Safety.
+            if (wasEmptiedOnPurpose()) {
+                console.log('[Integrity] Empty on purpose — leaving it alone.');
+                return true;
+            }
             console.warn('[Integrity] DB empty but backup exists! Attempting recovery...');
             return await recoverFromBackup();
         }

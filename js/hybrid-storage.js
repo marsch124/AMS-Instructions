@@ -11,6 +11,29 @@
 const BACKUP_CURRENT_KEY = 'ams_instructions_hybrid';       // existing installs already store here
 const BACKUP_PREVIOUS_KEY = 'ams_instructions_hybrid_prev';
 const BACKUP_FAILED_KEY = 'ams_backup_failed';
+
+// Emptying the app ON PURPOSE — "Clear All Data", or deleting the last
+// instruction — is remembered here, and the automatic rescue below leaves it
+// alone while it is set.
+//
+// Without this the two safety layers cancel each other out: Clear All Data rolls
+// the old backup into the previous slot so it stays undoable BY HAND from Data
+// Safety, and the rescue then finds that slot on the next start and puts
+// everything back UNASKED. A deliberate wipe undid itself, which is not an undo —
+// it is the app refusing to do as it is told. (Found by the UI tests, v41.12.)
+const DELIBERATE_EMPTY_KEY = 'ams_emptied_on_purpose';
+
+function markEmptiedOnPurpose() {
+    try { localStorage.setItem(DELIBERATE_EMPTY_KEY, String(Date.now())); } catch (error) { /* private mode */ }
+}
+
+function forgetEmptiedOnPurpose() {
+    try { localStorage.removeItem(DELIBERATE_EMPTY_KEY); } catch (error) { /* private mode */ }
+}
+
+function wasEmptiedOnPurpose() {
+    try { return Boolean(localStorage.getItem(DELIBERATE_EMPTY_KEY)); } catch (error) { return false; }
+}
 const GENERATION_GAP_MS = 24 * 60 * 60 * 1000;
 
 function readBackupSlot(key) {
@@ -63,6 +86,13 @@ class HybridStorage {
             const existing = await getAllInstructions();
             if (existing.length > 0) return false;
 
+            // Empty because you emptied it. Leave it empty — the backup is still
+            // there, and Data Safety will put it back the moment you ask.
+            if (wasEmptiedOnPurpose()) {
+                console.log('[Backup] Empty on purpose — not restoring. Data Safety can still undo it.');
+                return false;
+            }
+
             const backup = this.bestBackup();
             if (backupIsEmpty(backup)) return false;
 
@@ -96,6 +126,10 @@ class HybridStorage {
         try {
             const data = await exportData();
             const existing = readBackupSlot(BACKUP_CURRENT_KEY);
+
+            // There is data again, so whatever was emptied on purpose is history:
+            // the next empty start is an accident, and worth rescuing.
+            if (!backupIsEmpty(data)) forgetEmptiedOnPurpose();
 
             // The rule that was missing, and that cost real data: a backup holding
             // instructions is never replaced by an empty snapshot. An empty database
@@ -208,6 +242,9 @@ const originalDeleteInstruction = deleteInstruction;
 deleteInstruction = async function(id) {
     const result = await originalDeleteInstruction(id);
     await hybridStorage.mirrorToLocalStorage({ allowEmpty: true });
+    // Deleting the last one is the same deliberate act as clearing them all: it
+    // must not be undone behind your back on the next start.
+    if ((await getAllInstructions()).length === 0) markEmptiedOnPurpose();
     return result;
 };
 
@@ -278,6 +315,7 @@ clearAllData = async function() {
     }
     const result = await originalClearAllData();
     await hybridStorage.mirrorToLocalStorage({ allowEmpty: true });
+    markEmptiedOnPurpose();
     return result;
 };
 
