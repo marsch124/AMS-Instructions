@@ -1,4 +1,4 @@
-const APP_VERSION = '41.7';
+const APP_VERSION = '41.8';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -380,6 +380,7 @@ function displayInstruction(instruction) {
             const img = document.createElement('img');
             img.src = photo.data;
             img.className = 'photo-thumbnail';
+            img.dataset.testid = 'photo';
             photosGal.appendChild(img);
         });
         updatePreviewIndicator('photosPreview', true);
@@ -977,6 +978,7 @@ function createInstructionRow(instr) {
     if (thumb) {
         thumbEl = document.createElement('img');
         thumbEl.className = 'list-item-thumb';
+        thumbEl.dataset.testid = 'row-thumb';
         thumbEl.src = thumb;
         thumbEl.alt = '';
         thumbEl.loading = 'lazy';
@@ -2117,6 +2119,11 @@ function renderPhotosList() {
     currentPhotos.forEach((photo, i) => {
         const div = document.createElement('div');
         div.className = 'photo-item';
+        div.dataset.testid = 'editor-photo';
+        div.dataset.width = String(photo.width || 0);
+        div.dataset.height = String(photo.height || 0);
+        div.dataset.bytes = String(dataUrlBytes(photo.data) + dataUrlBytes(photo.thumb));
+        div.dataset.originalBytes = String(photo.originalSize || 0);
 
         const img = document.createElement('img');
         // The thumbnail is enough for a 60px preview; the full photo would be

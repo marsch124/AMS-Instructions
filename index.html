@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.7&t=1789635721-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.8&t=1789635982-9543933">
 </head>
 <body>
     <!--
@@ -540,14 +540,14 @@
             </section>
 
             <!-- Photos -->
-            <section class="instruction-section" id="photosSection" style="display: none;">
-                <div id="photosToggle" class="section-toggle">
+            <section class="instruction-section" id="photosSection" data-testid="photos-section" style="display: none;">
+                <div id="photosToggle" data-testid="fold-photos" class="section-toggle">
                     <h3><svg class="head-glyph" aria-hidden="true"><use href="#icon-photo"/></svg><span>Photos</span></h3>
                     <span class="preview-indicator" id="photosPreview"></span>
                     <span class="toggle-icon">▼</span>
                 </div>
                 <div id="photosContent" class="section-content">
-                    <div id="instructionPhotos" class="photos-gallery"></div>
+                    <div id="instructionPhotos" data-testid="photo-gallery" class="photos-gallery"></div>
                 </div>
             </section>
 
@@ -1246,10 +1246,10 @@
             <div class="editor-section">
                 <h3><svg class="head-glyph" aria-hidden="true"><use href="#icon-photo"/></svg><span>Photos (max 5)</span></h3>
                 <div class="form-group">
-                    <input id="editorPhotoInput" type="file" accept="image/*" hidden>
-                    <button type="button" id="addPhotoBtn" class="btn-secondary">+ Add Photo</button>
+                    <input id="editorPhotoInput" data-testid="photo-input" type="file" accept="image/*" hidden>
+                    <button type="button" id="addPhotoBtn" data-testid="photo-add" class="btn-secondary">+ Add Photo</button>
                 </div>
-                <div id="editorPhotosList" class="photos-list"></div>
+                <div id="editorPhotosList" data-testid="editor-photos" class="photos-list"></div>
             </div>
 
             <!-- Links -->
@@ -1576,6 +1576,12 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v41.8 (2026-09-17) - PHOTOS ARE TESTED TOO</strong></p>
+                        <p>Nothing changes on screen. An eighth automatic test guards photos — and in particular the part of them you cannot see. A photo straight off the camera is several megabytes; if the app kept what it was handed, a couple of dozen pictures would quietly fill up the phone's allowance and the backup with it, and you would find out weeks later as lost data rather than at the moment you added one.</p>
+                        <p>So on every publish the test feeds the app a deliberately oversized picture and then holds it to what it <strong>actually stored</strong>: no more than 1400 pixels along its longest edge, still big enough to read a label, and a small fraction of what came in. Then it saves, checks the picture appears on the instruction and as a thumbnail in the list, restarts the app, and checks it is all still there — photos being the heaviest thing the database ever holds.</p>
+                        <p>Proved by making the app keep the original, and by making it show a photo it never saved — both went red.</p>
+                    </div>
                     <div class="version-entry">
                         <p><strong>v41.7 (2026-09-17) - RUNS ARE TESTED TOO</strong></p>
                         <p>Nothing changes on screen. A seventh automatic test guards <strong>Run a Set</strong> — the departure-checklist flow, which until now had no test at all. It stars two instructions, starts the Favourites set, checks the run opens with both of them and nothing to finish yet, and ticks one.</p>
@@ -2179,12 +2185,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.7&t=1789635721-9543933"></script>
-    <script src="js/qr.js?v=41.7&t=1789635721-9543933"></script>
-    <script src="js/version-sync.js?v=41.7&t=1789635721-9543933"></script>
-    <script src="js/persistence.js?v=41.7&t=1789635721-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.7&t=1789635721-9543933"></script>
-    <script src="js/ui.js?v=41.7&t=1789635721-9543933"></script>
-    <script src="js/app.js?v=41.7&t=1789635721-9543933"></script>
+    <script src="js/db.js?v=41.8&t=1789635982-9543933"></script>
+    <script src="js/qr.js?v=41.8&t=1789635982-9543933"></script>
+    <script src="js/version-sync.js?v=41.8&t=1789635982-9543933"></script>
+    <script src="js/persistence.js?v=41.8&t=1789635982-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.8&t=1789635982-9543933"></script>
+    <script src="js/ui.js?v=41.8&t=1789635982-9543933"></script>
+    <script src="js/app.js?v=41.8&t=1789635982-9543933"></script>
 </body>
 </html>
