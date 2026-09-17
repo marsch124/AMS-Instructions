@@ -1,4 +1,4 @@
-const APP_VERSION = '41.14';
+const APP_VERSION = '41.15';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -1256,8 +1256,12 @@ function makeFilterChip(group, key, label, count, isOn, icon) {
     const chip = document.createElement('button');
     chip.className = 'filter-chip' + (isOn ? ' on' : '');
     chip.type = 'button';
+    chip.dataset.testid = 'filter-chip';
     chip.dataset.group = group;
     chip.dataset.key = key;
+    // What the chip knows, in data: how many it matches and whether it is on.
+    chip.dataset.count = String(count);
+    chip.dataset.on = isOn ? '1' : '0';
     chip.setAttribute('aria-pressed', isOn ? 'true' : 'false');
 
     if (icon) chip.appendChild(spriteIcon(icon, 'chip-glyph'));
@@ -1812,6 +1816,8 @@ async function renderInstructionsList(filter = '') {
         });
         if (summary) {
             summary.hidden = false;
+            summary.dataset.shown = String(filtered.length);
+            summary.dataset.total = String(instructions.length);
             summary.querySelector('.list-summary-text').textContent = filtering
                 ? filtered.length + ' of ' + instructions.length + (term ? ' · searched' : '')
                 : filtered.length + (filtered.length === 1 ? ' match' : ' matches');

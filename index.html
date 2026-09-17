@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.14&t=1789647377-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.15&t=1789648143-9543933">
 </head>
 <body>
     <!--
@@ -695,7 +695,7 @@
         <div class="list-content">
             <div class="search-row">
                 <input id="searchInput" data-testid="instruction-search" type="text" placeholder="Search..." class="search-input">
-                <button id="filterBtn" class="filter-btn" aria-expanded="false" aria-controls="filterPanel">
+                <button id="filterBtn" data-testid="filter-open" class="filter-btn" aria-expanded="false" aria-controls="filterPanel">
                     <svg class="filter-glyph" aria-hidden="true"><use href="#icon-filter"/></svg>
                     <span>Filter</span>
                     <span id="filterCount" class="filter-btn-count" hidden>0</span>
@@ -704,7 +704,7 @@
 
             <!-- Folded away by default: four groups of chips would eat a third of
                  the screen on every visit, and most visits are just browsing. -->
-            <div id="filterPanel" class="filter-panel" hidden>
+            <div id="filterPanel" data-testid="filter-panel" class="filter-panel" hidden>
                 <div class="filter-panel-body"></div>
                 <div class="filter-panel-actions">
                     <button id="filterPanelClearBtn" class="filter-panel-btn">Clear all</button>
@@ -712,16 +712,16 @@
                 </div>
             </div>
 
-            <div id="listSummary" class="list-summary" hidden>
+            <div id="listSummary" data-testid="list-summary" class="list-summary" hidden>
                 <span class="list-summary-text"></span>
                 <div class="list-summary-buttons">
-                    <button id="clearFiltersBtn" class="list-summary-btn" hidden>Clear filters</button>
+                    <button id="clearFiltersBtn" data-testid="filter-clear" class="list-summary-btn" hidden>Clear filters</button>
                     <button id="toggleAllGroupsBtn" class="list-summary-btn">Expand all</button>
-                    <button id="sortBtn" class="list-summary-btn" aria-expanded="false" aria-controls="sortPanel" aria-label="Sort order">↕ Number ▾</button>
+                    <button id="sortBtn" data-testid="sort-open" class="list-summary-btn" aria-expanded="false" aria-controls="sortPanel" aria-label="Sort order">↕ Number ▾</button>
                 </div>
             </div>
 
-            <div id="sortPanel" class="filter-panel sort-panel" hidden>
+            <div id="sortPanel" data-testid="sort-panel" class="filter-panel sort-panel" hidden>
                 <div class="sort-panel-body"></div>
             </div>
             <!-- Only ever offered while a filter is on. Acting on a whole
@@ -1128,7 +1128,7 @@
                 </div>
                 <div class="form-group">
                     <label for="editorStatus">Status</label>
-                    <select id="editorStatus">
+                    <select id="editorStatus" data-testid="editor-status">
                         <option value="Auto">Auto (based on completeness)</option>
                         <option value="Draft">Draft</option>
                         <option value="Active">Active</option>
@@ -1576,6 +1576,13 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v41.15 (2026-09-17) - ARCHIVING IS TESTED TOO</strong></p>
+                        <p>Nothing changes on screen. A sixteenth automatic test covers <strong>Archived</strong> — the status you give something you want to keep but not be nagged about. The test lets a daily job go genuinely overdue, archives it, and insists the nagging stops at once and stays stopped on every start afterwards.</p>
+                        <p>Then the other half, which matters just as much: an archive you cannot open again is only a delete with extra steps. It opens the filter panel, checks the <strong>Archived</strong> chip counts the instruction, taps it, and checks the instruction is listed and opens properly. Last it takes it back out of the archive and checks it goes back on the list — the decision has to be reversible, which is the whole reason the status exists rather than deleting things.</p>
+                        <p>Proved by making archived instructions fall due anyway, and by making the Archived filter unable to find them — both went red.</p>
+                        <p>One repair to the tests themselves came with it: the helper that presses <strong>← Back</strong> could wait out the entire two-minute limit if the screen changed underneath it, which made the whole suite fail about one run in four for no real reason. A suite that fails at random would eventually block a genuine release, so its taps are now given a couple of seconds each and it simply looks again.</p>
+                    </div>
                     <div class="version-entry">
                         <p><strong>v41.14 (2026-09-17) - THE WIPE FIX, PROPERLY THIS TIME</strong></p>
                         <p>v41.12 stopped the app from putting back data you had deliberately deleted — but it noted the deletion as deliberate <strong>just after</strong> emptying the database rather than just before, and the app's own rescue runs on a timer. On a slower machine that timer landed in the gap, found an empty database, and restored anyway. It was caught on GitHub rather than on your phone, which is the entire purpose of the tests running there before a version is published.</p>
@@ -2220,12 +2227,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.14&t=1789647377-9543933"></script>
-    <script src="js/qr.js?v=41.14&t=1789647377-9543933"></script>
-    <script src="js/version-sync.js?v=41.14&t=1789647377-9543933"></script>
-    <script src="js/persistence.js?v=41.14&t=1789647377-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.14&t=1789647377-9543933"></script>
-    <script src="js/ui.js?v=41.14&t=1789647377-9543933"></script>
-    <script src="js/app.js?v=41.14&t=1789647377-9543933"></script>
+    <script src="js/db.js?v=41.15&t=1789648143-9543933"></script>
+    <script src="js/qr.js?v=41.15&t=1789648143-9543933"></script>
+    <script src="js/version-sync.js?v=41.15&t=1789648143-9543933"></script>
+    <script src="js/persistence.js?v=41.15&t=1789648143-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.15&t=1789648143-9543933"></script>
+    <script src="js/ui.js?v=41.15&t=1789648143-9543933"></script>
+    <script src="js/app.js?v=41.15&t=1789648143-9543933"></script>
 </body>
 </html>

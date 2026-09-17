@@ -38,13 +38,30 @@ export async function openTab(page, tab, screenId) {
 }
 
 // Press ← Back until the tab bar is showing again.
+//
+// 🪤 Every click here is BOUNDED and its failure is swallowed on purpose. Screens
+// swap under this helper — the button it found a moment ago can be on its way out
+// by the time it clicks — and an unbounded click then waits out the WHOLE test
+// timeout on an element that will never become visible again. That is two silent
+// minutes and a red suite for no reason; it made this suite fail about one run in
+// four. Look again instead.
 export async function goBackToATab(page) {
-  for (let i = 0; i < 6; i++) {
+  for (let attempt = 0; attempt < 8; attempt++) {
     if (await page.locator('#tabbar:not([hidden])').count()) return;
-    const back = page.locator('.screen.active [data-testid="back"]');
-    if (!(await back.count())) return;
-    await back.first().click();
-    await page.waitForTimeout(80);
+
+    const back = page.locator('.screen.active [data-testid="back"]').first();
+    try {
+      await back.click({ timeout: 2_000 });
+    } catch {
+      // Gone, or mid-transition. Fall through and look at what is there now.
+    }
+    await page.waitForTimeout(100);
+  }
+
+  // Say so plainly rather than letting the next line fail somewhere confusing.
+  if (!(await page.locator('#tabbar:not([hidden])').count())) {
+    const screen = await page.evaluate(() => document.body.dataset.screen);
+    throw new Error(`Could not get back to a tab — still on "${screen}" after 8 tries.`);
   }
 }
 
