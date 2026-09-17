@@ -1,4 +1,4 @@
-const APP_VERSION = '41.9';
+const APP_VERSION = '41.10';
 const LAST_REVISED_BY_KEY = 'ams_last_revised_by';
 
 let currentInstruction = null;
@@ -519,11 +519,15 @@ function renderSteps(instruction) {
     steps.forEach((step, i) => {
         const li = document.createElement('li');
         li.classList.toggle('step-done', ticked.has(i));
+        li.dataset.testid = 'step';
+        li.dataset.index = String(i);
+        li.dataset.done = ticked.has(i) ? '1' : '0';
 
         const label = document.createElement('label');
         const box = document.createElement('input');
         box.type = 'checkbox';
         box.dataset.step = i;
+        box.dataset.testid = 'step-tick';
         box.checked = ticked.has(i);
 
         box.addEventListener('change', () => {
@@ -533,6 +537,7 @@ function renderSteps(instruction) {
                 ticked.delete(i);
             }
             li.classList.toggle('step-done', box.checked);
+            li.dataset.done = box.checked ? '1' : '0';
             saveStepProgress(instruction, [...ticked].sort((a, b) => a - b));
             updateStepProgressLine(instruction);
         });
@@ -581,6 +586,8 @@ function updateStepProgressLine(instruction) {
     // instruction you just opened is a line of noise above every set of steps.
     line.hidden = done === 0;
     text.textContent = done + ' of ' + total + ' done';
+    line.dataset.done = String(done);
+    line.dataset.total = String(total);
 }
 
 function updateNextDueLine(instruction) {

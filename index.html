@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.9&t=1789636605-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.10&t=1789637789-9543933">
 </head>
 <body>
     <!--
@@ -413,11 +413,11 @@
                     <!-- Your place in the job. Hidden until something is ticked —
                          "0 of 12 done" above every untouched set of steps would be
                          a line of noise on every instruction in the app. -->
-                    <div id="stepProgress" class="step-progress" hidden>
-                        <span id="stepProgressText" class="step-progress-text">0 of 0 done</span>
-                        <button id="stepResetBtn" class="step-progress-btn">Reset</button>
+                    <div id="stepProgress" data-testid="step-progress" class="step-progress" hidden>
+                        <span id="stepProgressText" data-testid="step-progress-text" class="step-progress-text">0 of 0 done</span>
+                        <button id="stepResetBtn" data-testid="step-reset" class="step-progress-btn">Reset</button>
                     </div>
-                    <ol id="instructionSteps" class="steps-list">
+                    <ol id="instructionSteps" data-testid="steps" class="steps-list">
                         <li><label><input type="checkbox"> Step 1</label></li>
                     </ol>
                 </div>
@@ -1577,6 +1577,12 @@
         <div class="how-it-works-content">
                 <section class="version-log">
                     <div class="version-entry">
+                        <p><strong>v41.10 (2026-09-17) - THE STEP TICKS ARE TESTED TOO</strong></p>
+                        <p>Nothing changes on screen. A tenth automatic test guards the ticks you put against the steps while you are actually doing a job. It checks the four promises they make: nothing is shown until you tick something, a tick survives leaving the instruction <strong>and closing the app</strong> (being interrupted mid-job is the whole reason they exist), Reset clears them, and marking the job Done clears them too — so the next time you open it you are not looking at a list that appears already finished.</p>
+                        <p>The fifth check is the subtle one. A tick is remembered as a <strong>position</strong> in the list, so if the steps are rewritten the old ticks would point at whichever lines now sit in those places — a checklist that lies about what you have done is worse than one that forgot. The app keeps the step count alongside the ticks so it can notice and drop them, and the test rewrites a three-step job into a four-step one and insists nothing comes back falsely ticked.</p>
+                        <p>Proved three ways: stale ticks kept after a rewrite, Done leaving the ticks in place, and the ticks not surviving at all — all three went red.</p>
+                    </div>
+                    <div class="version-entry">
                         <p><strong>v41.9 (2026-09-17) - DUE DATES ARE TESTED TOO</strong></p>
                         <p>Nothing changes on screen. A ninth automatic test guards the one part of this app whose failure would be <strong>completely silent</strong>. Everything else announces itself — a lost instruction is missing, a broken screen is blank — but a due date that stops coming round just means a check quietly never happens again, and there is nothing on screen to notice.</p>
                         <p>Rather than wait a month, the test moves the clock. It writes a Daily instruction, checks that a never-done job is <em>not</em> treated as overdue (or the starter library would bury the Home screen on day one), marks it Done, checks nothing is due the same day — then jumps two days forward, restarts the app, and insists it is now due and named on the Due screen. Finally it does the job again and insists that clears it, which is the whole point of a reminder.</p>
@@ -2191,12 +2197,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.9&t=1789636605-9543933"></script>
-    <script src="js/qr.js?v=41.9&t=1789636605-9543933"></script>
-    <script src="js/version-sync.js?v=41.9&t=1789636605-9543933"></script>
-    <script src="js/persistence.js?v=41.9&t=1789636605-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.9&t=1789636605-9543933"></script>
-    <script src="js/ui.js?v=41.9&t=1789636605-9543933"></script>
-    <script src="js/app.js?v=41.9&t=1789636605-9543933"></script>
+    <script src="js/db.js?v=41.10&t=1789637789-9543933"></script>
+    <script src="js/qr.js?v=41.10&t=1789637789-9543933"></script>
+    <script src="js/version-sync.js?v=41.10&t=1789637789-9543933"></script>
+    <script src="js/persistence.js?v=41.10&t=1789637789-9543933"></script>
+    <script src="js/hybrid-storage.js?v=41.10&t=1789637789-9543933"></script>
+    <script src="js/ui.js?v=41.10&t=1789637789-9543933"></script>
+    <script src="js/app.js?v=41.10&t=1789637789-9543933"></script>
 </body>
 </html>
