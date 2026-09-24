@@ -1,0 +1,49 @@
+# Builds the native iOS app with Xcode on a Mac runner, on every push that
+# touches it. Nothing is signed or published — this only proves that the
+# project compiles, so a broken build is caught here rather than on your Mac.
+name: iOS build
+
+on:
+  push:
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios-build.yml'
+  pull_request:
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios-build.yml'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      - name: Build for the iOS Simulator
+        working-directory: ios
+        run: |
+          if ! xcodebuild build \
+              -project AMSInstructions.xcodeproj \
+              -scheme AMSInstructions \
+              -destination 'generic/platform=iOS Simulator' \
+              CODE_SIGNING_ALLOWED=NO > build.log 2>&1; then
+            echo "::group::Errors"
+            grep -E "error:|fatal" build.log | sort -u | head -150
+            echo "::endgroup::"
+            tail -40 build.log
+            exit 1
+          fi
+          grep -E "warning:" build.log | sort -u | head -60 || true
+          tail -5 build.log
+
+      - name: Keep the build log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-build-log
+          path: ios/build.log
