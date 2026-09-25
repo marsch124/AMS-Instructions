@@ -117,9 +117,10 @@ jobs:
           bundle, team = os.environ["BUNDLE_ID"], os.environ["TEAM_ID"]
           with open("Config/AMSInstructions.entitlements", "rb") as f:
               ent = plistlib.load(f)
-          key = "com.apple.developer.icloud-container-identifiers"
-          ent[key] = [c.replace("$(PRODUCT_BUNDLE_IDENTIFIER)", bundle) for c in ent.get(key, [])]
-          ent["aps-environment"] = "production"
+          for key in ("com.apple.developer.icloud-container-identifiers",
+                      "com.apple.developer.ubiquity-container-identifiers"):
+              if key in ent:
+                  ent[key] = [c.replace("$(PRODUCT_BUNDLE_IDENTIFIER)", bundle) for c in ent[key]]
           ent["application-identifier"] = f"{team}.{bundle}"
           ent["com.apple.developer.team-identifier"] = team
           os.makedirs("build", exist_ok=True)

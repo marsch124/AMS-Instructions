@@ -53,9 +53,16 @@ struct RootView: View {
         // Leaving the app is the moment to take the automatic backup: nothing
         // is being edited, and it is the last chance before the app may be closed.
         .onChange(of: scenePhase) { _, phase in
-            if phase == .background {
+            switch phase {
+            case .background:
                 try? context.save()
                 AutoBackup.save(from: context)
+                FileSync.shared.appWillResignActive()
+            case .active:
+                // Another device may have changed the library meanwhile.
+                FileSync.shared.syncNow()
+            default:
+                break
             }
         }
         .environment(navigator)

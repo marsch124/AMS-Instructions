@@ -185,6 +185,20 @@ enum Library {
         return result
     }
 
+    /// The library becomes exactly the backup: anything not in it is removed.
+    /// Used by iCloud file sync, so a deletion on one device reaches the others.
+    /// (Restoring a backup file by hand still only adds and replaces.)
+    @discardableResult
+    static func replaceAll(with backup: BackupFile, in context: ModelContext) throws -> RestoreResult {
+        all(Instruction.self, in: context).forEach { context.delete($0) }
+        all(InstructionPhoto.self, in: context).forEach { context.delete($0) }
+        all(Person.self, in: context).forEach { context.delete($0) }
+        all(Audit.self, in: context).forEach { context.delete($0) }
+        all(ActionItem.self, in: context).forEach { context.delete($0) }
+        try context.save()
+        return try restore(backup, into: context)
+    }
+
     private static func apply(_ dto: InstructionDTO, number: String, to instruction: Instruction) {
         instruction.number = number
         instruction.title = dto.title ?? ""

@@ -7,9 +7,8 @@ struct AMSInstructionsApp: App {
     @State private var local = LocalState()
 
     init() {
-        // Listening first, so the very first sync setup is not missed.
-        SyncMonitor.shared.start()
         container = Self.makeContainer()
+        FileSync.shared.start(container: container)
     }
 
     var body: some Scene {
@@ -20,22 +19,14 @@ struct AMSInstructionsApp: App {
         .modelContainer(container)
     }
 
-    /// The library syncs through the app's iCloud container when the app is
-    /// signed with the iCloud capability. If that cannot be set up — no iCloud
-    /// account, or a build signed without the capability — the same library is
-    /// kept on this device only, rather than the app refusing to open.
+    /// The library lives on this device. Syncing between devices is a file in
+    /// the app's iCloud Drive folder (see FileSync), the same way the other AMS
+    /// apps sync — no iCloud database schema to set up.
     private static func makeContainer() -> ModelContainer {
         let schema = Schema(AppSchema.models)
         do {
-            let synced = ModelConfiguration(schema: schema, cloudKitDatabase: .automatic)
-            return try ModelContainer(for: schema, configurations: synced)
-        } catch {
-            print("[Store] iCloud store unavailable, using on-device store: \(error)")
-            SyncMonitor.shared.storeFellBack(error)
-        }
-        do {
-            let local = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
-            return try ModelContainer(for: schema, configurations: local)
+            let config = ModelConfiguration(schema: schema, cloudKitDatabase: .none)
+            return try ModelContainer(for: schema, configurations: config)
         } catch {
             fatalError("Could not open the instruction library: \(error)")
         }

@@ -206,42 +206,46 @@ struct DataSafetyView: View {
     }
 }
 
-/// Whether iCloud sync is working, in words, from the sync events SwiftData
-/// reports. The one place on the phone that shows a sync problem at all.
+/// Whether iCloud sync is working, in words — the one place on the phone that
+/// shows a sync problem at all.
 private struct ICloudStatusSection: View {
-    private var sync = SyncMonitor.shared
+    private var sync = FileSync.shared
 
     var body: some View {
         Section {
-            LabeledContent("Signed in to iCloud", value: sync.signedIn ? "Yes" : "No")
-            if let success = sync.lastSuccess {
-                LabeledContent("Last synced", value: Formatting.relative(success))
-            } else {
-                LabeledContent("Last synced", value: sync.hasActivity ? "Not yet" : "No sync activity yet")
-            }
-            if sync.inProgress {
-                Label("Syncing now…", systemImage: "arrow.triangle.2.circlepath")
+            LabeledContent("iCloud Drive", value: sync.available ? "Signed in" : "Not available")
+            LabeledContent("Last sent", value: sync.lastSent.map(Formatting.relative) ?? "Not yet")
+            LabeledContent("Last received", value: sync.lastReceived.map(Formatting.relative) ?? "Not yet")
+            if sync.waitingForDownload {
+                Label("Waiting for iCloud to download the latest version…", systemImage: "icloud.and.arrow.down")
+                    .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            if let error = sync.lastError {
+            if let problem = sync.lastProblem {
                 VStack(alignment: .leading, spacing: 4) {
                     Label("Last problem", systemImage: "exclamationmark.icloud")
                         .font(.subheadline.weight(.semibold))
                         .foregroundStyle(.orange)
-                    Text(error)
+                    Text(problem)
                         .font(.caption)
                         .textSelection(.enabled)
-                    if let at = sync.lastErrorAt {
+                    if let at = sync.lastProblemAt {
                         Text(Formatting.relative(at)).font(.caption2).foregroundStyle(.secondary)
                     }
                 }
             }
+            Button {
+                sync.syncNow()
+            } label: {
+                Label(sync.busy ? "Syncing…" : "Sync Now", systemImage: "arrow.triangle.2.circlepath.icloud")
+            }
+            .disabled(!sync.available || sync.busy)
         } header: {
             Text("iCloud sync")
         } footer: {
-            Text(sync.signedIn
-                 ? "Your library syncs to every device signed in to the same iCloud account."
-                 : "Sign in to iCloud in the iPhone's Settings for the library to sync.")
+            Text(sync.available
+                 ? "The library is kept as one file in this app's iCloud Drive folder, so it reaches every device signed in to the same iCloud. If two devices change it before syncing, the more recent version wins; the other is kept in the automatic backups below."
+                 : "Sign in to iCloud and turn on iCloud Drive in the iPhone's Settings for the library to sync.")
         }
     }
 }

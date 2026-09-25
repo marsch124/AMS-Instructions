@@ -20,29 +20,27 @@ It works the same way as AMS-Workout-Sync-iOS: team `D24ENP83QQ`, bundle ID `com
 
 If either is missing, the run stops at its first steps and says which.
 
-### iCloud
+### iCloud sync
 
-The app syncs through the container `iCloud.com.schabbauer.AMSInstructions`, which is assigned to the app's identifier on developer.apple.com. If Apple won't provision it, the TestFlight workflow uploads the build without iCloud, marked with a warning. The app then keeps its library on each device and otherwise works normally.
+The library syncs as **one file in the app's own iCloud Drive folder** (`Documents/Library.json` in the container `iCloud.com.schabbauer.AMSInstructions`), the same way the other AMS apps sync. There is no iCloud database, so there's no schema and nothing to deploy. The file is an ordinary backup, in the same JSON as Back Up Now (`Backup/FileSync.swift`).
 
-**The iCloud data schema.** TestFlight and App Store builds write to iCloud's *Production* environment. That environment only accepts record types that were first defined in *Development* and then deployed. Xcode normally creates them by running a debug build. Here, GitHub does it instead:
+- A device sends its library a few seconds after a change and when the app goes to the background. It checks for a newer file at launch, when the app comes to the front, and whenever iCloud reports the file changed.
+- **The most recent version wins.** Before this device's library is replaced by a newer one from iCloud, it is saved into the automatic backup slot, so it can be put back from Data Safety.
+- Deletions sync too: taking over the cloud file replaces the library completely.
+- Per-device things stay per device: ticked steps, the run in progress, sort order, and recently viewed.
+- Settings → Data Safety → **iCloud sync** shows the last send, the last receive and any problem in words, with a **Sync Now** button.
 
-- `ios/Config/CloudKitSchema.ckdb` holds the schema. It is generated from the SwiftData models by `python3 ios/tools/cloudkit_schema.py write`. Every build checks that it still matches the models (`… check`).
-- `.github/workflows/ios-cloudkit-schema.yml` sends it to Development with Apple's `cktool`. It uses a CloudKit Management Token stored as the secret `CLOUDKIT_MANAGEMENT_TOKEN`, created in the CloudKit Console under Settings → Tokens.
-- Then, once per schema change: CloudKit Console → the container → Schema → **Deploy Schema Changes…**
-
-Fields deployed to Production can never change type or be removed. A new model property is fine (add it, regenerate, deploy); renaming or retyping one is not.
-
-Settings → Data Safety → **iCloud sync** in the app shows whether sync works: the last successful sync and the last problem, in words.
+If Apple won't provision the iCloud container, the TestFlight workflow uploads the build without iCloud, marked with a warning. The app then works on one device only.
 
 ### First launch
 
-The library starts empty. Under **Settings**, either restore a web-app backup file (Restore from a Backup File) or press Load the Starter Library. Do this on one device only; the others receive the library through iCloud.
+The library starts empty. Under **Settings**, either restore a web-app backup file (Restore from a Backup File) or press Load the Starter Library. Do this on one device only; the others receive the library through iCloud Drive.
 
 ## How the data is kept
 
 | What | Where | Synced? |
 |---|---|---|
-| Instructions, photos, people, audits, to-dos | SwiftData, in the app's iCloud container | Yes, through iCloud |
+| Instructions, photos, people, audits, to-dos | SwiftData, on the device | Yes, as one file in the app's iCloud Drive folder |
 | Ticked steps, the run in progress, sort order, "who did it" last time | On the device (UserDefaults) | No, like localStorage in the web app |
 | Automatic backups (current and previous) | App storage on each device | No. Saved whenever you leave the app |
 | Backup files | Wherever you save them | You choose |
