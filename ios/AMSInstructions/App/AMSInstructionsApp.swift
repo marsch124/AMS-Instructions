@@ -7,6 +7,8 @@ struct AMSInstructionsApp: App {
     @State private var local = LocalState()
 
     init() {
+        // Listening first, so the very first sync setup is not missed.
+        SyncMonitor.shared.start()
         container = Self.makeContainer()
     }
 
@@ -29,6 +31,7 @@ struct AMSInstructionsApp: App {
             return try ModelContainer(for: schema, configurations: synced)
         } catch {
             print("[Store] iCloud store unavailable, using on-device store: \(error)")
+            SyncMonitor.shared.storeFellBack(error)
         }
         do {
             let local = ModelConfiguration(schema: schema, cloudKitDatabase: .none)

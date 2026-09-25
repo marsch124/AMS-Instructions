@@ -22,9 +22,17 @@ If either is missing, the run stops at its first steps and says which.
 
 ### iCloud
 
-The app's entitlements ask for the container `iCloud.com.schabbauer.AMSInstructions`. If Apple won't provision it, the workflow uploads the build without iCloud, marked with a warning. The app then keeps its library on each device and works normally otherwise. To turn sync on, create that container under Certificates, Identifiers & Profiles → Identifiers → iCloud Containers, assign it to the app's identifier, and run the workflow again.
+The app syncs through the container `iCloud.com.schabbauer.AMSInstructions`, which is assigned to the app's identifier on developer.apple.com. If Apple won't provision it, the TestFlight workflow uploads the build without iCloud, marked with a warning. The app then keeps its library on each device and otherwise works normally.
 
-Before the first App Store release, deploy the CloudKit schema to Production in the CloudKit Console. TestFlight builds use Production.
+**The iCloud data schema.** TestFlight and App Store builds write to iCloud's *Production* environment. That environment only accepts record types that were first defined in *Development* and then deployed. Xcode normally creates them by running a debug build. Here, GitHub does it instead:
+
+- `ios/Config/CloudKitSchema.ckdb` holds the schema. It is generated from the SwiftData models by `python3 ios/tools/cloudkit_schema.py write`. Every build checks that it still matches the models (`… check`).
+- `.github/workflows/ios-cloudkit-schema.yml` sends it to Development with Apple's `cktool`. It uses a CloudKit Management Token stored as the secret `CLOUDKIT_MANAGEMENT_TOKEN`, created in the CloudKit Console under Settings → Tokens.
+- Then, once per schema change: CloudKit Console → the container → Schema → **Deploy Schema Changes…**
+
+Fields deployed to Production can never change type or be removed. A new model property is fine (add it, regenerate, deploy); renaming or retyping one is not.
+
+Settings → Data Safety → **iCloud sync** in the app shows whether sync works: the last successful sync and the last problem, in words.
 
 ### First launch
 

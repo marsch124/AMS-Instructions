@@ -24,6 +24,11 @@ jobs:
       - name: Xcode version
         run: xcodebuild -version
 
+      # Fields deployed to iCloud's Production environment can never change,
+      # so a model property without its CloudKit field stops the build here.
+      - name: CloudKit schema matches the models
+        run: python3 ios/tools/cloudkit_schema.py check
+
       - name: Build for the iOS Simulator
         working-directory: ios
         run: |

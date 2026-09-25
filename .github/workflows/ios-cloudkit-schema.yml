@@ -1,0 +1,102 @@
+name: iOS CloudKit schema
+
+# Puts the app's iCloud data schema (ios/Config/CloudKitSchema.ckdb) into the
+# DEVELOPMENT environment of iCloud.com.schabbauer.AMSInstructions, using
+# Apple's cktool and a CloudKit management token — the job Xcode normally does
+# by running a debug build once.
+#
+# TestFlight and App Store builds use the PRODUCTION environment. After this
+# run is green, press "Deploy Schema Changes…" once in the CloudKit Console
+# (icloud.developer.apple.com → the container → Schema). Fields deployed to
+# Production can never be changed or removed, which is why the schema is
+# checked against the models before anything is sent.
+on:
+  push:
+    branches:
+      - main
+      - 'claude/**'
+    paths:
+      - 'ios/Config/CloudKitSchema.ckdb'
+      - '.github/workflows/ios-cloudkit-schema.yml'
+  workflow_dispatch:
+
+jobs:
+  schema:
+    runs-on: macos-26
+    timeout-minutes: 15
+
+    env:
+      CLOUDKIT_MANAGEMENT_TOKEN: ${{ secrets.CLOUDKIT_MANAGEMENT_TOKEN }}
+      TEAM_ID: D24ENP83QQ
+      CONTAINER: iCloud.com.schabbauer.AMSInstructions
+      SCHEMA: ios/Config/CloudKitSchema.ckdb
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: The schema matches the app's models
+        run: python3 ios/tools/cloudkit_schema.py check
+
+      - name: The token is there
+        run: |
+          if [ -z "$CLOUDKIT_MANAGEMENT_TOKEN" ]; then
+            echo "::error::Missing CLOUDKIT_MANAGEMENT_TOKEN. Create a Management Token in the CloudKit Console (icloud.developer.apple.com → Settings → Tokens) and add it under Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+
+      - name: Use the newest Xcode on this runner
+        run: |
+          NEWEST=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          sudo xcode-select -s "$NEWEST/Contents/Developer"
+          xcodebuild -version
+
+      - name: Give cktool the token
+        run: |
+          TOKEN=$(printf '%s' "$CLOUDKIT_MANAGEMENT_TOKEN" | tr -d '[:space:]')
+          echo "::add-mask::$TOKEN"
+          # The token as an argument; older cktool versions read it from stdin.
+          if xcrun cktool save-token "$TOKEN" --type management --method file >/dev/null 2>save-token.err; then
+            echo "Token saved."
+          elif printf '%s\n' "$TOKEN" | xcrun cktool save-token --type management --method file >/dev/null 2>>save-token.err; then
+            echo "Token saved (from stdin)."
+          else
+            sed "s/$TOKEN/***/g" save-token.err
+            xcrun cktool save-token --help || true
+            echo "::error::cktool would not accept the management token."
+            exit 1
+          fi
+
+      - name: Apple checks the schema
+        run: |
+          xcrun cktool validate-schema \
+            --team-id "$TEAM_ID" \
+            --container-id "$CONTAINER" \
+            --environment development \
+            --file "$SCHEMA"
+
+      - name: Put it into the Development environment
+        run: |
+          xcrun cktool import-schema \
+            --team-id "$TEAM_ID" \
+            --container-id "$CONTAINER" \
+            --environment development \
+            --file "$SCHEMA"
+
+      - name: What Apple now holds
+        run: |
+          xcrun cktool export-schema \
+            --team-id "$TEAM_ID" \
+            --container-id "$CONTAINER" \
+            --environment development \
+            --output-file development.ckdb
+          grep -E "RECORD TYPE" development.ckdb
+          echo "::notice::The schema is in Development. Now deploy it once: icloud.developer.apple.com → CloudKit Console → $CONTAINER → Schema → Deploy Schema Changes… → Deploy."
+
+      - name: Keep the exported schema
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cloudkit-schema
+          path: development.ckdb
+          if-no-files-found: ignore
+          retention-days: 30

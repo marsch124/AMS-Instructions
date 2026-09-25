@@ -30,6 +30,8 @@ struct DataSafetyView: View {
                 }
             }
 
+            ICloudStatusSection()
+
             Section("In the app now") {
                 Text(describe(instructions.count, people.count, audits.count, actions.count))
             }
@@ -201,6 +203,46 @@ struct DataSafetyView: View {
             return
         }
         reports = [(url.lastPathComponent, BackupCheck.check(data: data))]
+    }
+}
+
+/// Whether iCloud sync is working, in words, from the sync events SwiftData
+/// reports. The one place on the phone that shows a sync problem at all.
+private struct ICloudStatusSection: View {
+    private var sync = SyncMonitor.shared
+
+    var body: some View {
+        Section {
+            LabeledContent("Signed in to iCloud", value: sync.signedIn ? "Yes" : "No")
+            if let success = sync.lastSuccess {
+                LabeledContent("Last synced", value: Formatting.relative(success))
+            } else {
+                LabeledContent("Last synced", value: sync.hasActivity ? "Not yet" : "No sync activity yet")
+            }
+            if sync.inProgress {
+                Label("Syncing now…", systemImage: "arrow.triangle.2.circlepath")
+                    .foregroundStyle(.secondary)
+            }
+            if let error = sync.lastError {
+                VStack(alignment: .leading, spacing: 4) {
+                    Label("Last problem", systemImage: "exclamationmark.icloud")
+                        .font(.subheadline.weight(.semibold))
+                        .foregroundStyle(.orange)
+                    Text(error)
+                        .font(.caption)
+                        .textSelection(.enabled)
+                    if let at = sync.lastErrorAt {
+                        Text(Formatting.relative(at)).font(.caption2).foregroundStyle(.secondary)
+                    }
+                }
+            }
+        } header: {
+            Text("iCloud sync")
+        } footer: {
+            Text(sync.signedIn
+                 ? "Your library syncs to every device signed in to the same iCloud account."
+                 : "Sign in to iCloud in the iPhone's Settings for the library to sync.")
+        }
     }
 }
 
