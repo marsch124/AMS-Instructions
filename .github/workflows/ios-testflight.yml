@@ -110,14 +110,22 @@ jobs:
       - name: Give the app its entitlements
         run: |
           # The entitlements file as signing would expand it, for distribution.
-          make_entitlements() {
-            sed -e "s/\$(PRODUCT_BUNDLE_IDENTIFIER)/$BUNDLE_ID/" \
-                -e "s/<string>development<\/string>/<string>production<\/string>/" \
-                Config/AMSInstructions.entitlements > "$1"
-            plutil -insert application-identifier -string "$TEAM_ID.$BUNDLE_ID" "$1"
-            plutil -insert com.apple.developer.team-identifier -string "$TEAM_ID" "$1"
-          }
-          make_entitlements build/app.entitlements
+          # Written with plistlib: plutil reads the dots in a key such as
+          # com.apple.developer.team-identifier as a path and refuses it.
+          python3 - <<'PY'
+          import os, plistlib
+          bundle, team = os.environ["BUNDLE_ID"], os.environ["TEAM_ID"]
+          with open("Config/AMSInstructions.entitlements", "rb") as f:
+              ent = plistlib.load(f)
+          key = "com.apple.developer.icloud-container-identifiers"
+          ent[key] = [c.replace("$(PRODUCT_BUNDLE_IDENTIFIER)", bundle) for c in ent.get(key, [])]
+          ent["aps-environment"] = "production"
+          ent["application-identifier"] = f"{team}.{bundle}"
+          ent["com.apple.developer.team-identifier"] = team
+          os.makedirs("build", exist_ok=True)
+          with open("build/app.entitlements", "wb") as f:
+              plistlib.dump(ent, f)
+          PY
           plutil -p build/app.entitlements
           APP=build/AMSInstructions.xcarchive/Products/Applications/AMSInstructions.app
           codesign --force --sign - --entitlements build/app.entitlements --timestamp=none "$APP"
