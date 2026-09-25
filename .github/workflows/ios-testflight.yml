@@ -40,9 +40,11 @@ jobs:
     timeout-minutes: 60
 
     env:
-      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
-      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
-      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      # As pasted. The tidy step below turns these into ASC_KEY_ID,
+      # ASC_ISSUER_ID and the key file, forgiving stray spaces and line breaks.
+      RAW_ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      RAW_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      RAW_ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
       BUNDLE_ID: com.schabbauer.AMSInstructions
       TEAM_ID: D24ENP83QQ
       APP_NAME: AMS Instructions
@@ -57,19 +59,19 @@ jobs:
       - name: Check the three secrets are there
         run: |
           missing=""
-          [ -n "$ASC_KEY_ID" ]    || missing="$missing ASC_KEY_ID"
-          [ -n "$ASC_ISSUER_ID" ] || missing="$missing ASC_ISSUER_ID"
-          [ -n "$ASC_KEY_P8" ]    || missing="$missing ASC_KEY_P8"
+          [ -n "$RAW_ASC_KEY_ID" ]    || missing="$missing ASC_KEY_ID"
+          [ -n "$RAW_ASC_ISSUER_ID" ] || missing="$missing ASC_ISSUER_ID"
+          [ -n "$RAW_ASC_KEY_P8" ]    || missing="$missing ASC_KEY_P8"
           if [ -n "$missing" ]; then
             echo "::error::Missing:$missing — add them under Settings → Secrets and variables → Actions (same values as in AMS-Workout-Sync-iOS)."
             exit 1
           fi
 
-      - name: Put the key where xcodebuild looks for it
-        run: |
-          mkdir -p "$HOME/private_keys"
-          printf '%s' "$ASC_KEY_P8" > "$HOME/private_keys/AuthKey_$ASC_KEY_ID.p8"
-          chmod 600 "$HOME/private_keys/AuthKey_$ASC_KEY_ID.p8"
+      # Cleans up what was pasted, writes the key where xcodebuild looks for
+      # it, and proves the three belong together by signing in to App Store
+      # Connect — saying which one is wrong if they don't. Prints no secret.
+      - name: Tidy the key and check it with Apple
+        run: python3 tools/asc.py tidy
 
       - name: Bundle ID, iCloud and the App Store Connect app
         run: python3 tools/asc.py prepare "$BUNDLE_ID" "$APP_NAME"
