@@ -2,31 +2,33 @@
 
 This is a native SwiftUI version of AMS Instructions for iPhone and iPad, running iOS 17 or later. It does everything the web app does, and it syncs your library between devices through iCloud.
 
-## What you need
+## Releases: GitHub to TestFlight, no Xcode
 
-- A Mac with Xcode 16 or later.
-- An Apple Developer Program membership (99 USD a year). iCloud sync needs it. With a free Apple ID the app still runs, but only on-device (see "Without iCloud" below).
+Nobody needs to open Xcode. `.github/workflows/ios-testflight.yml` builds the app on a GitHub Mac, signs it and uploads it to TestFlight:
 
-## First build
+- automatically, on every push that changes `ios/` (on `main` and on `claude/…` branches)
+- by hand, from Actions → iOS TestFlight → Run workflow
 
-1. Open `ios/AMSInstructions.xcodeproj` in Xcode.
-2. In the project navigator, select the **AMSInstructions** project, then the **AMSInstructions** target, then **Signing & Capabilities**:
-   - Tick **Automatically manage signing** and choose your **Team**.
-   - Change **Bundle Identifier** from `com.marsch124.AMSInstructions` to one of your own if Xcode says it's taken, e.g. `com.yourname.AMSInstructions`.
-   - Under **iCloud**, make sure **CloudKit** is ticked and one container is selected. Press **+** to create one if the list is empty. Xcode offers `iCloud.<your bundle id>`, which is what the app expects.
-   - **Background Modes → Remote notifications** should already be ticked. iCloud uses it to tell the app that another device made a change.
-3. Connect your iPhone, select it at the top of the Xcode window, and press **Run** (⌘R).
+The build number is the workflow's run number, so nothing needs bumping. Every build goes to the internal TestFlight group "Me", and appears in the TestFlight app on your iPhone a few minutes after the run turns green.
 
-The first launch shows an empty library. Go to **Settings** and either:
+It works the same way as AMS-Workout-Sync-iOS: team `D24ENP83QQ`, bundle ID `com.schabbauer.AMSInstructions`, an unsigned archive, and signing only at the export step with the App Store Connect API key. That way no runner uses up a development certificate.
 
-- **Restore from a Backup File**: pick a backup you made in the web app (Settings → Back Up Now there). Everything comes across: instructions, photos, people, audits, to-dos and favourites.
-- **Load the Starter Library**: adds the 205 ready-made instructions.
+### One-time setup (browser only)
 
-Do this on one device only. The other devices pick the library up through iCloud.
+1. **Secrets.** Under Settings → Secrets and variables → Actions in this repository, add `ASC_KEY_ID`, `ASC_ISSUER_ID` and `ASC_KEY_P8` (the full text of the .p8 file). Use the same key as the other apps.
+2. **App record.** In App Store Connect, press + → New App: iOS, bundle ID `com.schabbauer.AMSInstructions`, SKU `AMSInstructions`. Apple doesn't let an API key create apps. The workflow registers the bundle ID and switches on iCloud and push notifications by itself (`ios/tools/asc.py`).
 
-## Without iCloud
+If either is missing, the run stops at its first steps and says which.
 
-To run the app with a free Apple ID, remove the iCloud capability under **Signing & Capabilities**: press the ✕ next to iCloud and next to Push Notifications. The app then keeps the library on the device only. Everything else works the same.
+### iCloud
+
+The app's entitlements ask for the container `iCloud.com.schabbauer.AMSInstructions`. If Apple won't provision it, the workflow uploads the build without iCloud, marked with a warning. The app then keeps its library on each device and works normally otherwise. To turn sync on, create that container under Certificates, Identifiers & Profiles → Identifiers → iCloud Containers, assign it to the app's identifier, and run the workflow again.
+
+Before the first App Store release, deploy the CloudKit schema to Production in the CloudKit Console. TestFlight builds use Production.
+
+### First launch
+
+The library starts empty. Under **Settings**, either restore a web-app backup file (Restore from a Backup File) or press Load the Starter Library. Do this on one device only; the others receive the library through iCloud.
 
 ## How the data is kept
 
@@ -55,11 +57,13 @@ ios/
     └── Assets.xcassets      App icon and accent colour
 ```
 
+`Config/ExportOptions.plist` and `tools/asc.py` belong to the TestFlight workflow.
+
 The project uses Xcode's folder-synchronised groups: any Swift file added under `AMSInstructions/` is part of the app automatically, with no project file edits needed.
 
 ## Checks
 
-Every push that touches `ios/` is built by `.github/workflows/ios-build.yml` on a GitHub Mac runner. A red run means the project does not compile. The build log is attached to the run.
+Every push that touches `ios/` is also built by `.github/workflows/ios-build.yml`, a quick compile check on a GitHub Mac. A red run means the project does not compile. The build log is attached to the run.
 
 ## Differences from the web app
 

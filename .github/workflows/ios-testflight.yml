@@ -1,0 +1,187 @@
+name: iOS TestFlight
+
+# Builds the native app on GitHub's Mac and sends it to TestFlight — no Xcode
+# on anyone's own Mac. Runs by itself on every push that changes ios/, and by
+# hand from Actions → iOS TestFlight → Run workflow.
+#
+# Same approach as AMS-Workout-Sync-iOS:
+#   - Signing uses the App Store Connect API key held in three repository
+#     secrets (ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8). The key is written to
+#     the runner and thrown away with it.
+#   - The archive is made WITHOUT signing. Signing it would make Xcode ask
+#     Apple for a development certificate per runner, which fills the account
+#     (that is what stopped Workout Sync build 38). The export signs for
+#     distribution with the team's cloud-managed certificate instead.
+#
+# Two things differ:
+#   - The build number is the run number, so nothing needs bumping by hand.
+#   - This app syncs through iCloud, and entitlements only reach the final app
+#     through a signature. So the unsigned app is given a throwaway ad-hoc
+#     signature carrying its entitlements; the export replaces that signature
+#     and keeps the entitlements.
+on:
+  push:
+    branches:
+      - main
+      - 'claude/**'
+    paths:
+      - 'ios/**'
+      - '.github/workflows/ios-testflight.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ios-testflight
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    # Apple refuses anything built with an SDK older than iOS 26.
+    runs-on: macos-26
+    timeout-minutes: 60
+
+    env:
+      ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      BUNDLE_ID: com.schabbauer.AMSInstructions
+      TEAM_ID: D24ENP83QQ
+      APP_NAME: AMS Instructions
+
+    defaults:
+      run:
+        working-directory: ios
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the three secrets are there
+        run: |
+          missing=""
+          [ -n "$ASC_KEY_ID" ]    || missing="$missing ASC_KEY_ID"
+          [ -n "$ASC_ISSUER_ID" ] || missing="$missing ASC_ISSUER_ID"
+          [ -n "$ASC_KEY_P8" ]    || missing="$missing ASC_KEY_P8"
+          if [ -n "$missing" ]; then
+            echo "::error::Missing:$missing — add them under Settings → Secrets and variables → Actions (same values as in AMS-Workout-Sync-iOS)."
+            exit 1
+          fi
+
+      - name: Put the key where xcodebuild looks for it
+        run: |
+          mkdir -p "$HOME/private_keys"
+          printf '%s' "$ASC_KEY_P8" > "$HOME/private_keys/AuthKey_$ASC_KEY_ID.p8"
+          chmod 600 "$HOME/private_keys/AuthKey_$ASC_KEY_ID.p8"
+
+      - name: Bundle ID, iCloud and the App Store Connect app
+        run: python3 tools/asc.py prepare "$BUNDLE_ID" "$APP_NAME"
+
+      - name: Use the newest Xcode on this runner
+        run: |
+          NEWEST=$(ls -d /Applications/Xcode*.app | sort -V | tail -1)
+          sudo xcode-select -s "$NEWEST/Contents/Developer"
+          xcodebuild -version
+          xcodebuild -showsdks | grep -i "iphoneos" | head -3
+
+      - name: Which build this is
+        run: |
+          BUILD="${GITHUB_RUN_NUMBER}.${GITHUB_RUN_ATTEMPT}"
+          VERSION=$(grep -m1 'MARKETING_VERSION' AMSInstructions.xcodeproj/project.pbxproj | tr -dc '0-9.')
+          echo "BUILD=$BUILD" >> "$GITHUB_ENV"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          echo "Building $VERSION ($BUILD) from ${GITHUB_REF_NAME} @ ${GITHUB_SHA:0:7}"
+
+      - name: Archive
+        run: |
+          xcodebuild archive \
+            -project AMSInstructions.xcodeproj \
+            -scheme AMSInstructions \
+            -configuration Release \
+            -destination 'generic/platform=iOS' \
+            -archivePath build/AMSInstructions.xcarchive \
+            CURRENT_PROJECT_VERSION="$BUILD" \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            EXPANDED_CODE_SIGN_IDENTITY="" \
+            > build-archive.log 2>&1 || { grep -E "error:" build-archive.log | sort -u | head -80; tail -30 build-archive.log; exit 1; }
+          tail -3 build-archive.log
+
+      - name: Give the app its entitlements
+        run: |
+          # The entitlements file as signing would expand it, for distribution.
+          make_entitlements() {
+            sed -e "s/\$(PRODUCT_BUNDLE_IDENTIFIER)/$BUNDLE_ID/" \
+                -e "s/<string>development<\/string>/<string>production<\/string>/" \
+                Config/AMSInstructions.entitlements > "$1"
+            plutil -insert application-identifier -string "$TEAM_ID.$BUNDLE_ID" "$1"
+            plutil -insert com.apple.developer.team-identifier -string "$TEAM_ID" "$1"
+          }
+          make_entitlements build/app.entitlements
+          plutil -p build/app.entitlements
+          APP=build/AMSInstructions.xcarchive/Products/Applications/AMSInstructions.app
+          codesign --force --sign - --entitlements build/app.entitlements --timestamp=none "$APP"
+          codesign -d --entitlements - "$APP" 2>/dev/null | head -40
+
+      - name: Export and send it to TestFlight
+        id: export
+        continue-on-error: true
+        run: |
+          xcodebuild -exportArchive \
+            -archivePath build/AMSInstructions.xcarchive \
+            -exportOptionsPlist Config/ExportOptions.plist \
+            -exportPath build/export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/private_keys/AuthKey_$ASC_KEY_ID.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            2>&1 | tee build-export.log
+          if ! grep -q "EXPORT SUCCEEDED\|Upload succeeded\|Uploaded" build-export.log; then
+            exit 1
+          fi
+          echo "$VERSION ($BUILD) is on its way to TestFlight, with iCloud sync. Apple takes a few minutes to process it."
+
+      # If Apple would not provision the iCloud container, ship the app anyway
+      # without iCloud (it then keeps its library on the device) and say so
+      # loudly — a working app on the phone beats a red run.
+      - name: Without iCloud, if the container could not be provisioned
+        if: steps.export.outcome == 'failure'
+        run: |
+          echo "::warning::The upload with iCloud failed — see the step above. Trying again without iCloud sync."
+          APP=build/AMSInstructions.xcarchive/Products/Applications/AMSInstructions.app
+          cat > build/local.entitlements <<EOF
+          <?xml version="1.0" encoding="UTF-8"?>
+          <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+          <plist version="1.0"><dict>
+            <key>application-identifier</key><string>$TEAM_ID.$BUNDLE_ID</string>
+            <key>com.apple.developer.team-identifier</key><string>$TEAM_ID</string>
+          </dict></plist>
+          EOF
+          codesign --force --sign - --entitlements build/local.entitlements --timestamp=none "$APP"
+          rm -rf build/export
+          xcodebuild -exportArchive \
+            -archivePath build/AMSInstructions.xcarchive \
+            -exportOptionsPlist Config/ExportOptions.plist \
+            -exportPath build/export \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$HOME/private_keys/AuthKey_$ASC_KEY_ID.p8" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            2>&1 | tee build-export-local.log
+          grep -q "EXPORT SUCCEEDED\|Upload succeeded\|Uploaded" build-export-local.log
+          echo "::warning::$VERSION ($BUILD) went to TestFlight WITHOUT iCloud sync. The library stays on each device until the iCloud container is set up."
+
+      - name: TestFlight group
+        if: success()
+        continue-on-error: true
+        run: python3 tools/asc.py testers "$BUNDLE_ID"
+
+      - name: Keep the logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: testflight-logs
+          path: |
+            ios/build-*.log
+            ios/build/app.entitlements
+            ~/Library/Logs/gym
+          if-no-files-found: ignore
+          retention-days: 7
