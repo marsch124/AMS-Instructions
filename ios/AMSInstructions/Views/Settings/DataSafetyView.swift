@@ -214,8 +214,8 @@ private struct ICloudStatusSection: View {
     var body: some View {
         Section {
             LabeledContent("iCloud Drive", value: sync.available ? "Signed in" : "Not available")
-            LabeledContent("Last sent", value: sync.lastSent.map(Formatting.relative) ?? "Not yet")
-            LabeledContent("Last received", value: sync.lastReceived.map(Formatting.relative) ?? "Not yet")
+            LabeledContent("Last sent", value: sync.lastSent.map { Formatting.relative($0) } ?? "Not yet")
+            LabeledContent("Last received", value: sync.lastReceived.map { Formatting.relative($0) } ?? "Not yet")
             if sync.waitingForDownload {
                 Label("Waiting for iCloud to download the latest version…", systemImage: "icloud.and.arrow.down")
                     .font(.caption)
