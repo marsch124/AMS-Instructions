@@ -79,20 +79,45 @@ struct ScanView: View {
 
     private func accept(_ candidates: [String]) {
         guard !found else { return }
-        for text in candidates {
-            for number in NumberReader.numbers(in: text) where Library.instruction(number: number, in: context) != nil {
-                found = true
-                UINotificationFeedbackGenerator().notificationOccurred(.success)
-                onFound(number)
-                return
-            }
+        for number in NumberReader.candidates(in: candidates)
+        where Library.instruction(number: number, in: context) != nil {
+            found = true
+            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            onFound(number)
+            return
         }
     }
 }
 
 enum NumberReader {
+    /// "AMS#007" on a label, as text or in a QR code. The camera's text reader
+    /// sometimes sees the "#" as "H" or "4"; those count only when exactly
+    /// three digits follow, so "AMS 42" is 042 and not 002.
+    private static let labelCode = try! NSRegularExpression(
+        pattern: #"AMS\s*(?:[#\-]|[H4](?=\d{3}(?!\d)))?\s*(\d{1,3})(?!\d)"#,
+        options: [.caseInsensitive]
+    )
+
+    /// Numbers in everything the camera sees, most trustworthy first: every
+    /// "AMS#…" code before any bare number, so a fuse rating or "12V" beside
+    /// the label can never win over the label itself.
+    static func candidates(in texts: [String]) -> [String] {
+        let coded = texts.flatMap(labelCodes(in:))
+        let bare = texts.flatMap(numbers(in:))
+        var seen = Set<String>()
+        return (coded + bare).filter { seen.insert($0).inserted }
+    }
+
+    static func labelCodes(in text: String) -> [String] {
+        let range = NSRange(text.startIndex..., in: text)
+        return labelCode.matches(in: text, range: range).compactMap { match in
+            Range(match.range(at: 1), in: text).map { Numbers.normalize(String(text[$0])) }
+        }
+    }
+
     /// Stand-alone groups of one to three digits, padded to three. A QR code
-    /// holding just "7" or a URL ending "?n=007" both work.
+    /// holding just "7" or a URL ending "?n=007" both work — labels printed
+    /// before the AMS# prefix keep working.
     static func numbers(in text: String) -> [String] {
         var found: [String] = []
         var current = ""

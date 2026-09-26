@@ -36,6 +36,17 @@ If Apple won't provision the iCloud container, the TestFlight workflow uploads t
 
 The library starts empty. Under **Settings**, either restore a web-app backup file (Restore from a Backup File) or press Load the Starter Library. Do this on one device only; the others receive the library through iCloud Drive.
 
+## Labels
+
+Every instruction is labelled **AMS#xxx**, for example AMS#007. A label shows a QR code holding `AMS#007` and the code in large type, plus the title on the wider formats. They are printed on a label printer, one label per page:
+
+- **One label:** instruction screen → the tag button.
+- **Many:** Instructions → filter (a category, say) → Apply to all → Print labels for all N.
+- **Formats:** 12 mm tape (text only), 24 mm tape, 36 mm tape, 62 × 29 mm roll. The choice is remembered on the device.
+- **Print…** goes to AirPrint printers. **Send to the printer's app…** hands a PDF, plus a PNG per label for up to 20 labels, to Brother iPrint&Label or DYMO Connect.
+
+The scanner prefers `AMS#…` over any other number in view, so a "12V" beside the label can't open the wrong instruction. Older labels with just the number still scan. The web app's scanner keeps only the digits, so it reads the new labels too.
+
 ## How the data is kept
 
 | What | Where | Synced? |

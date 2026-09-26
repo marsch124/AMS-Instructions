@@ -101,6 +101,7 @@ struct BulkPanel: View {
     @State private var tag = ""
     @State private var status = InstructionStatus.active.rawValue
     @State private var pending: PendingChange?
+    @State private var printingLabels = false
 
     struct PendingChange: Identifiable {
         let id = UUID()
@@ -143,8 +144,20 @@ struct BulkPanel: View {
                     }
                     Button("Set status on \(items.count)") { confirmStatus() }
                 }
+
+                // Printing changes nothing, so it needs no confirmation or undo.
+                Section("Labels") {
+                    Button {
+                        printingLabels = true
+                    } label: {
+                        Label("Print labels for all \(items.count)", systemImage: "tag")
+                    }
+                }
             }
             .navigationTitle("Apply to all")
+            .sheet(isPresented: $printingLabels) {
+                LabelSheet(instructions: items)
+            }
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

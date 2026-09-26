@@ -11,6 +11,7 @@ struct InstructionDetailView: View {
     @Query(sort: \Person.name) private var people: [Person]
 
     @State private var editing: EditorTarget?
+    @State private var printingLabel = false
     @State private var chooser: ChooserPurpose?
     @State private var justDone = false
     @State private var fullScreenPhoto: InstructionPhoto?
@@ -83,7 +84,8 @@ struct InstructionDetailView: View {
             .padding()
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle(instruction.number)
+        // The same code as on the printed label.
+        .navigationTitle(Labels.code(instruction.number))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -94,8 +96,15 @@ struct InstructionDetailView: View {
                 }
                 .accessibilityLabel(instruction.isFavorite ? "Remove from favorites" : "Add to favorites")
 
+                Button {
+                    printingLabel = true
+                } label: {
+                    Image(systemName: "tag")
+                }
+                .accessibilityLabel("Print label")
+
                 ShareLink(item: InstructionText.make(instruction),
-                          subject: Text("\(instruction.number) — \(instruction.title)"))
+                          subject: Text("\(Labels.code(instruction.number)) — \(instruction.title)"))
 
                 Button {
                     editing = EditorTarget(instruction: instruction)
@@ -112,6 +121,9 @@ struct InstructionDetailView: View {
             InstructionEditorView(instruction: target.instruction) {
                 dismiss()
             }
+        }
+        .sheet(isPresented: $printingLabel) {
+            LabelSheet(instructions: [instruction])
         }
         .sheet(item: $chooser) { purpose in
             switch purpose {

@@ -30,6 +30,7 @@ final class LocalState {
         let export = defaults.double(forKey: Key.lastExport)
         lastExport = export > 0 ? Date(timeIntervalSince1970: export) : nil
         currentRun = (try? JSONDecoder().decode(Run.self, from: defaults.data(forKey: Key.currentRun) ?? Data()))
+        labelSize = LabelSize(rawValue: defaults.string(forKey: "labelSize") ?? "") ?? .tape24
     }
 
     // MARK: Step ticks
@@ -84,6 +85,13 @@ final class LocalState {
 
     var lastExport: Date? = nil {
         didSet { defaults.set(lastExport?.timeIntervalSince1970 ?? 0, forKey: Key.lastExport) }
+    }
+
+    // MARK: Labels
+
+    /// The label printer's tape or roll, remembered so it is asked only once.
+    var labelSize: LabelSize = .tape24 {
+        didSet { defaults.set(labelSize.rawValue, forKey: "labelSize") }
     }
 
     // MARK: Run a Set
