@@ -152,7 +152,22 @@ struct AboutView: View {
     var body: some View {
         List {
             Section("Finding an instruction") {
-                Text("Every instruction has a three-digit number. Print it — as a number, a QR code, or both — on a label where the job happens. Tap Scan on the Home screen and point the camera at it, or type the number.")
+                Text("Every instruction has a number, shown as AMS#007. Tap Scan on the Home screen and point the camera at its label, or type the number.")
+            }
+            Section("Printing labels") {
+                Text("Open an instruction and tap Print Label, below Mark Done. Choose your tape width, then Send to the printer's app (Brother or DYMO) and print. For many at once: Instructions → filter → Apply to all → Print labels.")
+            }
+            Section("Recognising an item without a label") {
+                Text("On an instruction, under Recognise this item, take 2–3 teaching photos of the item. Later, Scan → Item → Recognise opens the instruction when you point the camera at the item. If it is unsure, it shows the likeliest three to choose from.")
+            }
+            Section("New from Photos") {
+                Text("Instructions → New → New from Photos. Take 2–5 photos of the item, then go through ten short pages — title, place, category, safety, equipment, steps, afterwards, schedule, owner — and save. The photos become the instruction's photos and its teaching photos.")
+                Text("With an API key, Draft with Claude fills in every page from the photos first; you check and correct. Without a key the pages start empty.")
+            }
+            Section("AI Drafts and the API key") {
+                Text("Your Claude subscription covers you talking to Claude — in the Claude app or on claude.ai. This app is a separate program, and Anthropic lets a program use Claude only with an API key, billed per use to a separate API account. A draft costs a few cents; $5 of credit lasts for many.")
+                Text("To set it up: sign in at console.anthropic.com (the same email works), add a payment method and some credit under Billing, create a key under API Keys, copy it, and paste it here under Settings → AI Drafts → Save Key. The app checks it at once.")
+                Text("The key is kept in the iPhone's Keychain, never in backups. Drafting sends the photos to Anthropic; nothing is sent unless you tap Draft with Claude.")
             }
             Section("Doing the job") {
                 Text("Tick the steps as you go; your place is kept even if you lock the phone. Tap Mark Done when finished. The app asks who did it once, then remembers — tap “Not you?” to correct it.")
