@@ -40,12 +40,21 @@ The library starts empty. Under **Settings**, either restore a web-app backup fi
 
 Every instruction is labelled **AMS#xxx**, for example AMS#007. A label shows a QR code holding `AMS#007` and the code in large type, plus the title on the wider formats. They are printed on a label printer, one label per page:
 
-- **One label:** instruction screen → the tag button.
+- **One label:** instruction screen → **Print Label** (the button below Mark Done).
 - **Many:** Instructions → filter (a category, say) → Apply to all → Print labels for all N.
 - **Formats:** 12 mm tape (text only), 24 mm tape, 36 mm tape, 62 × 29 mm roll. The choice is remembered on the device.
 - **Print…** goes to AirPrint printers. **Send to the printer's app…** hands a PDF, plus a PNG per label for up to 20 labels, to Brother iPrint&Label or DYMO Connect.
 
 The scanner prefers `AMS#…` over any other number in view, so a "12V" beside the label can't open the wrong instruction. Older labels with just the number still scan. The web app's scanner keeps only the digits, so it reads the new labels too.
+
+## Recognising items without a label
+
+An instruction can also be opened by pointing the camera at the item itself.
+
+- **Teach:** instruction screen → **Recognise this item** → Take Teaching Photo. Take 2–3 photos from the angles you would scan from (up to 5). Touch and hold a photo to remove it.
+- **Recognise:** Scan → **Item** → point at the item → **Recognise**. A clear match opens the instruction. If it is unsure it shows the likeliest three to tap; if nothing is close it says "Not recognised".
+
+It runs on the phone with Apple Vision "feature prints" (a fingerprint of each photo), so no internet is needed. The teaching photos go into backups and iCloud sync. Items that look alike, or very different light, can confuse it; the thresholds live in `Logic/Recognition.swift`.
 
 ## How the data is kept
 

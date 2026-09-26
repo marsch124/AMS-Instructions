@@ -67,6 +67,20 @@ struct InstructionDetailView: View {
 
                 markDoneButton
 
+                // In words, right under Mark Done: a bare symbol in the top
+                // bar was not findable.
+                Button {
+                    printingLabel = true
+                } label: {
+                    Label("Print Label", systemImage: "tag")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                }
+                .buttonStyle(.bordered)
+
+                RecognitionSection(instruction: instruction)
+
                 FoldingText(title: "Equipment", systemImage: "wrench.and.screwdriver", text: instruction.equipment)
                 FoldingText(title: "Preparations", systemImage: "list.clipboard", text: instruction.preparations)
                 FoldingText(title: "After Use", systemImage: "arrow.uturn.backward", text: instruction.afterUse)
@@ -95,13 +109,6 @@ struct InstructionDetailView: View {
                     Image(systemName: instruction.isFavorite ? "star.fill" : "star")
                 }
                 .accessibilityLabel(instruction.isFavorite ? "Remove from favorites" : "Add to favorites")
-
-                Button {
-                    printingLabel = true
-                } label: {
-                    Image(systemName: "tag")
-                }
-                .accessibilityLabel("Print label")
 
                 ShareLink(item: InstructionText.make(instruction),
                           subject: Text("\(Labels.code(instruction.number)) — \(instruction.title)"))

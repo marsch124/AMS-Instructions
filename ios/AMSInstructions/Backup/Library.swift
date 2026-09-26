@@ -89,6 +89,7 @@ enum Library {
             // now makes way for the backup's version.
             if let clash = byNumber[number], clash.uid != uid {
                 deletePhotos(of: clash.uid, in: context)
+                deleteRecognition(of: clash.uid, in: context)
                 byUID[clash.uid] = nil
                 context.delete(clash)
             }
@@ -181,6 +182,23 @@ enum Library {
             result.actions += 1
         }
 
+        let prints = Dictionary(all(RecognitionPrint.self, in: context).map { ($0.uid, $0) }, uniquingKeysWith: { a, _ in a })
+        for dto in backup.recognition {
+            guard let instructionUID = dto.instructionId,
+                  let printData = dto.print.flatMap({ Data(base64Encoded: $0) }) else { continue }
+            let uid = dto.id ?? "print_\(UUID().uuidString)"
+            let stored = prints[uid] ?? {
+                let created = RecognitionPrint(instructionUID: instructionUID)
+                created.uid = uid
+                context.insert(created)
+                return created
+            }()
+            stored.instructionUID = instructionUID
+            stored.printData = printData
+            stored.thumbData = DataURI.decode(dto.thumb)
+            stored.addedAt = dto.addedAt.map(Date.init(milliseconds:)) ?? Date()
+        }
+
         try context.save()
         return result
     }
@@ -195,6 +213,7 @@ enum Library {
         all(Person.self, in: context).forEach { context.delete($0) }
         all(Audit.self, in: context).forEach { context.delete($0) }
         all(ActionItem.self, in: context).forEach { context.delete($0) }
+        all(RecognitionPrint.self, in: context).forEach { context.delete($0) }
         try context.save()
         return try restore(backup, into: context)
     }
@@ -254,6 +273,14 @@ enum Library {
     static func deletePhotos(of instructionUID: String, in context: ModelContext) {
         for photo in photos(for: instructionUID, in: context) {
             context.delete(photo)
+        }
+    }
+
+    /// The teaching photos of an instruction that is going away.
+    static func deleteRecognition(of instructionUID: String, in context: ModelContext) {
+        let descriptor = FetchDescriptor<RecognitionPrint>(predicate: #Predicate { $0.instructionUID == instructionUID })
+        for print in (try? context.fetch(descriptor)) ?? [] {
+            context.delete(print)
         }
     }
 
@@ -387,6 +414,17 @@ enum Library {
             return dto
         }
 
+        backup.recognition = all(RecognitionPrint.self, in: context).compactMap { stored in
+            guard let data = stored.printData else { return nil }
+            var dto = RecognitionDTO()
+            dto.id = stored.uid
+            dto.instructionId = stored.instructionUID
+            dto.print = data.base64EncodedString()
+            dto.thumb = stored.thumbData.map(DataURI.encode)
+            dto.addedAt = stored.addedAt.milliseconds
+            return dto
+        }
+
         return backup
     }
 
@@ -428,6 +466,7 @@ enum Library {
         all(InstructionPhoto.self, in: context).forEach { context.delete($0) }
         all(Audit.self, in: context).forEach { context.delete($0) }
         all(ActionItem.self, in: context).forEach { context.delete($0) }
+        all(RecognitionPrint.self, in: context).forEach { context.delete($0) }
         try context.save()
     }
 }

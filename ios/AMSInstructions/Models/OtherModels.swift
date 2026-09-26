@@ -93,8 +93,26 @@ final class ActionItem {
     var isHighPriority: Bool { priority == "high" }
 }
 
+/// A teaching photo for recognising an item by pointing the camera at it:
+/// Apple Vision's "feature print" of the photo (a compact fingerprint of what
+/// it shows), plus a small thumbnail to recognise the photo by.
+@Model
+final class RecognitionPrint {
+    var uid: String = "print_" + UUID().uuidString
+    var instructionUID: String = ""
+    /// An archived VNFeaturePrintObservation.
+    @Attribute(.externalStorage) var printData: Data?
+    @Attribute(.externalStorage) var thumbData: Data?
+    var addedAt: Date = Date()
+
+    init(instructionUID: String) {
+        self.instructionUID = instructionUID
+    }
+}
+
 enum AppSchema {
     static let models: [any PersistentModel.Type] = [
-        Instruction.self, InstructionPhoto.self, Person.self, Audit.self, ActionItem.self
+        Instruction.self, InstructionPhoto.self, Person.self, Audit.self, ActionItem.self,
+        RecognitionPrint.self
     ]
 }

@@ -468,6 +468,7 @@ struct InstructionEditorView: View {
     private func deleteInstruction() {
         guard let instruction else { return }
         Library.deletePhotos(of: instruction.uid, in: context)
+        Library.deleteRecognition(of: instruction.uid, in: context)
         context.delete(instruction)
         try? context.save()
         dismiss()

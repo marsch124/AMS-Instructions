@@ -15,6 +15,9 @@ struct BackupFile: Codable {
     var people: [PersonDTO] = []
     var audits: [AuditDTO] = []
     var actions: [ActionDTO] = []
+    /// Teaching photos for recognising items. Native app only: the web app
+    /// ignores the field, and backups without it restore as before.
+    var recognition: [RecognitionDTO] = []
 
     init() {}
 
@@ -27,6 +30,27 @@ struct BackupFile: Codable {
         people = c.list(.people)
         audits = c.list(.audits)
         actions = c.list(.actions)
+        recognition = c.list(.recognition)
+    }
+}
+
+struct RecognitionDTO: Codable {
+    var id: String?
+    var instructionId: String?
+    /// The archived Vision feature print, base64.
+    var print: String?
+    var thumb: String?
+    var addedAt: Double?
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = c.string(.id)
+        instructionId = c.string(.instructionId)
+        print = c.string(.print)
+        thumb = c.string(.thumb)
+        addedAt = c.double(.addedAt)
     }
 }
 
