@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var confirmingClear = false
     @State private var confirmingStarter = false
     @State private var message: String?
+    @State private var aiDraftsOn = APIKeyStore.hasKey
 
     struct PendingRestore: Identifiable {
         let id = UUID()
@@ -43,7 +44,7 @@ struct SettingsView: View {
                 Section {
                     NavigationLink(value: SettingsRoute.ai) {
                         LabeledContent {
-                            Text(APIKeyStore.hasKey ? "On" : "Off")
+                            Text(aiDraftsOn ? "On" : "Off")
                         } label: {
                             Label("AI Drafts", systemImage: "sparkles")
                         }
@@ -90,6 +91,8 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            // Back from the AI Drafts page, the key may have been added or removed.
+            .onAppear { aiDraftsOn = APIKeyStore.hasKey }
             .navigationDestination(for: SettingsRoute.self) { route in
                 switch route {
                 case .run: RunPickerView()
