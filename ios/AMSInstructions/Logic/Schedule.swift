@@ -101,4 +101,9 @@ enum Numbers {
         }
         return trimmed
     }
+
+    /// One past the highest number in use: "042" when 041 is the highest.
+    static func next(after used: [String]) -> String {
+        normalize(String((used.compactMap { Int($0) }.max() ?? 0) + 1))
+    }
 }

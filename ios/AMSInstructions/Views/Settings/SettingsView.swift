@@ -41,6 +41,18 @@ struct SettingsView: View {
                 }
 
                 Section {
+                    NavigationLink(value: SettingsRoute.ai) {
+                        LabeledContent {
+                            Text(APIKeyStore.hasKey ? "On" : "Off")
+                        } label: {
+                            Label("AI Drafts", systemImage: "sparkles")
+                        }
+                    }
+                } footer: {
+                    Text("Claude drafts a new instruction from photos of the item.")
+                }
+
+                Section {
                     Button {
                         exporting = true
                     } label: {
@@ -85,6 +97,7 @@ struct SettingsView: View {
                 case .people: PeopleView()
                 case .dataSafety: DataSafetyView()
                 case .about: AboutView()
+                case .ai: AIKeyView()
                 }
             }
             .instructionDestinations()
@@ -170,7 +183,7 @@ struct SettingsView: View {
 }
 
 enum SettingsRoute: Hashable {
-    case run, health, people, dataSafety, about
+    case run, health, people, dataSafety, about, ai
 }
 
 // MARK: - Back up now

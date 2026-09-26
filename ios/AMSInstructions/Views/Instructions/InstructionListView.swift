@@ -16,6 +16,7 @@ struct InstructionListView: View {
     @State private var showingFilters = false
     @State private var showingBulk = false
     @State private var editing: EditorTarget?
+    @State private var creatingFromPhotos = false
 
     var body: some View {
         @Bindable var local = local
@@ -78,12 +79,21 @@ struct InstructionListView: View {
                     }
                     .accessibilityLabel(filtering ? "Filters (\(filters.count) on)" : "Filters")
 
-                    Button {
-                        editing = EditorTarget(instruction: nil)
+                    Menu {
+                        Button {
+                            creatingFromPhotos = true
+                        } label: {
+                            Label("New from Photos", systemImage: "camera")
+                        }
+                        Button {
+                            editing = EditorTarget(instruction: nil)
+                        } label: {
+                            Label("New (Blank Form)", systemImage: "square.and.pencil")
+                        }
                     } label: {
-                        Image(systemName: "plus")
+                        Label("New", systemImage: "plus")
+                            .labelStyle(.titleAndIcon)
                     }
-                    .accessibilityLabel("New instruction")
                 }
             }
             .instructionDestinations()
@@ -95,6 +105,9 @@ struct InstructionListView: View {
             }
             .sheet(item: $editing) { target in
                 InstructionEditorView(instruction: target.instruction)
+            }
+            .sheet(isPresented: $creatingFromPhotos) {
+                NewFromPhotosView()
             }
         }
     }

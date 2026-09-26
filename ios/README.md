@@ -56,6 +56,17 @@ An instruction can also be opened by pointing the camera at the item itself.
 
 It runs on the phone with Apple Vision "feature prints" (a fingerprint of each photo), so no internet is needed. The teaching photos go into backups and iCloud sync. Items that look alike, or very different light, can confuse it; the thresholds live in `Logic/Recognition.swift`.
 
+## New from Photos (AI drafts)
+
+Instructions → **New** → **New from Photos** starts with the photos instead of the form:
+
+1. Take or choose 2–5 photos of the item, and optionally say in a few words what the instruction should cover.
+2. **Draft with Claude** sends the photos to the Anthropic API (`Logic/AIDraft.swift`, model `claude-opus-5`, a JSON-schema answer), which drafts every field. Without a key, **Continue** leads to the same pages, empty.
+3. Ten pages, one topic each (title, place, category, safety, equipment, steps with a photo per step, afterwards, schedule, owner/tags/notes, check and save), with a progress bar and Back/Next.
+4. Save creates the instruction with the next free number, stores the photos, and uses them as teaching photos for Scan → Item. **Print Label** is offered straight away.
+
+The key is pasted once under Settings → **AI Drafts**. It lives in the Keychain (`Logic/APIKeyStore.swift`), never in backups or the sync file. Each draft costs a few cents on the Anthropic API account.
+
 ## How the data is kept
 
 | What | Where | Synced? |
