@@ -176,7 +176,13 @@ struct AboutView: View {
                 Text("Daily, weekly, monthly, seasonal and yearly jobs come round again after they are marked Done. Their clock starts the first time you mark them Done, so a new library never starts out overdue.")
             }
             Section("Plan My Time") {
-                Text("Home → Plan My Time: say how much time you have and where you are, and the app suggests jobs that fit — overdue ones first. Remove or add jobs, then Start to work through them as a checklist. Save as Routine keeps the plan (e.g. \u{201C}Saturday RV hour\u{201D}) to use again; routines also appear in Run a Set.")
+                Text("For when you have a free stretch — say an hour in the RV. Home → Plan My Time: choose how much time you have (15 min to 2 h), where you are (In the RV, At Home, Anywhere) and, if you like, only some kinds of job. Suggest a Plan fills the time with the most pressing jobs: overdue first, then due this week, then the ones not done for longest.")
+                Text("Adjust the plan before you start: swipe a job away, Edit to change the order, + to add from Also fits, or open Add from … for jobs that take longer than the time left. A job without a time estimate counts as about 10 minutes (shown with ≈).")
+                Text("Start turns the plan into a checklist that shows the time left. Moved on — from the RV to the house, say? Tap Edit Plan, change the place, time or jobs, and Update Checklist: what you already ticked stays ticked. Finish marks the ticked jobs as Done.")
+            }
+            Section("Routines") {
+                Text("A routine is a plan you keep, with a name — “Saturday RV hour”, “Monthly water check”. On a plan, tap Save as Routine. Your routines are listed under Plan My Time and in Settings → Run a Set; open one, adjust it if you like, and Start. Changes to a routine are kept with Save Changes to Routine; swipe it away under Plan My Time to delete it.")
+                Text("Routines sync to your other devices and are included in backups.")
             }
             Section("Run a Set") {
                 Text("Work through several instructions as one checklist — everything before a trip, everything due, or a whole category. Finishing marks each ticked one as Done.")
@@ -192,5 +198,44 @@ struct AboutView: View {
             }
         }
         .navigationTitle("How This Works")
+    }
+}
+
+/// The words the app uses, each in a sentence or two.
+struct DefinitionsView: View {
+    private let terms: [(String, String)] = [
+        ("Instruction", "How to do one job or use one thing: title, where it is, safety, steps, and more. The heart of the app."),
+        ("AMS number", "Each instruction's number, shown as AMS#007. It is printed on the label and opens the instruction when scanned."),
+        ("Step", "One action in an instruction. Tick steps as you go; the ticks are kept until you mark the job Done."),
+        ("Mark Done", "Records that the job was done, when and by whom. It restarts the clock for jobs that repeat."),
+        ("Frequency", "How often a job comes round: daily to yearly, or event-based — before each trip, every session, as needed."),
+        ("Due / Overdue", "A repeating job falls due a set time after it was last marked Done. Never-done jobs are never overdue."),
+        ("Owner", "The person who looks after an instruction. Shown with their photo or initials."),
+        ("Category", "The kind of job, e.g. Water Systems, Maintenance, Home, Bike. Categories are grouped as RV, Life and Sport."),
+        ("Place", "In Plan My Time: In the RV (the RV categories), At Home (Home) or Anywhere (everything)."),
+        ("Plan My Time", "Tell the app how much time you have and where you are; it suggests jobs that fit, most pressing first, for you to adjust and start."),
+        ("Plan", "The list of jobs Plan My Time put together, with the minutes they add up to."),
+        ("Routine", "A plan saved with a name, to start again whenever you like. Listed under Plan My Time and in Run a Set; synced and backed up."),
+        ("Checklist (run)", "Several instructions worked through one after another. Tick each one; Finish marks the ticked ones Done. One runs at a time."),
+        ("Run a Set", "Starts a checklist from a ready-made set: before each trip, everything due, favourites, a category, or one of your routines."),
+        ("Time estimate", "How many minutes a job takes. Plan My Time counts one without an estimate as about 10 minutes (≈)."),
+        ("Label", "A printed sticker with the AMS number and a QR code, made with Print Label for a label printer."),
+        ("Teaching photo", "A photo of an item that lets Scan → Item recognise it without a label."),
+        ("Audit", "A record that someone checked an instruction, with what they found. A finding can become a to-do."),
+        ("Action (to-do)", "Something to fix or do, on the Actions tab, with a priority and a due date."),
+        ("AI Draft", "Claude drafting a new instruction from photos (New from Photos). Needs your own API key.")
+    ]
+
+    var body: some View {
+        List {
+            ForEach(terms, id: \.0) { term, meaning in
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(term).font(.headline)
+                    Text(meaning).font(.callout).foregroundStyle(.secondary)
+                }
+                .padding(.vertical, 2)
+            }
+        }
+        .navigationTitle("Definitions")
     }
 }
