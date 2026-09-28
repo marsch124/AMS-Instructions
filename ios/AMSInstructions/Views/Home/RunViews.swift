@@ -102,6 +102,9 @@ struct RunPickerView: View {
 }
 
 struct RunView: View {
+    /// Set when opened from a plan's screen: Edit Plan simply goes back there.
+    var backToPlan: (() -> Void)? = nil
+
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
     @Environment(LocalState.self) private var local
@@ -113,6 +116,7 @@ struct RunView: View {
     @State private var amending = false
     @State private var confirmAbandon = false
     @State private var lastFinished: [String] = []
+    @State private var editingPlan = false
 
     var body: some View {
         if let run = local.currentRun {
@@ -166,6 +170,17 @@ struct RunView: View {
                     }
                 }
             }
+            // A Plan My Time checklist can be changed on the way — say, after
+            // moving from the RV to the house.
+            if run.id.hasPrefix("plan:") {
+                Section {
+                    Button {
+                        if let backToPlan { backToPlan() } else { editingPlan = true }
+                    } label: {
+                        Label("Edit Plan — change time, place or jobs", systemImage: "slider.horizontal.3")
+                    }
+                }
+            }
             Section {
                 Button {
                     finish()
@@ -179,6 +194,13 @@ struct RunView: View {
             }
         }
         .navigationTitle(run.name)
+        .navigationDestination(isPresented: $editingPlan) {
+            PlanEditView(draft: PlanDraft(name: run.name, budget: run.budget ?? 60,
+                                          place: PlanPlace(rawValue: run.place ?? "") ?? .anywhere,
+                                          kinds: Set(run.kinds ?? []), numbers: run.numbers,
+                                          routineUID: nil, runID: run.id),
+                         openedFromRun: true)
+        }
         .sheet(isPresented: $choosing) {
             PersonChooser(title: "Who did it?",
                           message: "Recorded against everything you ticked in this run.") { person in

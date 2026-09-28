@@ -88,7 +88,7 @@ struct HomeView: View {
                 VStack(alignment: .leading, spacing: 3) {
                     Text("Plan My Time")
                         .font(.headline)
-                    Text("Fill a free hour with jobs that are due")
+                    Text("Create a routine for your free time")
                         .font(.subheadline)
                         .foregroundStyle(.secondary)
                 }

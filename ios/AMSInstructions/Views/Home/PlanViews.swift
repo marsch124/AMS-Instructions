@@ -15,6 +15,8 @@ struct PlanDraft: Identifiable, Hashable {
     /// Empty for a fresh plan: the app suggests one.
     var numbers: [String]
     var routineUID: String?
+    /// The checklist this plan runs as; kept when the plan is reopened mid-run.
+    var runID: String = "plan:" + UUID().uuidString
 }
 
 struct PlanSetupView: View {
@@ -83,7 +85,7 @@ struct PlanSetupView: View {
                             draft = PlanDraft(name: routine.name, budget: max(routine.minutes, 15),
                                               place: PlanPlace(rawValue: routine.place) ?? .anywhere,
                                               kinds: Set(routine.kinds), numbers: routine.numbers,
-                                              routineUID: routine.uid)
+                                              routineUID: routine.uid, runID: "plan:" + routine.uid)
                         } label: {
                             LabeledContent(routine.name,
                                            value: "\(Formatting.plural(routine.numbers.count, "job")) · \(Formatting.minutes(routine.minutes))")
@@ -105,6 +107,18 @@ struct PlanSetupView: View {
 
     private func chip(_ title: String, selected: Bool, colour: Color? = nil,
                       action: @escaping () -> Void) -> some View {
+        PlanChip(title: title, selected: selected, colour: colour, action: action)
+    }
+}
+
+/// A tappable choice: time, or a kind of job.
+struct PlanChip: View {
+    let title: String
+    let selected: Bool
+    var colour: Color?
+    let action: () -> Void
+
+    var body: some View {
         Button(action: action) {
             Text(title)
                 .font(.subheadline.weight(selected ? .bold : .regular))
@@ -124,14 +138,20 @@ struct PlanSetupView: View {
 
 struct PlanEditView: View {
     let draft: PlanDraft
+    /// True when opened from the running checklist: Update goes back to it.
+    var openedFromRun = false
 
     @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
     @Environment(LocalState.self) private var local
     @Environment(ToastCenter.self) private var toasts
     @Query private var instructions: [Instruction]
     @Query private var routines: [Routine]
 
     @State private var plan: [Instruction] = []
+    @State private var budget: Int
+    @State private var place: PlanPlace
+    @State private var kinds: Set<String>
     @State private var loaded = false
     @State private var naming = false
     @State private var routineName = ""
@@ -139,12 +159,23 @@ struct PlanEditView: View {
     @State private var running = false
     @State private var showingRest = false
 
+    init(draft: PlanDraft, openedFromRun: Bool = false) {
+        self.draft = draft
+        self.openedFromRun = openedFromRun
+        _budget = State(initialValue: draft.budget)
+        _place = State(initialValue: draft.place)
+        _kinds = State(initialValue: draft.kinds)
+    }
+
+    /// This plan is the checklist running right now.
+    private var isRunning: Bool { local.currentRun?.id == draft.runID }
+
     var body: some View {
         let used = Planner.total(plan)
         let chosen = Set(plan.map(\.uid))
-        let others = Planner.candidates(instructions, place: draft.place, kinds: draft.kinds)
+        let others = Planner.candidates(instructions, place: place, kinds: kinds)
             .filter { !chosen.contains($0.uid) }
-        let split = Planner.split(others, left: draft.budget - used, plan: plan)
+        let split = Planner.split(others, left: budget - used, plan: plan)
 
         List {
             Section {
@@ -152,18 +183,20 @@ struct PlanEditView: View {
                     HStack {
                         Text(Formatting.plural(plan.count, "job")).font(.headline)
                         Spacer()
-                        Text("\(used) of \(draft.budget) min")
+                        Text("\(used) of \(budget) min")
                             .font(.headline.monospacedDigit())
-                            .foregroundStyle(used > draft.budget ? Palette.warm : Color.primary)
+                            .foregroundStyle(used > budget ? Palette.warm : Color.primary)
                     }
-                    ProgressView(value: Double(min(used, draft.budget)), total: Double(max(draft.budget, 1)))
-                        .tint(used > draft.budget ? Palette.warm : Palette.home)
-                    if used > draft.budget {
-                        Text("\(used - draft.budget) min over your time").font(.caption).foregroundStyle(Palette.warm)
+                    ProgressView(value: Double(min(used, budget)), total: Double(max(budget, 1)))
+                        .tint(used > budget ? Palette.warm : Palette.home)
+                    if used > budget {
+                        Text("\(used - budget) min over your time").font(.caption).foregroundStyle(Palette.warm)
                     }
                 }
                 .padding(.vertical, 4)
             }
+
+            criteria
 
             Section {
                 if plan.isEmpty {
@@ -194,7 +227,7 @@ struct PlanEditView: View {
                     DisclosureGroup(isExpanded: $showingRest) {
                         ForEach(split.rest) { instruction in addRow(instruction) }
                     } label: {
-                        Text("More from \(draft.place == .anywhere ? "everywhere" : draft.place.label.lowercased()) (\(split.rest.count))")
+                        Text("More from \(place == .anywhere ? "everywhere" : place.label.lowercased()) (\(split.rest.count))")
                     }
                 } footer: {
                     Text("These take longer than the time left.")
@@ -203,9 +236,12 @@ struct PlanEditView: View {
 
             Section {
                 Button {
-                    if local.currentRun == nil { start() } else { confirmReplace = true }
+                    if isRunning { updateRun() }
+                    else if local.currentRun == nil { start() }
+                    else { confirmReplace = true }
                 } label: {
-                    Label("Start", systemImage: "play.fill")
+                    Label(isRunning ? "Update Checklist" : "Start",
+                          systemImage: isRunning ? "arrow.triangle.2.circlepath" : "play.fill")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                 }
@@ -228,6 +264,10 @@ struct PlanEditView: View {
                 .buttonStyle(.bordered)
                 .disabled(plan.isEmpty)
                 .listRowBackground(Color.clear)
+            } footer: {
+                if isRunning {
+                    Text("Updates the checklist in progress. Ticks on jobs still in the plan are kept.")
+                }
             }
         }
         .navigationTitle(draft.name)
@@ -236,7 +276,9 @@ struct PlanEditView: View {
             ToolbarItem(placement: .topBarTrailing) { EditButton() }
         }
         .onAppear(perform: load)
-        .navigationDestination(isPresented: $running) { RunView() }
+        .navigationDestination(isPresented: $running) {
+            RunView(backToPlan: { running = false })
+        }
         .alert("Save as routine", isPresented: $naming) {
             TextField("e.g. Saturday RV hour", text: $routineName)
             Button("Cancel", role: .cancel) {}
@@ -248,6 +290,40 @@ struct PlanEditView: View {
             Button("Start \(draft.name)", role: .destructive) { start() }
         } message: {
             Text("The ticks in your current run are discarded. Anything already marked Done stays done.")
+        }
+    }
+
+    /// Time, place and kinds, changeable at any point — say, when you move
+    /// from the RV to the house. Jobs already planned stay put.
+    private var criteria: some View {
+        Section {
+            Picker("Time", selection: $budget) {
+                ForEach(Planner.budgets, id: \.self) { Text(Formatting.minutes($0)).tag($0) }
+            }
+            Picker("Where", selection: $place) {
+                ForEach(PlanPlace.allCases) { Text($0.label).tag($0) }
+            }
+            .pickerStyle(.segmented)
+            .onChange(of: place) { _, _ in kinds = [] }
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: 100))], spacing: 8) {
+                ForEach(place.categories, id: \.self) { category in
+                    PlanChip(title: Categories.label(category), selected: kinds.contains(category),
+                             colour: Categories.color(category)) {
+                        if kinds.contains(category) { kinds.remove(category) } else { kinds.insert(category) }
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+            Button {
+                let candidates = Planner.candidates(instructions, place: place, kinds: kinds)
+                withAnimation { plan = Planner.suggest(budget: budget, from: candidates).plan }
+            } label: {
+                Label("Suggest Again", systemImage: "wand.and.stars")
+            }
+        } header: {
+            Text("Time · Place · Kinds")
+        } footer: {
+            Text("Change these any time: the plan keeps its jobs, and the lists below follow. Suggest Again starts the plan over.")
         }
     }
 
@@ -293,18 +369,31 @@ struct PlanEditView: View {
         guard !loaded else { return }
         loaded = true
         if draft.numbers.isEmpty {
-            let candidates = Planner.candidates(instructions, place: draft.place, kinds: draft.kinds)
-            plan = Planner.suggest(budget: draft.budget, from: candidates).plan
+            let candidates = Planner.candidates(instructions, place: place, kinds: kinds)
+            plan = Planner.suggest(budget: budget, from: candidates).plan
         } else {
             let byNumber = Dictionary(instructions.map { ($0.number, $0) }, uniquingKeysWith: { a, _ in a })
             plan = draft.numbers.compactMap { byNumber[$0] }
         }
     }
 
+    private func makeRun(ticked: [String]) -> LocalState.Run {
+        LocalState.Run(id: draft.runID, name: draft.name, numbers: plan.map(\.number), ticked: ticked,
+                       budget: budget, place: place.rawValue, kinds: Array(kinds).sorted())
+    }
+
     private func start() {
-        local.currentRun = LocalState.Run(id: "plan:" + (draft.routineUID ?? UUID().uuidString),
-                                          name: draft.name, numbers: plan.map(\.number), ticked: [])
+        local.currentRun = makeRun(ticked: [])
         running = true
+    }
+
+    /// Mid-run changes: the new list, keeping the ticks that still apply.
+    private func updateRun() {
+        let numbers = Set(plan.map(\.number))
+        let kept = (local.currentRun?.ticked ?? []).filter(numbers.contains)
+        local.currentRun = makeRun(ticked: kept)
+        toasts.show("✓ Checklist updated")
+        if openedFromRun { dismiss() } else { running = true }
     }
 
     private func saveNew() {
@@ -316,9 +405,9 @@ struct PlanEditView: View {
 
     private func save(into routine: Routine) {
         routine.numbers = plan.map(\.number)
-        routine.minutes = draft.budget
-        routine.place = draft.place.rawValue
-        routine.kinds = Array(draft.kinds).sorted()
+        routine.minutes = budget
+        routine.place = place.rawValue
+        routine.kinds = Array(kinds).sorted()
         try? context.save()
         toasts.show("✓ Routine \"\(routine.name)\" saved")
     }

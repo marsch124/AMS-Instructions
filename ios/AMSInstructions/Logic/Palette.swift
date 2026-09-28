@@ -32,8 +32,14 @@ enum Categories {
 
     static let order: [String] = groups.flatMap(\.categories)
 
+    /// The name shown for a category. The stored value stays as it was, so
+    /// backups, sync and the web app are unaffected by a renamed label.
     static func label(_ category: String) -> String {
-        category == "Water" ? "Water Systems" : category
+        switch category {
+        case "Water": return "Water Systems"
+        case "Cycling": return "Bike"
+        default: return category
+        }
     }
 
     static func ordered(_ present: some Collection<String>) -> [String] {

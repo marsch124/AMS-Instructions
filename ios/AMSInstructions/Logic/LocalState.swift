@@ -120,6 +120,11 @@ final class LocalState {
         var name: String
         var numbers: [String]
         var ticked: [String]
+        /// Set for a run made with Plan My Time, so the plan can be reopened
+        /// and changed mid-way.
+        var budget: Int? = nil
+        var place: String? = nil
+        var kinds: [String]? = nil
     }
 
     /// One run at a time. It survives the app being closed, but like the step
