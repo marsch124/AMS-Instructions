@@ -93,7 +93,7 @@ final class LocalState {
     // MARK: Home
 
     enum RecentKind: String, CaseIterable {
-        case viewed, created
+        case viewed, created, favorites
     }
 
     var recentKind: RecentKind = .viewed {
