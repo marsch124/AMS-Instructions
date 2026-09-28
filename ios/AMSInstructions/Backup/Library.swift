@@ -458,6 +458,41 @@ enum Library {
         return try decode(Data(contentsOf: url))
     }
 
+    /// Lists shipped inside the app to be added once on each device, without
+    /// a trip through Restore — such as the cleaning lists made from a photo.
+    /// Adding a file name here and to Resources is all it takes.
+    static let bundledImports = ["stada-hemmet"]
+
+    static func importBundledOnce(into context: ModelContext) {
+        let defaults = UserDefaults.standard
+        for name in bundledImports {
+            let key = "bundledImport." + name
+            guard !defaults.bool(forKey: key),
+                  let url = Bundle.main.url(forResource: name, withExtension: "json"),
+                  var backup = try? decode(Data(contentsOf: url)) else { continue }
+
+            // Someone of the same name already in People is the same person:
+            // point the lists at them instead of adding a second one.
+            let existing = all(Person.self, in: context)
+            for (index, dto) in backup.people.enumerated() {
+                let name = (dto.name ?? "").trimmingCharacters(in: .whitespaces).lowercased()
+                guard let match = existing.first(where: { $0.name.trimmingCharacters(in: .whitespaces).lowercased() == name }),
+                      let oldID = dto.id, oldID != match.uid else { continue }
+                backup.people[index].id = match.uid
+                backup.people[index].phone = backup.people[index].phone.flatMap { $0.isEmpty ? nil : $0 } ?? match.phone
+                backup.people[index].email = backup.people[index].email.flatMap { $0.isEmpty ? nil : $0 } ?? match.email
+                backup.people[index].handles = match.handles.map { HandleDTO(label: $0.label, value: $0.value) }
+                for i in backup.instructions.indices where backup.instructions[i].ownerId == oldID {
+                    backup.instructions[i].ownerId = match.uid
+                }
+            }
+
+            if (try? restore(backup, into: context)) != nil {
+                defaults.set(true, forKey: key)
+            }
+        }
+    }
+
     // MARK: Clear
 
     /// Deletes instructions, photos, audits and to-dos. People are kept — they

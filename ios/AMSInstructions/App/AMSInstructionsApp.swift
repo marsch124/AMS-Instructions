@@ -9,6 +9,9 @@ struct AMSInstructionsApp: App {
     init() {
         container = Self.makeContainer()
         FileSync.shared.start(container: container)
+        // After sync is listening, so the added lists count as a change here
+        // and go up to iCloud for the other devices.
+        Library.importBundledOnce(into: container.mainContext)
     }
 
     var body: some Scene {

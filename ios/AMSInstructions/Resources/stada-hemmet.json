@@ -1,0 +1,273 @@
+{
+  "version": 1,
+  "timestamp": "2026-09-28T05:13:58Z",
+  "instructions": [
+    {
+      "id": "instr_stada_170",
+      "number": "170",
+      "title": "Städa hallen",
+      "category": "Home",
+      "where": "At Home",
+      "whereDetailed": "Hallen",
+      "description": "Veckostädning av hallen: kläder och skor på plats, rena ytor och golv.",
+      "owner": "Shaun",
+      "ownerId": "person_shaun",
+      "frequency": "Weekly",
+      "timeEstimate": 10,
+      "difficulty": 1,
+      "tags": [
+        "städning",
+        "hall"
+      ],
+      "warnings": "",
+      "equipment": "Korg, trasor, rengöringsmedel, dammsugare/mopp",
+      "preparations": "Ta med en korg där du kan lägga saker som hör hemma i ett annat rum. Ta sedan med dig korgen till nästa rum, så slipper du springa fram och tillbaka i hela hemmet.",
+      "steps": [
+        "Häng upp kläder.",
+        "Ställ skor i skostället.",
+        "Städa avlastningsytor.",
+        "Dammsug/moppa vid behov."
+      ],
+      "afterUse": "Töm korgen: ställ tillbaka sakerna i rätt rum.",
+      "maintenance": "",
+      "notes": "Städa gärna uppifrån och ner. Börja till exempel med att damma hyllor innan du dammsuger, så gör det inget om dammet ramlar ner på golvet.\n\nKänns det övermäktigt? Sprid ut städningen under flera dagar!\n\nFrån listan \"Städa hemmet\".",
+      "links": [],
+      "related": [
+        "171",
+        "172",
+        "173",
+        "174"
+      ],
+      "completionCount": 0,
+      "createdAt": 1790572438955,
+      "revisionHistory": [
+        {
+          "version": 1,
+          "timestamp": 1790572438955,
+          "authorId": "person_shaun",
+          "authorName": "Shaun",
+          "changes": "Skapad från listan \"Städa hemmet\""
+        }
+      ]
+    },
+    {
+      "id": "instr_stada_171",
+      "number": "171",
+      "title": "Städa sovrummet",
+      "category": "Home",
+      "where": "At Home",
+      "whereDetailed": "Sovrummet",
+      "description": "Veckostädning av sovrummet: bäddad säng, undanplockat och rena ytor.",
+      "owner": "Shaun",
+      "ownerId": "person_shaun",
+      "frequency": "Weekly",
+      "timeEstimate": 15,
+      "difficulty": 1,
+      "tags": [
+        "städning",
+        "sovrum"
+      ],
+      "warnings": "",
+      "equipment": "Korg, trasor, rengöringsmedel, dammsugare/mopp",
+      "preparations": "Ta med en korg där du kan lägga saker som hör hemma i ett annat rum. Ta sedan med dig korgen till nästa rum, så slipper du springa fram och tillbaka i hela hemmet.",
+      "steps": [
+        "Renbädda sängen.",
+        "Lägg kläder i tvätten.",
+        "Samla ihop och sortera udda föremål.",
+        "Städa avlastningsytor.",
+        "Piffa till kuddar och vik filtar.",
+        "Dammsug/moppa vid behov."
+      ],
+      "afterUse": "Töm korgen: ställ tillbaka sakerna i rätt rum.",
+      "maintenance": "",
+      "notes": "Städa gärna uppifrån och ner. Börja till exempel med att damma hyllor innan du dammsuger, så gör det inget om dammet ramlar ner på golvet.\n\nKänns det övermäktigt? Sprid ut städningen under flera dagar!\n\nFrån listan \"Städa hemmet\".",
+      "links": [],
+      "related": [
+        "170",
+        "172",
+        "173",
+        "174"
+      ],
+      "completionCount": 0,
+      "createdAt": 1790572438956,
+      "revisionHistory": [
+        {
+          "version": 1,
+          "timestamp": 1790572438956,
+          "authorId": "person_shaun",
+          "authorName": "Shaun",
+          "changes": "Skapad från listan \"Städa hemmet\""
+        }
+      ]
+    },
+    {
+      "id": "instr_stada_172",
+      "number": "172",
+      "title": "Städa badrummet",
+      "category": "Home",
+      "where": "At Home",
+      "whereDetailed": "Badrummet",
+      "description": "Veckostädning av badrummet: rent handfat, toalett, dusch/badkar, spegel och golv.",
+      "owner": "Shaun",
+      "ownerId": "person_shaun",
+      "frequency": "Weekly",
+      "timeEstimate": 20,
+      "difficulty": 1,
+      "tags": [
+        "städning",
+        "badrum"
+      ],
+      "warnings": "Blanda aldrig olika rengöringsmedel – till exempel klor och sura medel kan tillsammans bilda giftiga gaser. Vädra ordentligt medan du städar.",
+      "equipment": "Korg, trasor, rengöringsmedel, dammsugare/mopp",
+      "preparations": "Ta med en korg där du kan lägga saker som hör hemma i ett annat rum. Ta sedan med dig korgen till nästa rum, så slipper du springa fram och tillbaka i hela hemmet.",
+      "steps": [
+        "Lägg kläder i tvätten.",
+        "Städa handfatet.",
+        "Städa toaletten.",
+        "Rengör dusch/badkar.",
+        "Putsa spegeln.",
+        "Ta fram fräscha handdukar.",
+        "Skura golvet."
+      ],
+      "afterUse": "Töm korgen: ställ tillbaka sakerna i rätt rum.",
+      "maintenance": "",
+      "notes": "Städa gärna uppifrån och ner. Börja till exempel med att damma hyllor innan du dammsuger, så gör det inget om dammet ramlar ner på golvet.\n\nKänns det övermäktigt? Sprid ut städningen under flera dagar!\n\nFrån listan \"Städa hemmet\".",
+      "links": [],
+      "related": [
+        "170",
+        "171",
+        "173",
+        "174"
+      ],
+      "completionCount": 0,
+      "createdAt": 1790572438957,
+      "revisionHistory": [
+        {
+          "version": 1,
+          "timestamp": 1790572438957,
+          "authorId": "person_shaun",
+          "authorName": "Shaun",
+          "changes": "Skapad från listan \"Städa hemmet\""
+        }
+      ]
+    },
+    {
+      "id": "instr_stada_173",
+      "number": "173",
+      "title": "Städa köket",
+      "category": "Home",
+      "where": "At Home",
+      "whereDetailed": "Köket",
+      "description": "Veckostädning av köket: sorterat skräp, disk undanplockad, rena ytor, spis, diskho och golv.",
+      "owner": "Shaun",
+      "ownerId": "person_shaun",
+      "frequency": "Weekly",
+      "timeEstimate": 20,
+      "difficulty": 1,
+      "tags": [
+        "städning",
+        "kök"
+      ],
+      "warnings": "Låt spisen svalna innan du torkar av den.",
+      "equipment": "Korg, trasor, rengöringsmedel, dammsugare/mopp",
+      "preparations": "Ta med en korg där du kan lägga saker som hör hemma i ett annat rum. Ta sedan med dig korgen till nästa rum, så slipper du springa fram och tillbaka i hela hemmet.",
+      "steps": [
+        "Samla ihop och källsortera skräp.",
+        "Diska eller töm/fyll diskmaskinen.",
+        "Samla ihop och sortera udda föremål.",
+        "Torka av hyllor.",
+        "Torka av bänkytor.",
+        "Torka av köksbordet.",
+        "Ta fram fräscha handdukar och disktrasor.",
+        "Torka av spisen.",
+        "Städa ur diskhon.",
+        "Dammsug/moppa vid behov."
+      ],
+      "afterUse": "Töm korgen: ställ tillbaka sakerna i rätt rum.",
+      "maintenance": "",
+      "notes": "Städa gärna uppifrån och ner. Börja till exempel med att damma hyllor innan du dammsuger, så gör det inget om dammet ramlar ner på golvet.\n\nKänns det övermäktigt? Sprid ut städningen under flera dagar!\n\nFrån listan \"Städa hemmet\".",
+      "links": [],
+      "related": [
+        "170",
+        "171",
+        "172",
+        "174"
+      ],
+      "completionCount": 0,
+      "createdAt": 1790572438958,
+      "revisionHistory": [
+        {
+          "version": 1,
+          "timestamp": 1790572438958,
+          "authorId": "person_shaun",
+          "authorName": "Shaun",
+          "changes": "Skapad från listan \"Städa hemmet\""
+        }
+      ]
+    },
+    {
+      "id": "instr_stada_174",
+      "number": "174",
+      "title": "Städa vardagsrummet",
+      "category": "Home",
+      "where": "At Home",
+      "whereDetailed": "Vardagsrummet",
+      "description": "Veckostädning av vardagsrummet: undanplockat, dammtorkat och rena ytor.",
+      "owner": "Shaun",
+      "ownerId": "person_shaun",
+      "frequency": "Weekly",
+      "timeEstimate": 15,
+      "difficulty": 1,
+      "tags": [
+        "städning",
+        "vardagsrum"
+      ],
+      "warnings": "",
+      "equipment": "Korg, trasor, rengöringsmedel, dammsugare/mopp",
+      "preparations": "Ta med en korg där du kan lägga saker som hör hemma i ett annat rum. Ta sedan med dig korgen till nästa rum, så slipper du springa fram och tillbaka i hela hemmet.",
+      "steps": [
+        "Plocka undan disk.",
+        "Dammtorka ytor.",
+        "Samla ihop och sortera udda föremål.",
+        "Torka av vardagsrumsbordet.",
+        "Piffa till kuddar och vik filtar.",
+        "Dammsug/moppa vid behov."
+      ],
+      "afterUse": "Töm korgen: ställ tillbaka sakerna i rätt rum.",
+      "maintenance": "",
+      "notes": "Städa gärna uppifrån och ner. Börja till exempel med att damma hyllor innan du dammsuger, så gör det inget om dammet ramlar ner på golvet.\n\nKänns det övermäktigt? Sprid ut städningen under flera dagar!\n\nFrån listan \"Städa hemmet\".",
+      "links": [],
+      "related": [
+        "170",
+        "171",
+        "172",
+        "173"
+      ],
+      "completionCount": 0,
+      "createdAt": 1790572438959,
+      "revisionHistory": [
+        {
+          "version": 1,
+          "timestamp": 1790572438959,
+          "authorId": "person_shaun",
+          "authorName": "Shaun",
+          "changes": "Skapad från listan \"Städa hemmet\""
+        }
+      ]
+    }
+  ],
+  "favorites": [],
+  "people": [
+    {
+      "id": "person_shaun",
+      "name": "Shaun",
+      "phone": "",
+      "email": "",
+      "handles": [],
+      "createdAt": 1790572438955,
+      "updatedAt": 1790572438955
+    }
+  ],
+  "audits": [],
+  "actions": []
+}
