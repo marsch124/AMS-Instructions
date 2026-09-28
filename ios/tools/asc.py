@@ -413,11 +413,15 @@ def submit_build(group, build):
 
     state = external_state(build_id)
     if state == "READY_FOR_BETA_SUBMISSION":
-        call("POST", "/betaAppReviewSubmissions", {"data": {
-            "type": "betaAppReviewSubmissions",
-            "relationships": {"build": {"data": {"type": "builds", "id": build_id}}}}})
+        try:
+            call("POST", "/betaAppReviewSubmissions", {"data": {
+                "type": "betaAppReviewSubmissions",
+                "relationships": {"build": {"data": {"type": "builds", "id": build_id}}}}})
+            print(f"Build {version} submitted to Beta App Review")
+        except RuntimeError as problem:
+            # Typically another build is still in review; the next run retries.
+            warning(f"Build {version} could not be submitted yet: {problem}")
         state = external_state(build_id)
-        print(f"Build {version} submitted to Beta App Review")
     print(f"Build {version} for external testers: {state}")
     return state
 
@@ -446,17 +450,39 @@ def add_tester(app_id: str, group, available: bool):
         }})["data"]
     print(f"{first} {last} is a tester in \"{EXTERNAL_GROUP}\"")
 
+    state = tester_state(tester["id"])
     if not available:
         print("The invitation goes out once Apple has approved the build — run this again then")
-        return
+    elif state in ("", "NOT_INVITED"):
+        try:
+            call("POST", "/betaTesterInvitations", {"data": {
+                "type": "betaTesterInvitations",
+                "relationships": {"app": {"data": {"type": "apps", "id": app_id}},
+                                  "betaTester": {"data": {"type": "betaTesters", "id": tester["id"]}}}}})
+            print(f"TestFlight invitation sent to {first} {last}")
+        except RuntimeError as problem:
+            warning(f"Could not send the invitation: {problem}")
+        state = tester_state(tester["id"])
+    report_tester(f"{first} {last}".strip() or email, state)
+
+
+def tester_state(tester_id: str) -> str:
     try:
-        call("POST", "/betaTesterInvitations", {"data": {
-            "type": "betaTesterInvitations",
-            "relationships": {"app": {"data": {"type": "apps", "id": app_id}},
-                              "betaTester": {"data": {"type": "betaTesters", "id": tester["id"]}}}}})
-        print(f"TestFlight invitation sent to {first} {last}")
-    except RuntimeError as problem:
-        warning(f"Could not send the invitation (it may have gone out already): {problem}")
+        return call("GET", f"/betaTesters/{tester_id}")["data"]["attributes"].get("state") or ""
+    except RuntimeError:
+        return ""
+
+
+def report_tester(name: str, state: str):
+    """Apple's record of how far the tester has got, in words."""
+    words = {
+        "NOT_INVITED": "not invited yet — Apple has not sent the email",
+        "INVITED": "invited — Apple has sent the email; not yet accepted",
+        "ACCEPTED": "accepted — the invitation was received and opened",
+        "INSTALLED": "installed — the app is on their phone",
+        "REVOKED": "removed from testing",
+    }
+    print(f"{name}: " + words.get(state, f"status {state or 'unknown'}"))
 
 
 def external(bundle_id: str) -> int:
