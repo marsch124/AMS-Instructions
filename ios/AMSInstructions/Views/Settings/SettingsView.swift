@@ -57,6 +57,9 @@ struct SettingsView: View {
                     NavigationLink(value: SettingsRoute.about) {
                         Label("How This Works", systemImage: "book")
                     }
+                    NavigationLink(value: SettingsRoute.definitions) {
+                        Label("Definitions", systemImage: "character.book.closed")
+                    }
                     LabeledContent("Version", value: appVersion)
                     LabeledContent("Instructions", value: "\(instructions.count)")
                 }
@@ -102,6 +105,7 @@ struct SettingsView: View {
                 case .dataSafety: DataSafetyView()
                 case .about: AboutView()
                 case .ai: AIKeyView()
+                case .definitions: DefinitionsView()
                 }
             }
             .instructionDestinations()
@@ -187,7 +191,7 @@ struct SettingsView: View {
 }
 
 enum SettingsRoute: Hashable {
-    case run, health, people, dataSafety, about, ai
+    case run, health, people, dataSafety, about, ai, definitions
 }
 
 // MARK: - Back up now
