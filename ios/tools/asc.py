@@ -454,16 +454,31 @@ def add_tester(app_id: str, group, available: bool):
     if not available:
         print("The invitation goes out once Apple has approved the build — run this again then")
     elif state in ("", "NOT_INVITED"):
-        try:
-            call("POST", "/betaTesterInvitations", {"data": {
-                "type": "betaTesterInvitations",
-                "relationships": {"app": {"data": {"type": "apps", "id": app_id}},
-                                  "betaTester": {"data": {"type": "betaTesters", "id": tester["id"]}}}}})
-            print(f"TestFlight invitation sent to {first} {last}")
-        except RuntimeError as problem:
-            warning(f"Could not send the invitation: {problem}")
+        invite(app_id, tester["id"], f"{first} {last}")
         state = tester_state(tester["id"])
     report_tester(f"{first} {last}".strip() or email, state)
+
+
+def invite(app_id: str, tester_id: str, name: str):
+    try:
+        call("POST", "/betaTesterInvitations", {"data": {
+            "type": "betaTesterInvitations",
+            "relationships": {"app": {"data": {"type": "apps", "id": app_id}},
+                              "betaTester": {"data": {"type": "betaTesters", "id": tester_id}}}}})
+        print(f"TestFlight invitation sent to {name}")
+    except RuntimeError as problem:
+        warning(f"Could not send the invitation to {name}: {problem}")
+
+
+def invite_waiting(app_id: str, group):
+    """Everyone in the group not invited yet gets their invitation — so it
+    goes out by itself on the first run after Apple approves a build."""
+    testers = call("GET", f"/betaGroups/{group['id']}/betaTesters", params={"limit": 200}).get("data", [])
+    for tester in testers:
+        attributes = tester["attributes"]
+        name = f"{attributes.get('firstName', '')} {attributes.get('lastName', '')}".strip()
+        if (attributes.get("state") or "") in ("", "NOT_INVITED"):
+            invite(app_id, tester["id"], name)
 
 
 def tester_state(tester_id: str) -> str:
@@ -521,7 +536,12 @@ def external(bundle_id: str) -> int:
     build = newest_build(app_id)
     state = submit_build(group, build) if build else ""
     available = state in APPROVED or any_approved_build(app_id)
-    add_tester(app_id, group, available)
+    if env("TESTER_EMAIL"):
+        add_tester(app_id, group, available)
+    elif available:
+        invite_waiting(app_id, group)
+    else:
+        print("Waiting for Apple to approve a build; invitations go out on a later run")
     return 0
 
 
