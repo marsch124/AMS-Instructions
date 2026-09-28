@@ -1,0 +1,78 @@
+name: iOS external testers
+
+# TestFlight for people outside the Apple developer team (family, friends).
+#
+# Run by hand (Actions → iOS external testers → Run workflow) to set up
+# external testing and invite someone: it fills in Apple's review contact,
+# puts the newest build in the "Family" group, submits it to Beta App Review,
+# and adds the tester. Apple reviews the first build, usually within a day;
+# run it again after that and the invitation goes out.
+#
+# It also runs after every TestFlight upload, so each new build reaches the
+# "Family" group too (only once that group exists).
+#
+# Names, email addresses and the phone number are inputs to the run, not part
+# of the code.
+on:
+  workflow_dispatch:
+    inputs:
+      tester_email:
+        description: Tester's email (their Apple ID works best)
+        required: false
+      tester_first:
+        description: Tester's first name
+        required: false
+      tester_last:
+        description: Tester's last name
+        required: false
+      contact_first:
+        description: Review contact first name
+        required: false
+      contact_last:
+        description: Review contact last name
+        required: false
+      contact_email:
+        description: Review contact and feedback email
+        required: false
+      contact_phone:
+        description: Review contact phone, with country code
+        required: false
+  workflow_run:
+    workflows: ["iOS TestFlight"]
+    types: [completed]
+
+concurrency:
+  group: ios-external-testers
+  cancel-in-progress: false
+
+jobs:
+  external:
+    if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    env:
+      RAW_ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+      RAW_ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+      RAW_ASC_KEY_P8: ${{ secrets.ASC_KEY_P8 }}
+      BUNDLE_ID: com.schabbauer.AMSInstructions
+      TESTER_EMAIL: ${{ inputs.tester_email }}
+      TESTER_FIRST: ${{ inputs.tester_first }}
+      TESTER_LAST: ${{ inputs.tester_last }}
+      CONTACT_FIRST: ${{ inputs.contact_first }}
+      CONTACT_LAST: ${{ inputs.contact_last }}
+      CONTACT_EMAIL: ${{ inputs.contact_email }}
+      CONTACT_PHONE: ${{ inputs.contact_phone }}
+
+    defaults:
+      run:
+        working-directory: ios
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Tidy the key and check it with Apple
+        run: python3 tools/asc.py tidy
+
+      - name: External testing
+        run: python3 tools/asc.py external "$BUNDLE_ID"

@@ -7,6 +7,15 @@
                                      and check the app exists in App Store Connect
     asc.py testers  BUNDLE_ID        make sure an internal TestFlight group gets
                                      every build, with the team's users in it
+    asc.py external BUNDLE_ID        external testing (people outside the team):
+                                     review contact, test information, the
+                                     "Family" group, newest build submitted to
+                                     Beta App Review, and a tester added and
+                                     invited once the build is approved.
+                                     Settings come from environment variables:
+                                     CONTACT_FIRST, CONTACT_LAST, CONTACT_EMAIL,
+                                     CONTACT_PHONE, TESTER_EMAIL, TESTER_FIRST,
+                                     TESTER_LAST (all optional)
 
 Reads ASC_KEY_ID, ASC_ISSUER_ID and the key file at
 ~/private_keys/AuthKey_<ASC_KEY_ID>.p8. Standard library plus the openssl
@@ -290,6 +299,186 @@ def testers(bundle_id: str) -> int:
     return 0
 
 
+EXTERNAL_GROUP = "Family"
+
+APP_DESCRIPTION = (
+    "AMS Instructions is a personal library of how-to instructions for the things "
+    "you own and do: the RV, the home, the car and sports. Each instruction has an "
+    "AMS# number that can be printed on a label and scanned to open it."
+)
+REVIEW_NOTES = (
+    "A personal instruction library; no login is needed. On first start the app adds "
+    "a few sample cleaning lists. Scan opens an instruction from its printed label or "
+    "from a photo of the item. 'Draft with Claude' is optional and needs the user's own "
+    "Anthropic API key (Settings > AI Drafts); everything else works without it."
+)
+WHAT_TO_TEST = (
+    "Open the instructions, tick the steps and mark them Done. Try Scan, Print Label "
+    "and New from Photos. Tell Martin what is unclear or missing."
+)
+
+
+def env(name: str) -> str:
+    return os.environ.get(name, "").strip()
+
+
+def review_contact(app_id: str):
+    first, last, email, phone = env("CONTACT_FIRST"), env("CONTACT_LAST"), env("CONTACT_EMAIL"), env("CONTACT_PHONE")
+    detail = call("GET", f"/apps/{app_id}/betaAppReviewDetail")["data"]
+    attributes = {"demoAccountRequired": False, "notes": REVIEW_NOTES}
+    if first: attributes["contactFirstName"] = first
+    if last: attributes["contactLastName"] = last
+    if email: attributes["contactEmail"] = email
+    if phone: attributes["contactPhone"] = phone
+    call("PATCH", f"/betaAppReviewDetails/{detail['id']}", {"data": {
+        "type": "betaAppReviewDetails", "id": detail["id"], "attributes": attributes}})
+    print("Beta App Review contact and notes set")
+
+
+def test_information(app_id: str):
+    feedback = env("CONTACT_EMAIL")
+    existing = call("GET", f"/apps/{app_id}/betaAppLocalizations").get("data", [])
+    attributes = {"description": APP_DESCRIPTION}
+    if feedback: attributes["feedbackEmail"] = feedback
+    english = [l for l in existing if l["attributes"].get("locale", "").startswith("en")]
+    if english:
+        call("PATCH", f"/betaAppLocalizations/{english[0]['id']}", {"data": {
+            "type": "betaAppLocalizations", "id": english[0]["id"], "attributes": attributes}})
+    else:
+        call("POST", "/betaAppLocalizations", {"data": {
+            "type": "betaAppLocalizations", "attributes": {"locale": "en-US", **attributes},
+            "relationships": {"app": {"data": {"type": "apps", "id": app_id}}}}})
+    print("Test information set")
+
+
+def external_group(app_id: str, create: bool):
+    groups = call("GET", f"/apps/{app_id}/betaGroups").get("data", [])
+    for group in groups:
+        if not group["attributes"].get("isInternalGroup") and group["attributes"].get("name") == EXTERNAL_GROUP:
+            return group
+    if not create:
+        return None
+    group = call("POST", "/betaGroups", {"data": {
+        "type": "betaGroups",
+        "attributes": {"name": EXTERNAL_GROUP, "isInternalGroup": False},
+        "relationships": {"app": {"data": {"type": "apps", "id": app_id}}},
+    }})["data"]
+    print(f"Created the external TestFlight group \"{EXTERNAL_GROUP}\"")
+    return group
+
+
+def newest_build(app_id: str, wait_minutes: int = 30):
+    """The newest build, once Apple has finished processing it."""
+    deadline = time.time() + wait_minutes * 60
+    while True:
+        builds = call("GET", "/builds", params={
+            "filter[app]": app_id, "sort": "-uploadedDate", "limit": 1}).get("data", [])
+        if not builds:
+            return None
+        build = builds[0]
+        state = build["attributes"].get("processingState")
+        if state == "VALID":
+            return build
+        if state in ("FAILED", "INVALID") or time.time() > deadline:
+            warning(f"The newest build is {state}; nothing submitted this time")
+            return None
+        print(f"Build {build['attributes'].get('version')} is still {state}; waiting…")
+        time.sleep(60)
+
+
+def external_state(build_id: str) -> str:
+    detail = call("GET", f"/builds/{build_id}/buildBetaDetail")["data"]
+    return detail["attributes"].get("externalBuildState", "")
+
+
+def submit_build(group, build):
+    build_id = build["id"]
+    version = build["attributes"].get("version")
+    try:
+        call("POST", f"/betaGroups/{group['id']}/relationships/builds",
+             {"data": [{"type": "builds", "id": build_id}]})
+    except RuntimeError as problem:
+        if "409" not in str(problem):
+            raise
+    notes = call("GET", f"/builds/{build_id}/betaBuildLocalizations").get("data", [])
+    if not notes:
+        call("POST", "/betaBuildLocalizations", {"data": {
+            "type": "betaBuildLocalizations",
+            "attributes": {"locale": "en-US", "whatsNew": WHAT_TO_TEST},
+            "relationships": {"build": {"data": {"type": "builds", "id": build_id}}}}})
+
+    state = external_state(build_id)
+    if state == "READY_FOR_BETA_SUBMISSION":
+        call("POST", "/betaAppReviewSubmissions", {"data": {
+            "type": "betaAppReviewSubmissions",
+            "relationships": {"build": {"data": {"type": "builds", "id": build_id}}}}})
+        state = external_state(build_id)
+        print(f"Build {version} submitted to Beta App Review")
+    print(f"Build {version} for external testers: {state}")
+    return state
+
+
+def add_tester(app_id: str, group, available: bool):
+    email = env("TESTER_EMAIL").lower()
+    if not email:
+        return
+    first, last = env("TESTER_FIRST"), env("TESTER_LAST")
+    found = call("GET", "/betaTesters", params={"filter[email]": email, "filter[apps]": app_id}).get("data", [])
+    if not found:
+        found = call("GET", "/betaTesters", params={"filter[email]": email}).get("data", [])
+    if found:
+        tester = found[0]
+        try:
+            call("POST", f"/betaGroups/{group['id']}/relationships/betaTesters",
+                 {"data": [{"type": "betaTesters", "id": tester["id"]}]})
+        except RuntimeError as problem:
+            if "409" not in str(problem):
+                raise
+    else:
+        tester = call("POST", "/betaTesters", {"data": {
+            "type": "betaTesters",
+            "attributes": {"email": email, "firstName": first, "lastName": last},
+            "relationships": {"betaGroups": {"data": [{"type": "betaGroups", "id": group["id"]}]}},
+        }})["data"]
+    print(f"{first} {last} is a tester in \"{EXTERNAL_GROUP}\"")
+
+    if not available:
+        print("The invitation goes out once Apple has approved the build — run this again then")
+        return
+    try:
+        call("POST", "/betaTesterInvitations", {"data": {
+            "type": "betaTesterInvitations",
+            "relationships": {"app": {"data": {"type": "apps", "id": app_id}},
+                              "betaTester": {"data": {"type": "betaTesters", "id": tester["id"]}}}}})
+        print(f"TestFlight invitation sent to {first} {last}")
+    except RuntimeError as problem:
+        warning(f"Could not send the invitation (it may have gone out already): {problem}")
+
+
+def external(bundle_id: str) -> int:
+    apps = call("GET", "/apps", params={"filter[bundleId]": bundle_id}).get("data", [])
+    if not apps:
+        error("The app is not in App Store Connect yet")
+        return 1
+    app_id = apps[0]["id"]
+    setting_up = bool(env("TESTER_EMAIL") or env("CONTACT_EMAIL"))
+
+    # After an ordinary build, only carry on if external testing was set up.
+    group = external_group(app_id, create=setting_up)
+    if group is None:
+        print("No external testers yet; nothing to do")
+        return 0
+    if setting_up:
+        review_contact(app_id)
+        test_information(app_id)
+
+    build = newest_build(app_id)
+    state = submit_build(group, build) if build else ""
+    available = state in ("BETA_APPROVED", "IN_BETA_TESTING", "READY_FOR_BETA_TESTING")
+    add_tester(app_id, group, available)
+    return 0
+
+
 def main() -> int:
     if len(sys.argv) == 2 and sys.argv[1] == "tidy":
         return tidy()
@@ -302,6 +491,8 @@ def main() -> int:
             return prepare(bundle_id, sys.argv[3] if len(sys.argv) > 3 else bundle_id)
         if command == "testers":
             return testers(bundle_id)
+        if command == "external":
+            return external(bundle_id)
     except RuntimeError as problem:
         error(str(problem))
         return 1
