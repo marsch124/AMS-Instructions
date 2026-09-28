@@ -53,6 +53,14 @@ struct SettingsView: View {
                     Text("Claude drafts a new instruction from photos of the item.")
                 }
 
+                Section("About") {
+                    NavigationLink(value: SettingsRoute.about) {
+                        Label("How This Works", systemImage: "book")
+                    }
+                    LabeledContent("Version", value: appVersion)
+                    LabeledContent("Instructions", value: "\(instructions.count)")
+                }
+
                 Section {
                     Button {
                         exporting = true
@@ -76,14 +84,6 @@ struct SettingsView: View {
                     Text("Data")
                 } footer: {
                     Text("Your library syncs between your devices through iCloud. A backup file is a copy you keep yourself — in Files, iCloud Drive or anywhere else.")
-                }
-
-                Section("About") {
-                    NavigationLink(value: SettingsRoute.about) {
-                        Label("How This Works", systemImage: "book")
-                    }
-                    LabeledContent("Version", value: appVersion)
-                    LabeledContent("Instructions", value: "\(instructions.count)")
                 }
 
                 Section {
