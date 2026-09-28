@@ -17,6 +17,8 @@ final class LocalState {
         static let openGroups = "openInstructionGroups"
         static let lastExport = "lastExportTime"
         static let currentRun = "currentRun"
+        static let groupsOff = "instructionGroupsOff"
+        static let recentKind = "homeRecentKind"
     }
 
     init(defaults: UserDefaults = .standard) {
@@ -30,6 +32,9 @@ final class LocalState {
         let export = defaults.double(forKey: Key.lastExport)
         lastExport = export > 0 ? Date(timeIntervalSince1970: export) : nil
         currentRun = (try? JSONDecoder().decode(Run.self, from: defaults.data(forKey: Key.currentRun) ?? Data()))
+        labelSize = LabelSize(rawValue: defaults.string(forKey: "labelSize") ?? "") ?? .tape24
+        groupsOff = defaults.bool(forKey: Key.groupsOff)
+        recentKind = RecentKind(rawValue: defaults.string(forKey: Key.recentKind) ?? "") ?? .viewed
     }
 
     // MARK: Step ticks
@@ -80,10 +85,32 @@ final class LocalState {
         didSet { defaults.set(Array(openGroups), forKey: Key.openGroups) }
     }
 
+    /// One flat list in the chosen sort order, without category groups.
+    var groupsOff = false {
+        didSet { defaults.set(groupsOff, forKey: Key.groupsOff) }
+    }
+
+    // MARK: Home
+
+    enum RecentKind: String, CaseIterable {
+        case viewed, created, favorites
+    }
+
+    var recentKind: RecentKind = .viewed {
+        didSet { defaults.set(recentKind.rawValue, forKey: Key.recentKind) }
+    }
+
     // MARK: Backups
 
     var lastExport: Date? = nil {
         didSet { defaults.set(lastExport?.timeIntervalSince1970 ?? 0, forKey: Key.lastExport) }
+    }
+
+    // MARK: Labels
+
+    /// The label printer's tape or roll, remembered so it is asked only once.
+    var labelSize: LabelSize = .tape24 {
+        didSet { defaults.set(labelSize.rawValue, forKey: "labelSize") }
     }
 
     // MARK: Run a Set

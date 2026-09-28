@@ -29,6 +29,7 @@ struct ActionsView: View {
                 }
             }
             .navigationTitle("Actions")
+            .navigationTitleColor(Palette.actions)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {

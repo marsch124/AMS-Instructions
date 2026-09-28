@@ -130,7 +130,10 @@ struct RevisionSection: View {
                             Text(Formatting.dateAndTime(revision.timestamp))
                                 .font(.caption).foregroundStyle(.secondary)
                         }
-                        Text("By: \(revision.authorName)").font(.subheadline)
+                        HStack(spacing: 6) {
+                            PersonAvatar(name: revision.authorName, colors: OwnerColors(people: people), size: 20)
+                            Text("By: \(revision.authorName)").font(.subheadline)
+                        }
                         if let contact = contactLine(revision.authorID) {
                             Text(contact).font(.caption).foregroundStyle(.secondary)
                         }
@@ -229,6 +232,9 @@ struct AuditSection: View {
     private func auditRow(_ audit: Audit) -> some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
+                if !audit.auditorName.isEmpty {
+                    PersonAvatar(name: audit.auditorName, colors: OwnerColors(people: people), size: 22)
+                }
                 Text("Audited by: \(audit.auditorName.isEmpty ? "Unknown" : audit.auditorName)")
                     .font(.subheadline.weight(.semibold))
                 Spacer()

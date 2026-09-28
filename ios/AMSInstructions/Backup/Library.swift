@@ -89,6 +89,7 @@ enum Library {
             // now makes way for the backup's version.
             if let clash = byNumber[number], clash.uid != uid {
                 deletePhotos(of: clash.uid, in: context)
+                deleteRecognition(of: clash.uid, in: context)
                 byUID[clash.uid] = nil
                 context.delete(clash)
             }
@@ -134,6 +135,9 @@ enum Library {
             person.phone = dto.phone ?? ""
             person.email = dto.email ?? ""
             person.handles = (dto.handles ?? []).map { PersonHandle(label: $0.label ?? "", value: $0.value ?? "") }
+            // A backup without a photo (an older one, or from the web app)
+            // leaves a photo already here alone.
+            if let photo = DataURI.decode(dto.photo) { person.photoData = photo }
             person.createdAt = dto.createdAt.map(Date.init(milliseconds:)) ?? person.createdAt
             person.updatedAt = dto.updatedAt.map(Date.init(milliseconds:)) ?? person.updatedAt
             result.people += 1
@@ -181,6 +185,23 @@ enum Library {
             result.actions += 1
         }
 
+        let prints = Dictionary(all(RecognitionPrint.self, in: context).map { ($0.uid, $0) }, uniquingKeysWith: { a, _ in a })
+        for dto in backup.recognition {
+            guard let instructionUID = dto.instructionId,
+                  let printData = dto.print.flatMap({ Data(base64Encoded: $0) }) else { continue }
+            let uid = dto.id ?? "print_\(UUID().uuidString)"
+            let stored = prints[uid] ?? {
+                let created = RecognitionPrint(instructionUID: instructionUID)
+                created.uid = uid
+                context.insert(created)
+                return created
+            }()
+            stored.instructionUID = instructionUID
+            stored.printData = printData
+            stored.thumbData = DataURI.decode(dto.thumb)
+            stored.addedAt = dto.addedAt.map(Date.init(milliseconds:)) ?? Date()
+        }
+
         try context.save()
         return result
     }
@@ -195,6 +216,7 @@ enum Library {
         all(Person.self, in: context).forEach { context.delete($0) }
         all(Audit.self, in: context).forEach { context.delete($0) }
         all(ActionItem.self, in: context).forEach { context.delete($0) }
+        all(RecognitionPrint.self, in: context).forEach { context.delete($0) }
         try context.save()
         return try restore(backup, into: context)
     }
@@ -254,6 +276,14 @@ enum Library {
     static func deletePhotos(of instructionUID: String, in context: ModelContext) {
         for photo in photos(for: instructionUID, in: context) {
             context.delete(photo)
+        }
+    }
+
+    /// The teaching photos of an instruction that is going away.
+    static func deleteRecognition(of instructionUID: String, in context: ModelContext) {
+        let descriptor = FetchDescriptor<RecognitionPrint>(predicate: #Predicate { $0.instructionUID == instructionUID })
+        for print in (try? context.fetch(descriptor)) ?? [] {
+            context.delete(print)
         }
     }
 
@@ -352,6 +382,7 @@ enum Library {
             dto.phone = person.phone
             dto.email = person.email
             dto.handles = person.handles.map { HandleDTO(label: $0.label, value: $0.value) }
+            dto.photo = person.photoData.map(DataURI.encode)
             dto.createdAt = person.createdAt.milliseconds
             dto.updatedAt = person.updatedAt.milliseconds
             return dto
@@ -384,6 +415,17 @@ enum Library {
             dto.sourceAuditId = action.sourceAuditID
             dto.createdAt = action.createdAt.milliseconds
             dto.completedAt = action.completedAt?.milliseconds
+            return dto
+        }
+
+        backup.recognition = all(RecognitionPrint.self, in: context).compactMap { stored in
+            guard let data = stored.printData else { return nil }
+            var dto = RecognitionDTO()
+            dto.id = stored.uid
+            dto.instructionId = stored.instructionUID
+            dto.print = data.base64EncodedString()
+            dto.thumb = stored.thumbData.map(DataURI.encode)
+            dto.addedAt = stored.addedAt.milliseconds
             return dto
         }
 
@@ -428,6 +470,7 @@ enum Library {
         all(InstructionPhoto.self, in: context).forEach { context.delete($0) }
         all(Audit.self, in: context).forEach { context.delete($0) }
         all(ActionItem.self, in: context).forEach { context.delete($0) }
+        all(RecognitionPrint.self, in: context).forEach { context.delete($0) }
         try context.save()
     }
 }
@@ -470,6 +513,29 @@ enum PhotoProcessing {
         return Prepared(data: data, thumb: thumb,
                         width: Int(full.size.width * full.scale),
                         height: Int(full.size.height * full.scale))
+    }
+
+    static let avatarEdge: CGFloat = 256
+
+    /// A person's picture: the centre square of the photo, small.
+    static func avatar(from original: Data) -> Data? {
+        guard let image = UIImage(data: original) else { return nil }
+        let pixelWidth = image.size.width * image.scale
+        let pixelHeight = image.size.height * image.scale
+        let side = min(pixelWidth, pixelHeight)
+        guard side > 0 else { return nil }
+        let edge = min(avatarEdge, side)
+        let scale = edge / side
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        let square = UIGraphicsImageRenderer(size: CGSize(width: edge, height: edge), format: format).image { _ in
+            // Drawn scaled so the shorter side fills the square, centred.
+            let size = CGSize(width: pixelWidth * scale, height: pixelHeight * scale)
+            image.draw(in: CGRect(x: (edge - size.width) / 2, y: (edge - size.height) / 2,
+                                  width: size.width, height: size.height))
+        }
+        return square.jpegData(compressionQuality: 0.8)
     }
 
     static func thumbnail(from data: Data) -> Data? {

@@ -36,6 +36,41 @@ If Apple won't provision the iCloud container, the TestFlight workflow uploads t
 
 The library starts empty. Under **Settings**, either restore a web-app backup file (Restore from a Backup File) or press Load the Starter Library. Do this on one device only; the others receive the library through iCloud Drive.
 
+## Labels
+
+Every instruction is labelled **AMS#xxx**, for example AMS#007. A label shows a QR code holding `AMS#007` and the code in large type, plus the title on the wider formats. They are printed on a label printer, one label per page:
+
+- **One label:** instruction screen → **Print Label** (the button below Mark Done).
+- **Many:** Instructions → filter (a category, say) → Apply to all → Print labels for all N.
+- **Formats:** 12 mm tape (text only), 24 mm tape, 36 mm tape, 62 × 29 mm roll. The choice is remembered on the device.
+- **Print…** goes to AirPrint printers. **Send to the printer's app…** hands a PDF, plus a PNG per label for up to 20 labels, to Brother iPrint&Label or DYMO Connect.
+
+The scanner prefers `AMS#…` over any other number in view, so a "12V" beside the label can't open the wrong instruction. Older labels with just the number still scan. The web app's scanner keeps only the digits, so it reads the new labels too.
+
+## Recognising items without a label
+
+An instruction can also be opened by pointing the camera at the item itself.
+
+- **Teach:** instruction screen → **Recognise this item** → Take Teaching Photo. Take 2–3 photos from the angles you would scan from (up to 5). Touch and hold a photo to remove it.
+- **Recognise:** Scan → **Item** → point at the item → **Recognise**. A clear match opens the instruction. If it is unsure it shows the likeliest three to tap; if nothing is close it says "Not recognised".
+
+It runs on the phone with Apple Vision "feature prints" (a fingerprint of each photo), so no internet is needed. The teaching photos go into backups and iCloud sync. Items that look alike, or very different light, can confuse it; the thresholds live in `Logic/Recognition.swift`.
+
+## New from Photos (AI drafts)
+
+Instructions → **New** → **New from Photos** starts with the photos instead of the form:
+
+1. Take or choose 2–5 photos of the item, and optionally say in a few words what the instruction should cover.
+2. **Draft with Claude** sends the photos to the Anthropic API (`Logic/AIDraft.swift`, model `claude-opus-5`, a JSON-schema answer), which drafts every field. Without a key, **Continue** leads to the same pages, empty.
+3. Ten pages, one topic each (title, place, category, safety, equipment, steps with a photo per step, afterwards, schedule, owner/tags/notes, check and save), with a progress bar and Back/Next.
+4. Save creates the instruction with the next free number, stores the photos, and uses them as teaching photos for Scan → Item. **Print Label** is offered straight away.
+
+The key is pasted once under Settings → **AI Drafts**. It lives in the Keychain (`Logic/APIKeyStore.swift`), never in backups or the sync file. Each draft costs a few cents on the Anthropic API account.
+
+## People
+
+Settings → Manage People: name, phone, email, other contacts and a photo (Take Photo or Choose from Library; stored as a 256 px square). The photo, or the initials when there is none, is shown next to the name everywhere: owner pills, Who did it?, Done History, audits, revisions. It is kept in backups and sync; the web app ignores it.
+
 ## How the data is kept
 
 | What | Where | Synced? |

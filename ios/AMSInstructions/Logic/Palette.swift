@@ -8,7 +8,7 @@ enum Palette {
     // One accent per tab, so a screen always shows which tab it belongs to.
     static let home = Color(hex: 0xFF006E)
     static let instructions = Color(light: 0x00875A, dark: 0x00C97B)
-    static let actions = Color(light: 0xE5372B, dark: 0xFF4438)
+    static let actions = Color(light: 0xE8710A, dark: 0xFF9F40)
     static let settings = Color(light: 0x1878CE, dark: 0x2D9BF0)
 
     static let danger = Color(light: 0xC81E1E, dark: 0xFF6B6B)
@@ -72,14 +72,31 @@ struct OwnerColors {
     static let hues: [Double] = [205, 25, 280, 330, 95, 175, 55, 250]
 
     private let huesByName: [String: Double]
+    private let photosByName: [String: Data]
 
     init(people: [Person]) {
         var map: [String: Double] = [:]
+        var photos: [String: Data] = [:]
         for (index, person) in people.sorted(by: { $0.createdAt < $1.createdAt }).enumerated() {
             let key = person.name.trimmingCharacters(in: .whitespaces).lowercased()
             if map[key] == nil { map[key] = Self.hues[index % Self.hues.count] }
+            if photos[key] == nil, let photo = person.photoData { photos[key] = photo }
         }
         huesByName = map
+        photosByName = photos
+    }
+
+    /// The person's picture, looked up by name like the colour, so a name
+    /// stored in an old done log still finds it.
+    func photo(for name: String) -> Data? {
+        photosByName[name.trimmingCharacters(in: .whitespaces).lowercased()]
+    }
+
+    /// "Anna Schabbauer" → "AS", "Martin" → "M".
+    static func initials(of name: String) -> String {
+        let words = name.split(whereSeparator: { $0.isWhitespace || $0 == "-" })
+        let letters = [words.first, words.count > 1 ? words.last : nil].compactMap { $0?.first }
+        return String(letters).uppercased()
     }
 
     func hue(for name: String) -> Double {

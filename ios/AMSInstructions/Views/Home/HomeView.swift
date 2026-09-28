@@ -21,13 +21,13 @@ struct HomeView: View {
                 VStack(spacing: 16) {
                     scanButton
                     nudges
-                    favouritesSection
-                    recentSection
+                    listSection
                 }
                 .padding()
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Instructions")
+            .navigationTitleColor(Palette.home)
             .instructionDestinations()
             .navigationDestination(for: HomeRoute.self) { route in
                 switch route {
@@ -53,14 +53,20 @@ struct HomeView: View {
         Button {
             scanning = true
         } label: {
-            VStack(spacing: 10) {
+            HStack(spacing: 16) {
                 Image(systemName: "viewfinder")
-                    .font(.system(size: 44, weight: .semibold))
-                Text("Scan Instruction")
-                    .font(.title3.weight(.bold))
+                    .font(.system(size: 40, weight: .semibold))
+                VStack(alignment: .leading, spacing: 4) {
+                    Text("Scan Instruction")
+                        .font(.title3.weight(.bold))
+                    Text("Point at a label or the item")
+                        .font(.subheadline)
+                        .opacity(0.85)
+                }
+                Spacer(minLength: 0)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 28)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 24)
             .background(Palette.brand, in: RoundedRectangle(cornerRadius: 20))
             .foregroundStyle(.white)
         }
@@ -116,35 +122,44 @@ struct HomeView: View {
 
     // MARK: Lists
 
-    private var favouritesSection: some View {
-        let favourites = instructions.filter(\.isFavorite).sorted { $0.number < $1.number }
-        return HomeSection(title: "Favorites") {
-            if favourites.isEmpty {
-                Text("No favorites yet. Tap ☆ on an instruction to add.")
+    /// Recently viewed, recently created or favourites — one list, chosen with
+    /// the switch above it.
+    private var listSection: some View {
+        @Bindable var local = local
+        let items: [Instruction]
+        let empty: String
+        switch local.recentKind {
+        case .viewed:
+            items = Array(instructions
+                .filter { $0.lastViewedAt != nil }
+                .sorted { ($0.lastViewedAt ?? .distantPast) > ($1.lastViewedAt ?? .distantPast) }
+                .prefix(5))
+            empty = "Instructions you open or scan appear here."
+        case .created:
+            items = Array(instructions.sorted { $0.createdAt > $1.createdAt }.prefix(5))
+            empty = "New instructions appear here."
+        case .favorites:
+            items = instructions.filter(\.isFavorite).sorted { $0.number < $1.number }
+            empty = "No favorites yet. Tap ☆ on an instruction to add it."
+        }
+        return VStack(alignment: .leading, spacing: 8) {
+            Picker("Show", selection: $local.recentKind) {
+                Text("Viewed").tag(LocalState.RecentKind.viewed)
+                Text("Created").tag(LocalState.RecentKind.created)
+                Text("Favorites").tag(LocalState.RecentKind.favorites)
+            }
+            .pickerStyle(.segmented)
+            if items.isEmpty {
+                Text(empty)
                     .font(.callout).foregroundStyle(.secondary)
+                    .padding(.top, 4)
             } else {
-                ForEach(favourites) { instruction in
+                ForEach(items) { instruction in
                     card(for: instruction)
                 }
             }
         }
-    }
-
-    private var recentSection: some View {
-        let recent = instructions
-            .filter { $0.lastViewedAt != nil }
-            .sorted { ($0.lastViewedAt ?? .distantPast) > ($1.lastViewedAt ?? .distantPast) }
-            .prefix(5)
-        return HomeSection(title: "Recently Viewed") {
-            if recent.isEmpty {
-                Text("Scanned instructions appear here.")
-                    .font(.callout).foregroundStyle(.secondary)
-            } else {
-                ForEach(Array(recent)) { instruction in
-                    card(for: instruction)
-                }
-            }
-        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     private func card(for instruction: Instruction) -> some View {
@@ -173,19 +188,6 @@ struct HomeView: View {
 
 enum HomeRoute: Hashable {
     case due, run
-}
-
-private struct HomeSection<Content: View>: View {
-    let title: String
-    @ViewBuilder var content: Content
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
-            Text(title).font(.title3.weight(.bold))
-            content
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-    }
 }
 
 struct NudgeCard: View {

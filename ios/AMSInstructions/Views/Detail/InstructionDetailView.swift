@@ -11,6 +11,7 @@ struct InstructionDetailView: View {
     @Query(sort: \Person.name) private var people: [Person]
 
     @State private var editing: EditorTarget?
+    @State private var printingLabel = false
     @State private var chooser: ChooserPurpose?
     @State private var justDone = false
     @State private var fullScreenPhoto: InstructionPhoto?
@@ -66,6 +67,20 @@ struct InstructionDetailView: View {
 
                 markDoneButton
 
+                // In words, right under Mark Done: a bare symbol in the top
+                // bar was not findable.
+                Button {
+                    printingLabel = true
+                } label: {
+                    Label("Print Label", systemImage: "tag")
+                        .font(.headline)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 4)
+                }
+                .buttonStyle(.bordered)
+
+                RecognitionSection(instruction: instruction)
+
                 FoldingText(title: "Equipment", systemImage: "wrench.and.screwdriver", text: instruction.equipment)
                 FoldingText(title: "Preparations", systemImage: "list.clipboard", text: instruction.preparations)
                 FoldingText(title: "After Use", systemImage: "arrow.uturn.backward", text: instruction.afterUse)
@@ -83,7 +98,8 @@ struct InstructionDetailView: View {
             .padding()
         }
         .background(Color(.systemGroupedBackground))
-        .navigationTitle(instruction.number)
+        // The same code as on the printed label.
+        .navigationTitle(Labels.code(instruction.number))
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItemGroup(placement: .topBarTrailing) {
@@ -95,7 +111,7 @@ struct InstructionDetailView: View {
                 .accessibilityLabel(instruction.isFavorite ? "Remove from favorites" : "Add to favorites")
 
                 ShareLink(item: InstructionText.make(instruction),
-                          subject: Text("\(instruction.number) — \(instruction.title)"))
+                          subject: Text("\(Labels.code(instruction.number)) — \(instruction.title)"))
 
                 Button {
                     editing = EditorTarget(instruction: instruction)
@@ -112,6 +128,9 @@ struct InstructionDetailView: View {
             InstructionEditorView(instruction: target.instruction) {
                 dismiss()
             }
+        }
+        .sheet(isPresented: $printingLabel) {
+            LabelSheet(instructions: [instruction])
         }
         .sheet(item: $chooser) { purpose in
             switch purpose {
@@ -162,7 +181,18 @@ struct InstructionDetailView: View {
 
         return Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
             GridRow {
-                InfoCell(label: "Owner", value: name.isEmpty ? "--" : name)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Owner").font(.caption).foregroundStyle(.secondary)
+                    if name.isEmpty {
+                        Text("--").font(.subheadline.weight(.semibold))
+                    } else {
+                        HStack(spacing: 6) {
+                            PersonAvatar(name: name, colors: colors, size: 24)
+                            Text(name).font(.subheadline.weight(.semibold))
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 InfoCell(label: "Frequency", value: instruction.frequency.isEmpty ? "--" : instruction.frequency)
             }
             GridRow {

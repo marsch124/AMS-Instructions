@@ -15,6 +15,7 @@ struct SettingsView: View {
     @State private var confirmingClear = false
     @State private var confirmingStarter = false
     @State private var message: String?
+    @State private var aiDraftsOn = APIKeyStore.hasKey
 
     struct PendingRestore: Identifiable {
         let id = UUID()
@@ -38,6 +39,26 @@ struct SettingsView: View {
                     NavigationLink(value: SettingsRoute.people) {
                         Label("Manage People", systemImage: "person.2")
                     }
+                }
+
+                Section {
+                    NavigationLink(value: SettingsRoute.ai) {
+                        LabeledContent {
+                            Text(aiDraftsOn ? "On" : "Off")
+                        } label: {
+                            Label("AI Drafts", systemImage: "sparkles")
+                        }
+                    }
+                } footer: {
+                    Text("Claude drafts a new instruction from photos of the item.")
+                }
+
+                Section("About") {
+                    NavigationLink(value: SettingsRoute.about) {
+                        Label("How This Works", systemImage: "book")
+                    }
+                    LabeledContent("Version", value: appVersion)
+                    LabeledContent("Instructions", value: "\(instructions.count)")
                 }
 
                 Section {
@@ -65,19 +86,14 @@ struct SettingsView: View {
                     Text("Your library syncs between your devices through iCloud. A backup file is a copy you keep yourself — in Files, iCloud Drive or anywhere else.")
                 }
 
-                Section("About") {
-                    NavigationLink(value: SettingsRoute.about) {
-                        Label("How This Works", systemImage: "book")
-                    }
-                    LabeledContent("Version", value: appVersion)
-                    LabeledContent("Instructions", value: "\(instructions.count)")
-                }
-
                 Section {
                     Button("Clear All Data", role: .destructive) { confirmingClear = true }
                 }
             }
             .navigationTitle("Settings")
+            .navigationTitleColor(Palette.settings)
+            // Back from the AI Drafts page, the key may have been added or removed.
+            .onAppear { aiDraftsOn = APIKeyStore.hasKey }
             .navigationDestination(for: SettingsRoute.self) { route in
                 switch route {
                 case .run: RunPickerView()
@@ -85,6 +101,7 @@ struct SettingsView: View {
                 case .people: PeopleView()
                 case .dataSafety: DataSafetyView()
                 case .about: AboutView()
+                case .ai: AIKeyView()
                 }
             }
             .instructionDestinations()
@@ -170,7 +187,7 @@ struct SettingsView: View {
 }
 
 enum SettingsRoute: Hashable {
-    case run, health, people, dataSafety, about
+    case run, health, people, dataSafety, about, ai
 }
 
 // MARK: - Back up now
