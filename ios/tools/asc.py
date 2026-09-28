@@ -485,6 +485,21 @@ def report_tester(name: str, state: str):
     print(f"{name}: " + words.get(state, f"status {state or 'unknown'}"))
 
 
+APPROVED = ("BETA_APPROVED", "IN_BETA_TESTING", "READY_FOR_BETA_TESTING")
+
+
+def any_approved_build(app_id: str) -> bool:
+    """An earlier build already approved for external testing is enough to
+    invite someone, even while a newer one waits for its own review."""
+    builds = call("GET", "/builds", params={
+        "filter[app]": app_id, "sort": "-uploadedDate", "limit": 10}).get("data", [])
+    for build in builds:
+        if external_state(build["id"]) in APPROVED:
+            print(f"Build {build['attributes'].get('version')} is approved for external testers")
+            return True
+    return False
+
+
 def external(bundle_id: str) -> int:
     apps = call("GET", "/apps", params={"filter[bundleId]": bundle_id}).get("data", [])
     if not apps:
@@ -505,7 +520,7 @@ def external(bundle_id: str) -> int:
 
     build = newest_build(app_id)
     state = submit_build(group, build) if build else ""
-    available = state in ("BETA_APPROVED", "IN_BETA_TESTING", "READY_FOR_BETA_TESTING")
+    available = state in APPROVED or any_approved_build(app_id)
     add_tester(app_id, group, available)
     return 0
 
