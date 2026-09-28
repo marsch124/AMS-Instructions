@@ -288,3 +288,71 @@ struct SectionCard<Content: View>: View {
         .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
     }
 }
+
+// MARK: - Coloured titles
+
+extension View {
+    /// Colours the titles of the navigation stack this screen sits in — the
+    /// large heading and the small one on screens opened from it — so each
+    /// tab's headings carry the tab's colour. SwiftUI has no modifier for
+    /// this, so it reaches the stack's UIKit navigation bar.
+    func navigationTitleColor(_ color: Color) -> some View {
+        background(NavigationTitleColorSetter(color: UIColor(color)))
+    }
+}
+
+private struct NavigationTitleColorSetter: UIViewControllerRepresentable {
+    let color: UIColor
+
+    func makeUIViewController(context: Context) -> Controller {
+        Controller(color: color)
+    }
+
+    func updateUIViewController(_ controller: Controller, context: Context) {
+        controller.color = color
+        controller.apply()
+    }
+
+    final class Controller: UIViewController {
+        var color: UIColor
+
+        init(color: UIColor) {
+            self.color = color
+            super.init(nibName: nil, bundle: nil)
+        }
+
+        required init?(coder: NSCoder) {
+            fatalError("not used")
+        }
+
+        override func didMove(toParent parent: UIViewController?) {
+            super.didMove(toParent: parent)
+            apply()
+        }
+
+        override func viewWillAppear(_ animated: Bool) {
+            super.viewWillAppear(animated)
+            apply()
+        }
+
+        func apply() {
+            guard let bar = navigationController?.navigationBar else { return }
+            func coloured(_ appearance: UINavigationBarAppearance) -> UINavigationBarAppearance {
+                let copy = appearance.copy()
+                copy.largeTitleTextAttributes[.foregroundColor] = color
+                copy.titleTextAttributes[.foregroundColor] = color
+                return copy
+            }
+            let standard = coloured(bar.standardAppearance)
+            bar.standardAppearance = standard
+            bar.compactAppearance = standard
+            // Scrolled to the top, the bar is see-through, as it is by default.
+            let edge = bar.scrollEdgeAppearance ?? {
+                let transparent = UINavigationBarAppearance()
+                transparent.configureWithTransparentBackground()
+                return transparent
+            }()
+            bar.scrollEdgeAppearance = coloured(edge)
+        }
+    }
+}

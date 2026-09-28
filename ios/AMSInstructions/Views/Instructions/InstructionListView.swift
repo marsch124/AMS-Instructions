@@ -59,6 +59,7 @@ struct InstructionListView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle("All Instructions")
+            .navigationTitleColor(Palette.instructions)
             .searchable(text: $searchText, prompt: "Number, title, or anything inside")
             .toolbar {
                 ToolbarItem(placement: .topBarLeading) {

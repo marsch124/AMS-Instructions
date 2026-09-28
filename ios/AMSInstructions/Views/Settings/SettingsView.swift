@@ -91,6 +91,7 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .navigationTitleColor(Palette.settings)
             // Back from the AI Drafts page, the key may have been added or removed.
             .onAppear { aiDraftsOn = APIKeyStore.hasKey }
             .navigationDestination(for: SettingsRoute.self) { route in

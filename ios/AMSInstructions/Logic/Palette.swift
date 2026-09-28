@@ -8,7 +8,7 @@ enum Palette {
     // One accent per tab, so a screen always shows which tab it belongs to.
     static let home = Color(hex: 0xFF006E)
     static let instructions = Color(light: 0x00875A, dark: 0x00C97B)
-    static let actions = Color(light: 0xE5372B, dark: 0xFF4438)
+    static let actions = Color(light: 0xE8710A, dark: 0xFF9F40)
     static let settings = Color(light: 0x1878CE, dark: 0x2D9BF0)
 
     static let danger = Color(light: 0xC81E1E, dark: 0xFF6B6B)
