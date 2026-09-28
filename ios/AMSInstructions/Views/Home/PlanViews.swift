@@ -227,7 +227,13 @@ struct PlanEditView: View {
                     DisclosureGroup(isExpanded: $showingRest) {
                         ForEach(split.rest) { instruction in addRow(instruction) }
                     } label: {
-                        Text("More from \(place == .anywhere ? "everywhere" : place.label.lowercased()) (\(split.rest.count))")
+                        HStack {
+                            Text("Add from \(place.label)")
+                            Spacer()
+                            Text("\(split.rest.count)")
+                                .font(.subheadline.monospacedDigit())
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 } footer: {
                     Text("These take longer than the time left.")
