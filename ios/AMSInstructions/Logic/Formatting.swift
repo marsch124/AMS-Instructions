@@ -25,6 +25,13 @@ enum Formatting {
         "\(count) " + (count == 1 ? one : (many ?? one + "s"))
     }
 
+    /// 45 → "45 min", 60 → "1 h", 90 → "1 h 30".
+    static func minutes(_ total: Int) -> String {
+        guard total >= 60 else { return "\(total) min" }
+        let hours = total / 60, rest = total % 60
+        return rest == 0 ? "\(hours) h" : "\(hours) h \(rest)"
+    }
+
     static func dateAndTime(_ date: Date) -> String {
         date.formatted(date: .abbreviated, time: .shortened)
     }

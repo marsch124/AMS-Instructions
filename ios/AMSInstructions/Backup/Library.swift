@@ -202,6 +202,24 @@ enum Library {
             stored.addedAt = dto.addedAt.map(Date.init(milliseconds:)) ?? Date()
         }
 
+        let routines = Dictionary(all(Routine.self, in: context).map { ($0.uid, $0) }, uniquingKeysWith: { a, _ in a })
+        for dto in backup.routines {
+            guard let name = dto.name, !name.isEmpty else { continue }
+            let uid = dto.id ?? "routine_\(UUID().uuidString)"
+            let stored = routines[uid] ?? {
+                let created = Routine(name: name)
+                created.uid = uid
+                context.insert(created)
+                return created
+            }()
+            stored.name = name
+            stored.numbers = (dto.numbers ?? []).map(Numbers.normalize)
+            stored.minutes = dto.minutes ?? 0
+            stored.place = dto.place ?? PlanPlace.anywhere.rawValue
+            stored.kinds = dto.kinds ?? []
+            stored.createdAt = dto.createdAt.map(Date.init(milliseconds:)) ?? Date()
+        }
+
         try context.save()
         return result
     }
@@ -217,6 +235,7 @@ enum Library {
         all(Audit.self, in: context).forEach { context.delete($0) }
         all(ActionItem.self, in: context).forEach { context.delete($0) }
         all(RecognitionPrint.self, in: context).forEach { context.delete($0) }
+        all(Routine.self, in: context).forEach { context.delete($0) }
         try context.save()
         return try restore(backup, into: context)
     }
@@ -429,6 +448,18 @@ enum Library {
             return dto
         }
 
+        backup.routines = all(Routine.self, in: context).map { routine in
+            var dto = RoutineDTO()
+            dto.id = routine.uid
+            dto.name = routine.name
+            dto.numbers = routine.numbers
+            dto.minutes = routine.minutes
+            dto.place = routine.place
+            dto.kinds = routine.kinds
+            dto.createdAt = routine.createdAt.milliseconds
+            return dto
+        }
+
         return backup
     }
 
@@ -506,6 +537,7 @@ enum Library {
         all(Audit.self, in: context).forEach { context.delete($0) }
         all(ActionItem.self, in: context).forEach { context.delete($0) }
         all(RecognitionPrint.self, in: context).forEach { context.delete($0) }
+        all(Routine.self, in: context).forEach { context.delete($0) }
         try context.save()
     }
 }

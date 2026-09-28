@@ -67,6 +67,10 @@ Instructions → **New** → **New from Photos** starts with the photos instead 
 
 The key is pasted once under Settings → **AI Drafts**. It lives in the Keychain (`Logic/APIKeyStore.swift`), never in backups or the sync file. Each draft costs a few cents on the Anthropic API account.
 
+## Plan My Time
+
+Home → Plan My Time: pick the time you have (15–120 min), where you are (RV, home, anywhere) and optionally some kinds. The app suggests jobs that fit, overdue first, then due this week, then the longest not done (`Logic/Planner.swift`; a job without an estimate counts as 10 min). Adjust the list, then Start: it runs as a Run a Set checklist with the time left shown. Save as Routine keeps it as a `Routine` (synced and backed up); routines also appear in Run a Set.
+
 ## People
 
 Settings → Manage People: name, phone, email, other contacts and a photo (Take Photo or Choose from Library; stored as a 256 px square). The photo, or the initials when there is none, is shown next to the name everywhere: owner pills, Who did it?, Done History, audits, revisions. It is kept in backups and sync; the web app ignores it.

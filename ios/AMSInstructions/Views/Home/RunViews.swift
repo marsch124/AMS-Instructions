@@ -13,9 +13,18 @@ enum RunSets {
     /// Membership is worked out fresh here, but a started run keeps its own
     /// list of numbers — otherwise "Everything due now" would shrink as you
     /// ticked things off, and the run would never finish.
-    static func available(_ instructions: [Instruction]) -> [RunSet] {
+    static func available(_ instructions: [Instruction], routines: [Routine] = []) -> [RunSet] {
         var sets: [RunSet] = []
         let byNumber: (Instruction, Instruction) -> Bool = { $0.number < $1.number }
+
+        // Saved plans from Plan My Time, in their own order.
+        let lookup = Dictionary(instructions.map { ($0.number, $0) }, uniquingKeysWith: { a, _ in a })
+        for routine in routines {
+            let members = routine.numbers.compactMap { lookup[$0] }
+            if !members.isEmpty {
+                sets.append(RunSet(id: "routine:" + routine.uid, name: routine.name, instructions: members))
+            }
+        }
 
         let trip = instructions.filter { $0.frequency == "Before each trip" }.sorted(by: byNumber)
         if !trip.isEmpty { sets.append(RunSet(id: "trip", name: "Before each trip", instructions: trip)) }
@@ -38,6 +47,7 @@ enum RunSets {
 struct RunPickerView: View {
     @Environment(LocalState.self) private var local
     @Query private var instructions: [Instruction]
+    @Query(sort: \Routine.createdAt) private var routines: [Routine]
     @State private var confirmReplace: RunSet?
     @State private var openRun = false
 
@@ -62,7 +72,7 @@ struct RunPickerView: View {
             }
 
             Section("Start a run") {
-                ForEach(RunSets.available(instructions)) { set in
+                ForEach(RunSets.available(instructions, routines: routines)) { set in
                     Button {
                         if local.currentRun == nil { start(set) } else { confirmReplace = set }
                     } label: {
@@ -121,6 +131,13 @@ struct RunView: View {
                 Text("\(run.ticked.count) of \(run.numbers.count) done")
                     .font(.headline)
                     .foregroundStyle(.tint)
+                // Time left, from the estimates of the jobs not yet ticked.
+                let left = Planner.total(run.numbers.filter { !run.ticked.contains($0) }.compactMap { byNumber[$0] })
+                if left > 0 {
+                    Text("About \(Formatting.minutes(left)) left")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
             }
             Section {
                 // An instruction deleted mid-run is skipped rather than left as

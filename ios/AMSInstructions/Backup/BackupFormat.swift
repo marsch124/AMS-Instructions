@@ -18,6 +18,8 @@ struct BackupFile: Codable {
     /// Teaching photos for recognising items. Native app only: the web app
     /// ignores the field, and backups without it restore as before.
     var recognition: [RecognitionDTO] = []
+    /// Saved plans from Plan My Time. Native app only, like `recognition`.
+    var routines: [RoutineDTO] = []
 
     init() {}
 
@@ -31,6 +33,30 @@ struct BackupFile: Codable {
         audits = c.list(.audits)
         actions = c.list(.actions)
         recognition = c.list(.recognition)
+        routines = c.list(.routines)
+    }
+}
+
+struct RoutineDTO: Codable {
+    var id: String?
+    var name: String?
+    var numbers: [String]?
+    var minutes: Int?
+    var place: String?
+    var kinds: [String]?
+    var createdAt: Double?
+
+    init() {}
+
+    init(from decoder: Decoder) throws {
+        let c = try decoder.container(keyedBy: CodingKeys.self)
+        id = c.string(.id)
+        name = c.string(.name)
+        numbers = c.strings(.numbers)
+        minutes = c.int(.minutes)
+        place = c.string(.place)
+        kinds = c.strings(.kinds)
+        createdAt = c.double(.createdAt)
     }
 }
 

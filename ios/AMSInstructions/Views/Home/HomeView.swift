@@ -20,6 +20,7 @@ struct HomeView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     scanButton
+                    planButton
                     nudges
                     listSection
                 }
@@ -33,6 +34,7 @@ struct HomeView: View {
                 switch route {
                 case .due: DueListView()
                 case .run: RunView()
+                case .plan: PlanSetupView()
                 }
             }
             .sheet(isPresented: $scanning) {
@@ -72,6 +74,33 @@ struct HomeView: View {
         }
         .buttonStyle(.plain)
         .accessibilityLabel("Scan or enter instruction number")
+    }
+
+    /// "I have an hour" — a plan of jobs that fits the time.
+    private var planButton: some View {
+        Button {
+            path.append(HomeRoute.plan)
+        } label: {
+            HStack(spacing: 16) {
+                Image(systemName: "calendar.badge.clock")
+                    .font(.system(size: 30, weight: .semibold))
+                    .frame(width: 40)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text("Plan My Time")
+                        .font(.headline)
+                    Text("Fill a free hour with jobs that are due")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+                Spacer(minLength: 0)
+                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+            }
+            .foregroundStyle(Palette.home)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 16)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20))
+        }
+        .buttonStyle(.plain)
     }
 
     // MARK: Nudges
@@ -187,7 +216,7 @@ struct HomeView: View {
 }
 
 enum HomeRoute: Hashable {
-    case due, run
+    case due, run, plan
 }
 
 struct NudgeCard: View {

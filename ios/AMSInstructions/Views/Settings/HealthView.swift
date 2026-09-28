@@ -175,6 +175,9 @@ struct AboutView: View {
             Section("When things fall due") {
                 Text("Daily, weekly, monthly, seasonal and yearly jobs come round again after they are marked Done. Their clock starts the first time you mark them Done, so a new library never starts out overdue.")
             }
+            Section("Plan My Time") {
+                Text("Home → Plan My Time: say how much time you have and where you are, and the app suggests jobs that fit — overdue ones first. Remove or add jobs, then Start to work through them as a checklist. Save as Routine keeps the plan (e.g. \u{201C}Saturday RV hour\u{201D}) to use again; routines also appear in Run a Set.")
+            }
             Section("Run a Set") {
                 Text("Work through several instructions as one checklist — everything before a trip, everything due, or a whole category. Finishing marks each ticked one as Done.")
             }

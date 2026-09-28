@@ -112,9 +112,29 @@ final class RecognitionPrint {
     }
 }
 
+/// A saved plan from Plan My Time: a named list of instructions to work
+/// through one after another, like "Saturday RV hour". Kept as instruction
+/// numbers, in order, as a run is.
+@Model
+final class Routine {
+    var uid: String = "routine_" + UUID().uuidString
+    var name: String = ""
+    var numbers: [String] = []
+    /// The time it was planned for.
+    var minutes: Int = 0
+    /// A PlanPlace raw value.
+    var place: String = "anywhere"
+    var kinds: [String] = []
+    var createdAt: Date = Date()
+
+    init(name: String) {
+        self.name = name
+    }
+}
+
 enum AppSchema {
     static let models: [any PersistentModel.Type] = [
         Instruction.self, InstructionPhoto.self, Person.self, Audit.self, ActionItem.self,
-        RecognitionPrint.self
+        RecognitionPrint.self, Routine.self
     ]
 }
