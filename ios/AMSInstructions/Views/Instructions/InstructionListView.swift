@@ -49,6 +49,10 @@ struct InstructionListView: View {
                     ForEach(local.sort.sorted(shown)) { instruction in
                         row(instruction, colors: colors, thumbs: thumbs, matched: matchedFields[instruction.uid])
                     }
+                } else if local.groupsOff {
+                    ForEach(local.sort.sorted(shown)) { instruction in
+                        row(instruction, colors: colors, thumbs: thumbs, matched: nil)
+                    }
                 } else {
                     groupedRows(shown, colors: colors, thumbs: thumbs)
                 }
@@ -148,13 +152,29 @@ struct InstructionListView: View {
             } else if !term.isEmpty {
                 Text(shown == 1 ? "1 match" : "\(shown) matches")
             } else {
-                let groups = Set(instructions.map(\.category)).count
-                Text("\(groups) groups · \(shown)")
-                Spacer()
-                Button(allOpen ? "Collapse all" : "Expand all") {
-                    local.openGroups = allOpen ? [] : Set(instructions.map(\.category))
+                VStack(alignment: .leading, spacing: 8) {
+                    if local.groupsOff {
+                        Text("\(shown) · no groups · sorted by \(local.sort.short.lowercased())")
+                    } else {
+                        let groups = Set(instructions.map(\.category)).count
+                        Text("\(groups) groups · \(shown)")
+                    }
+                    HStack(spacing: 8) {
+                        if !local.groupsOff {
+                            Button("Expand All") {
+                                local.openGroups = Set(instructions.map { $0.category.isEmpty ? "General" : $0.category })
+                            }
+                            .disabled(allOpen)
+                            Button("Collapse All") { local.openGroups = [] }
+                                .disabled(local.openGroups.isEmpty)
+                        }
+                        Button(local.groupsOff ? "Show Groups" : "No Groups") {
+                            local.groupsOff.toggle()
+                        }
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
                 }
-                .buttonStyle(.borderless)
             }
         }
         .font(.footnote)
@@ -162,7 +182,7 @@ struct InstructionListView: View {
     }
 
     private var allOpen: Bool {
-        let groups = Set(instructions.map(\.category))
+        let groups = Set(instructions.map { $0.category.isEmpty ? "General" : $0.category })
         return !groups.isEmpty && groups.isSubset(of: local.openGroups)
     }
 

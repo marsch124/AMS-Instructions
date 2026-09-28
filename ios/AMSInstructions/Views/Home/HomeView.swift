@@ -131,13 +131,22 @@ struct HomeView: View {
     }
 
     private var recentSection: some View {
-        let recent = instructions
-            .filter { $0.lastViewedAt != nil }
-            .sorted { ($0.lastViewedAt ?? .distantPast) > ($1.lastViewedAt ?? .distantPast) }
-            .prefix(5)
-        return HomeSection(title: "Recently Viewed") {
+        @Bindable var local = local
+        let created = local.recentKind == .created
+        let recent = created
+            ? Array(instructions.sorted { $0.createdAt > $1.createdAt }.prefix(5))
+            : Array(instructions
+                .filter { $0.lastViewedAt != nil }
+                .sorted { ($0.lastViewedAt ?? .distantPast) > ($1.lastViewedAt ?? .distantPast) }
+                .prefix(5))
+        return HomeSection(title: created ? "Recently Created" : "Recently Viewed") {
+            Picker("Show", selection: $local.recentKind) {
+                Text("Viewed").tag(LocalState.RecentKind.viewed)
+                Text("Created").tag(LocalState.RecentKind.created)
+            }
+            .pickerStyle(.segmented)
             if recent.isEmpty {
-                Text("Scanned instructions appear here.")
+                Text(created ? "New instructions appear here." : "Scanned instructions appear here.")
                     .font(.callout).foregroundStyle(.secondary)
             } else {
                 ForEach(Array(recent)) { instruction in
