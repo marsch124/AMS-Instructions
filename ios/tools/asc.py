@@ -463,14 +463,15 @@ def external(bundle_id: str) -> int:
     app_id = apps[0]["id"]
     setting_up = bool(env("TESTER_EMAIL") or env("CONTACT_EMAIL"))
 
+    # Apple wants the test information in place before an external group.
+    if setting_up:
+        review_contact(app_id)
+        test_information(app_id)
     # After an ordinary build, only carry on if external testing was set up.
     group = external_group(app_id, create=setting_up)
     if group is None:
         print("No external testers yet; nothing to do")
         return 0
-    if setting_up:
-        review_contact(app_id)
-        test_information(app_id)
 
     build = newest_build(app_id)
     state = submit_build(group, build) if build else ""
