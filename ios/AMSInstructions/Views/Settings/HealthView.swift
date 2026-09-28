@@ -181,6 +181,9 @@ struct AboutView: View {
             Section("To-dos and audits") {
                 Text("Actions holds your to-dos. An audit records who checked an instruction and what they found; a finding can be turned into a to-do.")
             }
+            Section("People") {
+                Text("Settings → Manage People holds everyone who owns, does or audits jobs, with phone and email. Tap a person to add a photo; it is shown next to their name throughout the app, and their initials are shown when there is none.")
+            }
             Section("Your data") {
                 Text("The library syncs through your iCloud account to every device signed in to it. The app also keeps two automatic backups on each device, and Back Up Now saves a file you can keep anywhere. Backup files from the web version restore here unchanged.")
             }

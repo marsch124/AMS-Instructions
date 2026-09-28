@@ -67,6 +67,10 @@ Instructions → **New** → **New from Photos** starts with the photos instead 
 
 The key is pasted once under Settings → **AI Drafts**. It lives in the Keychain (`Logic/APIKeyStore.swift`), never in backups or the sync file. Each draft costs a few cents on the Anthropic API account.
 
+## People
+
+Settings → Manage People: name, phone, email, other contacts and a photo (Take Photo or Choose from Library; stored as a 256 px square). The photo, or the initials when there is none, is shown next to the name everywhere: owner pills, Who did it?, Done History, audits, revisions. It is kept in backups and sync; the web app ignores it.
+
 ## How the data is kept
 
 | What | Where | Synced? |

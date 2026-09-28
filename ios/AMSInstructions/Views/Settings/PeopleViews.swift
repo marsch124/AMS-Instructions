@@ -1,11 +1,13 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 struct PeopleView: View {
     @Query(sort: \Person.name) private var people: [Person]
     @State private var editing: PersonEditorTarget?
 
     var body: some View {
+        let colors = OwnerColors(people: people)
         List {
             if people.isEmpty {
                 Text("No people yet.").foregroundStyle(.secondary)
@@ -14,12 +16,15 @@ struct PeopleView: View {
                 Button {
                     editing = PersonEditorTarget(person: person)
                 } label: {
-                    VStack(alignment: .leading, spacing: 2) {
-                        Text(person.name).foregroundStyle(.primary)
-                        let contact = [person.phone, person.email].filter { !$0.isEmpty }.joined(separator: "  ·  ")
-                        Text(contact.isEmpty ? "--" : contact)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+                    HStack(spacing: 12) {
+                        PersonAvatar(name: person.name, colors: colors, size: 40)
+                        VStack(alignment: .leading, spacing: 2) {
+                            Text(person.name).foregroundStyle(.primary)
+                            let contact = [person.phone, person.email].filter { !$0.isEmpty }.joined(separator: "  ·  ")
+                            Text(contact.isEmpty ? "--" : contact)
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
                     }
                 }
             }
@@ -30,9 +35,9 @@ struct PeopleView: View {
                 Button {
                     editing = PersonEditorTarget(person: nil)
                 } label: {
-                    Image(systemName: "plus")
+                    Label("Add", systemImage: "plus")
+                        .labelStyle(.titleAndIcon)
                 }
-                .accessibilityLabel("Add person")
             }
         }
         .sheet(item: $editing) { target in
@@ -57,12 +62,16 @@ struct PersonEditorView: View {
     @State private var phone = ""
     @State private var email = ""
     @State private var handles = ""
+    @State private var photo: Data?
+    @State private var takingPhoto = false
+    @State private var pickerItem: PhotosPickerItem?
     @State private var loaded = false
     @State private var confirmingDelete = false
 
     var body: some View {
         NavigationStack {
             Form {
+                photoSection
                 Section {
                     TextField("Name", text: $name)
                         .textContentType(.name)
@@ -102,6 +111,24 @@ struct PersonEditorView: View {
                 }
             }
             .onAppear(perform: load)
+            .sheet(isPresented: $takingPhoto) {
+                CameraPicker { image in
+                    takingPhoto = false
+                    if let data = image?.jpegData(compressionQuality: 0.95) {
+                        photo = PhotoProcessing.avatar(from: data) ?? photo
+                    }
+                }
+                .ignoresSafeArea()
+            }
+            .onChange(of: pickerItem) { _, item in
+                guard let item else { return }
+                Task { @MainActor in
+                    if let data = try? await item.loadTransferable(type: Data.self) {
+                        photo = PhotoProcessing.avatar(from: data) ?? photo
+                    }
+                    pickerItem = nil
+                }
+            }
             .confirmationDialog("Delete \"\(person?.name ?? "")\"?", isPresented: $confirmingDelete,
                                 titleVisibility: .visible) {
                 Button("Delete", role: .destructive) {
@@ -115,10 +142,57 @@ struct PersonEditorView: View {
         }
     }
 
+    private var photoSection: some View {
+        Section {
+            HStack {
+                Spacer()
+                Group {
+                    if let photo, let image = UIImage(data: photo) {
+                        Image(uiImage: image).resizable().scaledToFill()
+                    } else {
+                        ZStack {
+                            Color(.tertiarySystemFill)
+                            if name.trimmingCharacters(in: .whitespaces).isEmpty {
+                                Image(systemName: "person.fill").font(.system(size: 40)).foregroundStyle(.secondary)
+                            } else {
+                                Text(OwnerColors.initials(of: name))
+                                    .font(.system(size: 36, weight: .semibold))
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+                .frame(width: 96, height: 96)
+                .clipShape(Circle())
+                Spacer()
+            }
+            .listRowBackground(Color.clear)
+
+            Button {
+                takingPhoto = true
+            } label: {
+                Label("Take Photo", systemImage: "camera")
+            }
+            PhotosPicker(selection: $pickerItem, matching: .images) {
+                Label("Choose from Library", systemImage: "photo.on.rectangle")
+            }
+            if photo != nil {
+                Button(role: .destructive) {
+                    photo = nil
+                } label: {
+                    Label("Remove Photo", systemImage: "trash")
+                }
+            }
+        } footer: {
+            Text("Shown next to the name throughout the app. Without a photo, the initials are shown.")
+        }
+    }
+
     private func load() {
         guard !loaded, let person else { return }
         loaded = true
         name = person.name
+        photo = person.photoData
         phone = person.phone
         email = person.email
         handles = person.handles.map { "\($0.label)|\($0.value)" }.joined(separator: "\n")
@@ -133,6 +207,7 @@ struct PersonEditorView: View {
         target.name = name.trimmingCharacters(in: .whitespaces)
         target.phone = phone.trimmingCharacters(in: .whitespaces)
         target.email = email.trimmingCharacters(in: .whitespaces)
+        target.photoData = photo
         target.handles = handles.split(separator: "\n").compactMap { line in
             let parts = line.split(separator: "|", maxSplits: 1).map { $0.trimmingCharacters(in: .whitespaces) }
             guard let label = parts.first, !label.isEmpty else { return nil }

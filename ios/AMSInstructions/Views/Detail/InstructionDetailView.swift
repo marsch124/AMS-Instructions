@@ -181,7 +181,18 @@ struct InstructionDetailView: View {
 
         return Grid(alignment: .leading, horizontalSpacing: 16, verticalSpacing: 8) {
             GridRow {
-                InfoCell(label: "Owner", value: name.isEmpty ? "--" : name)
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Owner").font(.caption).foregroundStyle(.secondary)
+                    if name.isEmpty {
+                        Text("--").font(.subheadline.weight(.semibold))
+                    } else {
+                        HStack(spacing: 6) {
+                            PersonAvatar(name: name, colors: colors, size: 24)
+                            Text(name).font(.subheadline.weight(.semibold))
+                        }
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
                 InfoCell(label: "Frequency", value: instruction.frequency.isEmpty ? "--" : instruction.frequency)
             }
             GridRow {

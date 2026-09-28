@@ -204,6 +204,8 @@ struct PersonDTO: Codable {
     var phone: String?
     var email: String?
     var handles: [HandleDTO]?
+    /// A small picture as a data URI. Native app only; the web app ignores it.
+    var photo: String?
     var createdAt: Double?
     var updatedAt: Double?
 
@@ -216,6 +218,7 @@ struct PersonDTO: Codable {
         phone = c.string(.phone)
         email = c.string(.email)
         handles = c.optionalList(.handles)
+        photo = c.string(.photo)
         createdAt = c.double(.createdAt)
         updatedAt = c.double(.updatedAt)
     }

@@ -51,13 +51,44 @@ struct OwnerPill: View {
     let colors: OwnerColors
 
     var body: some View {
-        Label(name, systemImage: "person.fill")
-            .font(.caption.weight(.medium))
-            .labelStyle(.titleAndIcon)
-            .padding(.horizontal, 7)
-            .padding(.vertical, 2)
-            .background(colors.color(for: name).opacity(0.18), in: Capsule())
-            .foregroundStyle(colors.color(for: name))
+        HStack(spacing: 4) {
+            PersonAvatar(name: name, colors: colors, size: 18)
+            Text(name)
+        }
+        .font(.caption.weight(.medium))
+        .padding(.leading, 2)
+        .padding(.trailing, 7)
+        .padding(.vertical, 2)
+        .background(colors.color(for: name).opacity(0.18), in: Capsule())
+        .foregroundStyle(colors.color(for: name))
+    }
+}
+
+/// A person's round picture, or their initials on their colour.
+struct PersonAvatar: View {
+    let name: String
+    let colors: OwnerColors
+    var size: CGFloat = 32
+
+    var body: some View {
+        Group {
+            if let data = colors.photo(for: name), let image = UIImage(data: data) {
+                Image(uiImage: image)
+                    .resizable()
+                    .scaledToFill()
+            } else {
+                ZStack {
+                    colors.color(for: name)
+                    Text(OwnerColors.initials(of: name))
+                        .font(.system(size: size * 0.42, weight: .semibold))
+                        .foregroundStyle(.white)
+                        .minimumScaleFactor(0.5)
+                }
+            }
+        }
+        .frame(width: size, height: size)
+        .clipShape(Circle())
+        .accessibilityHidden(true)
     }
 }
 

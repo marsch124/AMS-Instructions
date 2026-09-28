@@ -32,6 +32,8 @@ final class Person {
     var phone: String = ""
     var email: String = ""
     var handlesData: Data?
+    /// A small square picture (see PhotoProcessing.avatar), or nil for initials.
+    @Attribute(.externalStorage) var photoData: Data?
     var createdAt: Date = Date()
     var updatedAt: Date = Date()
 

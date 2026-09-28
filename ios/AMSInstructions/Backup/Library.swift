@@ -135,6 +135,9 @@ enum Library {
             person.phone = dto.phone ?? ""
             person.email = dto.email ?? ""
             person.handles = (dto.handles ?? []).map { PersonHandle(label: $0.label ?? "", value: $0.value ?? "") }
+            // A backup without a photo (an older one, or from the web app)
+            // leaves a photo already here alone.
+            if let photo = DataURI.decode(dto.photo) { person.photoData = photo }
             person.createdAt = dto.createdAt.map(Date.init(milliseconds:)) ?? person.createdAt
             person.updatedAt = dto.updatedAt.map(Date.init(milliseconds:)) ?? person.updatedAt
             result.people += 1
@@ -379,6 +382,7 @@ enum Library {
             dto.phone = person.phone
             dto.email = person.email
             dto.handles = person.handles.map { HandleDTO(label: $0.label, value: $0.value) }
+            dto.photo = person.photoData.map(DataURI.encode)
             dto.createdAt = person.createdAt.milliseconds
             dto.updatedAt = person.updatedAt.milliseconds
             return dto
@@ -509,6 +513,29 @@ enum PhotoProcessing {
         return Prepared(data: data, thumb: thumb,
                         width: Int(full.size.width * full.scale),
                         height: Int(full.size.height * full.scale))
+    }
+
+    static let avatarEdge: CGFloat = 256
+
+    /// A person's picture: the centre square of the photo, small.
+    static func avatar(from original: Data) -> Data? {
+        guard let image = UIImage(data: original) else { return nil }
+        let pixelWidth = image.size.width * image.scale
+        let pixelHeight = image.size.height * image.scale
+        let side = min(pixelWidth, pixelHeight)
+        guard side > 0 else { return nil }
+        let edge = min(avatarEdge, side)
+        let scale = edge / side
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        format.opaque = true
+        let square = UIGraphicsImageRenderer(size: CGSize(width: edge, height: edge), format: format).image { _ in
+            // Drawn scaled so the shorter side fills the square, centred.
+            let size = CGSize(width: pixelWidth * scale, height: pixelHeight * scale)
+            image.draw(in: CGRect(x: (edge - size.width) / 2, y: (edge - size.height) / 2,
+                                  width: size.width, height: size.height))
+        }
+        return square.jpegData(compressionQuality: 0.8)
     }
 
     static func thumbnail(from data: Data) -> Data? {
