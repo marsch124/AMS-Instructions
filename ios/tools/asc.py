@@ -477,7 +477,9 @@ def invite_waiting(app_id: str, group):
     for tester in testers:
         attributes = tester["attributes"]
         name = f"{attributes.get('firstName', '')} {attributes.get('lastName', '')}".strip()
-        if (attributes.get("state") or "") in ("", "NOT_INVITED"):
+        # Only when Apple says so outright: an unknown state must not turn
+        # into a fresh invitation email after every build.
+        if attributes.get("state") == "NOT_INVITED":
             invite(app_id, tester["id"], name)
 
 
