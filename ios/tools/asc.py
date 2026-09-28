@@ -336,19 +336,23 @@ def review_contact(app_id: str):
 
 
 def test_information(app_id: str):
+    """The TestFlight "Test Information" page, in the app's own primary
+    language (which Beta App Review insists on) and in English."""
     feedback = env("CONTACT_EMAIL")
-    existing = call("GET", f"/apps/{app_id}/betaAppLocalizations").get("data", [])
+    primary = call("GET", f"/apps/{app_id}")["data"]["attributes"].get("primaryLocale") or "en-US"
+    existing = {l["attributes"].get("locale"): l
+                for l in call("GET", f"/apps/{app_id}/betaAppLocalizations").get("data", [])}
     attributes = {"description": APP_DESCRIPTION}
     if feedback: attributes["feedbackEmail"] = feedback
-    english = [l for l in existing if l["attributes"].get("locale", "").startswith("en")]
-    if english:
-        call("PATCH", f"/betaAppLocalizations/{english[0]['id']}", {"data": {
-            "type": "betaAppLocalizations", "id": english[0]["id"], "attributes": attributes}})
-    else:
-        call("POST", "/betaAppLocalizations", {"data": {
-            "type": "betaAppLocalizations", "attributes": {"locale": "en-US", **attributes},
-            "relationships": {"app": {"data": {"type": "apps", "id": app_id}}}}})
-    print("Test information set")
+    for locale in dict.fromkeys([primary, "en-US"]):
+        if locale in existing:
+            call("PATCH", f"/betaAppLocalizations/{existing[locale]['id']}", {"data": {
+                "type": "betaAppLocalizations", "id": existing[locale]["id"], "attributes": attributes}})
+        else:
+            call("POST", "/betaAppLocalizations", {"data": {
+                "type": "betaAppLocalizations", "attributes": {"locale": locale, **attributes},
+                "relationships": {"app": {"data": {"type": "apps", "id": app_id}}}}})
+    print(f"Test information set (primary language {primary})")
 
 
 def external_group(app_id: str, create: bool):
