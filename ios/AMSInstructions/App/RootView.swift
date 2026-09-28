@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import SwiftData
 
 enum AppTab: Hashable {
@@ -27,25 +28,29 @@ struct RootView: View {
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.modelContext) private var context
     @Query(filter: #Predicate<ActionItem> { $0.status != "done" }) private var openActions: [ActionItem]
+    @State private var keyboardShown = false
 
     var body: some View {
-        TabView(selection: $navigator.tab) {
-            HomeView()
-                .tabItem { Label("Home", systemImage: "house") }
-                .tag(AppTab.home)
-
-            InstructionListView()
-                .tabItem { Label("Instructions", systemImage: "list.number") }
-                .tag(AppTab.instructions)
-
-            ActionsView()
-                .tabItem { Label("Actions", systemImage: "checklist") }
-                .badge(openActions.count)
-                .tag(AppTab.actions)
-
-            SettingsView()
-                .tabItem { Label("Settings", systemImage: "gearshape") }
-                .tag(AppTab.settings)
+        // The four tabs stay alive on top of each other, so each keeps its place
+        // (an open instruction, a scroll position) while you are elsewhere.
+        VStack(spacing: 0) {
+            ZStack {
+                page(.home) { HomeView() }
+                page(.instructions) { InstructionListView() }
+                page(.actions) { ActionsView() }
+                page(.settings) { SettingsView() }
+            }
+            // Hidden while typing, as Apple's tab bar is, so the keyboard
+            // does not push it up over the screen.
+            if !keyboardShown {
+                ColourTabBar(selection: $navigator.tab, actionsBadge: openActions.count)
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in
+            keyboardShown = true
+        }
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillHideNotification)) { _ in
+            keyboardShown = false
         }
         // Every accent on a screen takes the colour of the tab you are in.
         .tint(navigator.tab.accent)
@@ -67,5 +72,13 @@ struct RootView: View {
         }
         .environment(navigator)
         .environment(toasts)
+    }
+
+    private func page<Content: View>(_ tab: AppTab, @ViewBuilder content: () -> Content) -> some View {
+        let shown = navigator.tab == tab
+        return content()
+            .opacity(shown ? 1 : 0)
+            .allowsHitTesting(shown)
+            .accessibilityHidden(!shown)
     }
 }
