@@ -3,7 +3,7 @@ import SwiftData
 
 // Plan My Time — "I have an hour, what should I do?". The app fills the time
 // with the most pressing jobs for where you are; you adjust the list, then work
-// through it with the Run a Set checklist. A plan can be kept as a routine.
+// through it as a checklist. A plan can be kept as a routine.
 
 /// A plan being put together: fresh from the setup screen, or a saved routine.
 struct PlanDraft: Identifiable, Hashable {
@@ -292,7 +292,7 @@ struct PlanEditView: View {
             Button("Cancel", role: .cancel) {}
             Button("Save") { saveNew() }
         } message: {
-            Text("It appears under Plan My Time and in Run a Set, and syncs to your other devices.")
+            Text("It appears under Plan My Time and in Run a Routine, and syncs to your other devices.")
         }
         .confirmationDialog("Replace the run in progress?", isPresented: $confirmReplace, titleVisibility: .visible) {
             Button("Start \(draft.name)", role: .destructive) { start() }

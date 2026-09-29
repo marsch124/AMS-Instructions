@@ -1,7 +1,8 @@
 import SwiftUI
 import SwiftData
 
-// Run a Set — working through several instructions as one checklist.
+// Run a Routine — working through several instructions as one checklist:
+// one of your saved routines, or a ready-made one.
 
 struct RunSet: Identifiable {
     let id: String
@@ -45,6 +46,7 @@ enum RunSets {
 }
 
 struct RunPickerView: View {
+    @Environment(\.modelContext) private var context
     @Environment(LocalState.self) private var local
     @Query private var instructions: [Instruction]
     @Query(sort: \Routine.createdAt) private var routines: [Routine]
@@ -71,8 +73,29 @@ struct RunPickerView: View {
                 }
             }
 
-            Section("Start a run") {
-                ForEach(RunSets.available(instructions, routines: routines)) { set in
+            if !routines.isEmpty {
+                Section {
+                    ForEach(routines) { routine in
+                        let set = routineSet(routine)
+                        Button {
+                            if local.currentRun == nil { start(set) } else { confirmReplace = set }
+                        } label: {
+                            LabeledContent(routine.name, value: "\(set.instructions.count)")
+                        }
+                    }
+                    .onDelete { offsets in
+                        for index in offsets { context.delete(routines[index]) }
+                        try? context.save()
+                    }
+                } header: {
+                    Text("Your routines")
+                } footer: {
+                    Text("Made with Plan My Time. Swipe one to delete it.")
+                }
+            }
+
+            Section("Ready-made") {
+                ForEach(RunSets.available(instructions)) { set in
                     Button {
                         if local.currentRun == nil { start(set) } else { confirmReplace = set }
                     } label: {
@@ -81,7 +104,7 @@ struct RunPickerView: View {
                 }
             }
         }
-        .navigationTitle("Run a Set")
+        .navigationTitle("Run a Routine")
         .navigationDestination(isPresented: $openRun) {
             RunView()
         }
@@ -94,9 +117,22 @@ struct RunPickerView: View {
         }
     }
 
+    private func routineSet(_ routine: Routine) -> RunSet {
+        let lookup = Dictionary(instructions.map { ($0.number, $0) }, uniquingKeysWith: { a, _ in a })
+        return RunSet(id: "plan:" + routine.uid, name: routine.name,
+                      instructions: routine.numbers.compactMap { lookup[$0] })
+    }
+
     private func start(_ set: RunSet) {
-        local.currentRun = LocalState.Run(id: set.id, name: set.name,
-                                          numbers: set.instructions.map(\.number), ticked: [])
+        var run = LocalState.Run(id: set.id, name: set.name,
+                                 numbers: set.instructions.map(\.number), ticked: [])
+        // A saved routine keeps its time and place, so Edit Plan works mid-run.
+        if let routine = routines.first(where: { "plan:" + $0.uid == set.id }) {
+            run.budget = routine.minutes
+            run.place = routine.place
+            run.kinds = routine.kinds
+        }
+        local.currentRun = run
         openRun = true
     }
 }
@@ -124,7 +160,7 @@ struct RunView: View {
             runList(run)
         } else {
             ContentUnavailableView("No run in progress", systemImage: "checklist",
-                                   description: Text("Start one under Settings → Run a Set."))
+                                   description: Text("Start one under Settings → Run a Routine, or with Plan My Time."))
                 .sheet(isPresented: $amending) { amendChooser }
         }
     }

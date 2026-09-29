@@ -28,7 +28,7 @@ struct SettingsView: View {
             List {
                 Section("Checklists") {
                     NavigationLink(value: SettingsRoute.run) {
-                        Label("Run a Set", systemImage: "figure.walk")
+                        Label("Run a Routine", systemImage: "figure.walk")
                     }
                     NavigationLink(value: SettingsRoute.health) {
                         Label("Library Health", systemImage: "stethoscope")

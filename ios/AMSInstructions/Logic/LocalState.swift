@@ -113,7 +113,7 @@ final class LocalState {
         didSet { defaults.set(labelSize.rawValue, forKey: "labelSize") }
     }
 
-    // MARK: Run a Set
+    // MARK: Run a Routine
 
     struct Run: Codable, Equatable {
         var id: String

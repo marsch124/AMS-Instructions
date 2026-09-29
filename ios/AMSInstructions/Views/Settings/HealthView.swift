@@ -181,11 +181,11 @@ struct AboutView: View {
                 Text("Start turns the plan into a checklist that shows the time left. Moved on — from the RV to the house, say? Tap Edit Plan, change the place, time or jobs, and Update Checklist: what you already ticked stays ticked. Finish marks the ticked jobs as Done.")
             }
             Section("Routines") {
-                Text("A routine is a plan you keep, with a name — “Saturday RV hour”, “Monthly water check”. On a plan, tap Save as Routine. Your routines are listed under Plan My Time and in Settings → Run a Set; open one, adjust it if you like, and Start. Changes to a routine are kept with Save Changes to Routine; swipe it away under Plan My Time to delete it.")
+                Text("A routine is a plan you keep, with a name — “Saturday RV hour”, “Monthly water check”. On a plan, tap Save as Routine. Your routines are listed under Plan My Time and in Settings → Run a Routine; open one, adjust it if you like, and Start. Changes to a routine are kept with Save Changes to Routine; swipe it away in either place to delete it.")
                 Text("Routines sync to your other devices and are included in backups.")
             }
-            Section("Run a Set") {
-                Text("Work through several instructions as one checklist — everything before a trip, everything due, or a whole category. Finishing marks each ticked one as Done.")
+            Section("Run a Routine") {
+                Text("Settings → Run a Routine works through several instructions as one checklist: one of your own routines, or a ready-made one — everything before a trip, everything due, your favourites, or a whole category. Finishing marks each ticked one as Done.")
             }
             Section("To-dos and audits") {
                 Text("Actions holds your to-dos. An audit records who checked an instruction and what they found; a finding can be turned into a to-do.")
@@ -215,9 +215,9 @@ struct DefinitionsView: View {
         ("Place", "In Plan My Time: In the RV (the RV categories), At Home (Home) or Anywhere (everything)."),
         ("Plan My Time", "Tell the app how much time you have and where you are; it suggests jobs that fit, most pressing first, for you to adjust and start."),
         ("Plan", "The list of jobs Plan My Time put together, with the minutes they add up to."),
-        ("Routine", "A plan saved with a name, to start again whenever you like. Listed under Plan My Time and in Run a Set; synced and backed up."),
+        ("Routine", "A list of jobs to work through as a checklist. Your own are plans saved with a name; ready-made ones cover before each trip, everything due, favourites and each category. Synced and backed up."),
         ("Checklist (run)", "Several instructions worked through one after another. Tick each one; Finish marks the ticked ones Done. One runs at a time."),
-        ("Run a Set", "Starts a checklist from a ready-made set: before each trip, everything due, favourites, a category, or one of your routines."),
+        ("Run a Routine", "Settings → Run a Routine starts a checklist from one of your routines or a ready-made one."),
         ("Time estimate", "How many minutes a job takes. Plan My Time counts one without an estimate as about 10 minutes (≈)."),
         ("Label", "A printed sticker with the AMS number and a QR code, made with Print Label for a label printer."),
         ("Teaching photo", "A photo of an item that lets Scan → Item recognise it without a label."),

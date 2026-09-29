@@ -69,7 +69,7 @@ The key is pasted once under Settings → **AI Drafts**. It lives in the Keychai
 
 ## Plan My Time
 
-Home → Plan My Time: pick the time you have (15–120 min), where you are (RV, home, anywhere) and optionally some kinds. The app suggests jobs that fit, overdue first, then due this week, then the longest not done (`Logic/Planner.swift`; a job without an estimate counts as 10 min). Adjust the list, then Start: it runs as a Run a Set checklist with the time left shown. Save as Routine keeps it as a `Routine` (synced and backed up); routines also appear in Run a Set.
+Home → Plan My Time: pick the time you have (15–120 min), where you are (RV, home, anywhere) and optionally some kinds. The app suggests jobs that fit, overdue first, then due this week, then the longest not done (`Logic/Planner.swift`; a job without an estimate counts as 10 min). Adjust the list, then Start: it runs as a Run a Routine checklist with the time left shown. Save as Routine keeps it as a `Routine` (synced and backed up); routines also appear in Run a Routine.
 
 ## People
 
