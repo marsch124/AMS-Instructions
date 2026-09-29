@@ -158,6 +158,7 @@ struct PlanEditView: View {
     @State private var confirmReplace = false
     @State private var running = false
     @State private var showingRest = false
+    @State private var opened: Instruction?
 
     init(draft: PlanDraft, openedFromRun: Bool = false) {
         self.draft = draft
@@ -204,7 +205,7 @@ struct PlanEditView: View {
                         .foregroundStyle(.secondary)
                 }
                 ForEach(plan) { instruction in
-                    NavigationLink(value: instruction) { row(instruction) }
+                    openButton(instruction)
                 }
                 .onDelete { plan.remove(atOffsets: $0) }
                 .onMove { plan.move(fromOffsets: $0, toOffset: $1) }
@@ -282,6 +283,7 @@ struct PlanEditView: View {
             ToolbarItem(placement: .topBarTrailing) { EditButton() }
         }
         .onAppear(perform: load)
+        .navigationDestination(item: $opened) { InstructionDetailView(instruction: $0) }
         .navigationDestination(isPresented: $running) {
             RunView(backToPlan: { running = false })
         }
@@ -350,6 +352,22 @@ struct PlanEditView: View {
         }
     }
 
+    /// Opens the instruction from here. A value link would not: this screen
+    /// is itself pushed outside the tab's navigation path, and SwiftUI then
+    /// ignores value links.
+    private func openButton(_ instruction: Instruction) -> some View {
+        Button {
+            opened = instruction
+        } label: {
+            HStack {
+                row(instruction)
+                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+            }
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
     private func addRow(_ instruction: Instruction) -> some View {
         HStack {
             Button {
@@ -359,7 +377,7 @@ struct PlanEditView: View {
             }
             .buttonStyle(.borderless)
             .accessibilityLabel("Add \(instruction.title)")
-            NavigationLink(value: instruction) { row(instruction) }
+            openButton(instruction)
         }
     }
 

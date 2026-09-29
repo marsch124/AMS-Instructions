@@ -117,6 +117,7 @@ struct RunView: View {
     @State private var confirmAbandon = false
     @State private var lastFinished: [String] = []
     @State private var editingPlan = false
+    @State private var opened: Instruction?
 
     var body: some View {
         if let run = local.currentRun {
@@ -159,14 +160,25 @@ struct RunView: View {
                         .buttonStyle(.borderless)
                         .accessibilityLabel(done ? "Mark as not done" : "Mark as done")
 
-                        NavigationLink(value: instruction) {
+                        // A plain button rather than a value link: the run is
+                        // often pushed outside the tab's navigation path, where
+                        // SwiftUI ignores value links.
+                        Button {
+                            opened = instruction
+                        } label: {
                             HStack {
                                 Text(instruction.number).monospacedDigit().bold()
                                 Text(instruction.title)
                                     .strikethrough(done)
                                     .foregroundStyle(done ? .secondary : .primary)
+                                Spacer(minLength: 4)
+                                Image(systemName: "chevron.right")
+                                    .font(.caption.weight(.semibold))
+                                    .foregroundStyle(.tertiary)
                             }
+                            .contentShape(Rectangle())
                         }
+                        .buttonStyle(.plain)
                     }
                 }
             }
@@ -194,6 +206,7 @@ struct RunView: View {
             }
         }
         .navigationTitle(run.name)
+        .navigationDestination(item: $opened) { InstructionDetailView(instruction: $0) }
         .navigationDestination(isPresented: $editingPlan) {
             PlanEditView(draft: PlanDraft(name: run.name, budget: run.budget ?? 60,
                                           place: PlanPlace(rawValue: run.place ?? "") ?? .anywhere,
