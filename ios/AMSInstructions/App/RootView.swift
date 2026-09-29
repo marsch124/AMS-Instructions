@@ -20,6 +20,33 @@ enum AppTab: Hashable {
 @Observable
 final class Navigator {
     var tab: AppTab = .home
+    /// Bumped when a tab is tapped while already showing, to send that tab
+    /// back to its start screen (see `backToStart`).
+    var startRequests: [AppTab: Int] = [:]
+
+    func backToStart(_ tab: AppTab) {
+        startRequests[tab, default: 0] += 1
+    }
+}
+
+/// Tapping the tab you are already on takes you back to its start screen,
+/// however deep you have gone — as in Apple's own apps.
+private struct BackToStart: ViewModifier {
+    let tab: AppTab
+    @Binding var path: NavigationPath
+    @Environment(Navigator.self) private var navigator
+
+    func body(content: Content) -> some View {
+        content.onChange(of: navigator.startRequests[tab, default: 0]) { _, _ in
+            path = NavigationPath()
+        }
+    }
+}
+
+extension View {
+    func backToStart(_ tab: AppTab, path: Binding<NavigationPath>) -> some View {
+        modifier(BackToStart(tab: tab, path: path))
+    }
 }
 
 struct RootView: View {
@@ -43,7 +70,7 @@ struct RootView: View {
             // Hidden while typing, as Apple's tab bar is, so the keyboard
             // does not push it up over the screen.
             if !keyboardShown {
-                ColourTabBar(selection: $navigator.tab, actionsBadge: openActions.count)
+                ColourTabBar(selection: $navigator.tab, actionsBadge: openActions.count) { navigator.backToStart($0) }
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardWillShowNotification)) { _ in

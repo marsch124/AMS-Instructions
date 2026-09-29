@@ -28,6 +28,7 @@ struct HomeView: View {
             }
             .background(Color(.systemGroupedBackground))
             .navigationTitle("Instructions")
+            .backToStart(.home, path: $path)
             .navigationTitleColor(Palette.home)
             .instructionDestinations()
             .navigationDestination(for: HomeRoute.self) { route in

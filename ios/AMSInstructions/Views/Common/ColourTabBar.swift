@@ -6,6 +6,8 @@ import SwiftUI
 struct ColourTabBar: View {
     @Binding var selection: AppTab
     let actionsBadge: Int
+    /// The tab you are already on was tapped again.
+    var onReselect: (AppTab) -> Void = { _ in }
 
     private struct Item {
         let tab: AppTab
@@ -40,7 +42,7 @@ struct ColourTabBar: View {
         let selected = selection == item.tab
         let colour = item.tab.accent
         return Button {
-            selection = item.tab
+            if selection == item.tab { onReselect(item.tab) } else { selection = item.tab }
         } label: {
             VStack(spacing: 3) {
                 Image(systemName: selected ? item.selectedIcon : item.icon)
