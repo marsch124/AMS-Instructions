@@ -1,0 +1,104 @@
+# Fetches the crash reports testers sent through TestFlight ("… crashed. Share?" → Share),
+# straight from App Store Connect, so nobody has to find a crash log on the phone.
+#
+# It uses the same App Store Connect key as the TestFlight upload (ASC_KEY_ID, ASC_ISSUER_ID,
+# ASC_KEY_P8). It only reads: nothing in App Store Connect or in the repository is changed.
+#
+# Each report is printed in the log of the "Fetch the crash reports" step and also kept as a
+# downloadable artifact called "crash-reports".
+name: Crash reports
+
+on:
+  workflow_dispatch:
+    inputs:
+      how_many:
+        description: "How many of the newest crash reports to fetch"
+        required: false
+        default: "3"
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Install the tools
+        run: pip install --quiet "pyjwt[crypto]" requests
+
+      - name: Fetch the crash reports
+        env:
+          KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ISSUER: ${{ secrets.ASC_ISSUER_ID }}
+          KEY: ${{ secrets.ASC_KEY_P8 }}
+          HOW_MANY: ${{ github.event.inputs.how_many }}
+          BUNDLE_ID: com.schabbauer.AMSInstructions
+        run: |
+          mkdir -p crash-reports
+          python3 - <<'PY'
+          import json, os, sys, time
+          import jwt, requests
+
+          key_id, issuer, key = os.environ["KEY_ID"], os.environ["ISSUER"], os.environ["KEY"]
+          if not (key_id and issuer and key):
+              sys.exit("Missing one of the secrets ASC_KEY_ID, ASC_ISSUER_ID, ASC_KEY_P8.")
+          try:
+              how_many = max(1, min(20, int(os.environ.get("HOW_MANY") or "3")))
+          except ValueError:
+              how_many = 3
+
+          now = int(time.time())
+          token = jwt.encode({"iss": issuer, "iat": now, "exp": now + 15 * 60,
+                              "aud": "appstoreconnect-v1"},
+                             key, algorithm="ES256", headers={"kid": key_id, "typ": "JWT"})
+          base = "https://api.appstoreconnect.apple.com"
+          session = requests.Session()
+          session.headers["Authorization"] = f"Bearer {token}"
+
+          def get(path, must=True, **params):
+              response = session.get(base + path, params=params, timeout=60)
+              if response.status_code != 200:
+                  print(f"App Store Connect answered {response.status_code} for {path}:")
+                  print(response.text[:2000])
+                  if must:
+                      sys.exit(1)
+                  return None
+              return response.json()
+
+          apps = get("/v1/apps", **{"filter[bundleId]": os.environ["BUNDLE_ID"]})["data"]
+          if not apps:
+              sys.exit(f"No app with bundle id {os.environ['BUNDLE_ID']} in App Store Connect.")
+          app_id = apps[0]["id"]
+
+          submissions = get(f"/v1/apps/{app_id}/betaFeedbackCrashSubmissions",
+                            sort="-createdDate", limit=how_many)["data"]
+          if not submissions:
+              print("No crash reports have been shared through TestFlight for this app.")
+              sys.exit(0)
+
+          print(f"{len(submissions)} newest crash report(s):")
+          for number, submission in enumerate(submissions, start=1):
+              attributes = submission.get("attributes", {})
+              print()
+              print("=" * 78)
+              print(f"CRASH REPORT {number}")
+              for field in ("createdDate", "comment", "deviceModel", "osVersion",
+                            "appPlatform", "devicePlatform", "buildBundleId"):
+                  if attributes.get(field) is not None:
+                      print(f"  {field}: {attributes[field]}")
+              # Apple keeps no log for some reports (older ones especially). That report is
+              # still listed, with its date and comment, and the run carries on.
+              log = get(f"/v1/betaFeedbackCrashSubmissions/{submission['id']}/crashLog", must=False)
+              text = ((log or {}).get("data") or {}).get("attributes", {}).get("logText") or ""
+              name = f"crash-reports/{number}-{(attributes.get('createdDate') or 'unknown')[:19].replace(':', '')}.txt"
+              with open(name, "w") as handle:
+                  handle.write(json.dumps(attributes, indent=2) + "\n\n" + text)
+              print("-" * 78)
+              print(text if text else "(Apple sent no crash log text for this report.)")
+          PY
+
+      - name: Keep the reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: crash-reports
+          path: crash-reports
+          if-no-files-found: ignore
