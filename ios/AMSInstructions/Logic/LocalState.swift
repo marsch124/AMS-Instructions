@@ -125,6 +125,9 @@ final class LocalState {
         var budget: Int? = nil
         var place: String? = nil
         var kinds: [String]? = nil
+        /// Ticked because they were marked Done on their own screen during
+        /// the run; Finish does not record them a second time.
+        var alreadyDone: [String]? = nil
     }
 
     /// One run at a time. It survives the app being closed, but like the step

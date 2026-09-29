@@ -238,6 +238,12 @@ struct InstructionDetailView: View {
         Library.recordCompletion(instruction, by: person)
         // The job is finished, so the ticks have done their work.
         local.setTicked([], for: instruction)
+        // Part of the checklist in progress? Tick it off there too.
+        if var run = local.currentRun, run.numbers.contains(instruction.number) {
+            if !run.ticked.contains(instruction.number) { run.ticked.append(instruction.number) }
+            run.alreadyDone = Array(Set((run.alreadyDone ?? []) + [instruction.number]))
+            local.currentRun = run
+        }
         justDone = true
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) { justDone = false }
 

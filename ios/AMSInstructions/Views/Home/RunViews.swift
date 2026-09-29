@@ -238,6 +238,14 @@ struct RunView: View {
                 }
                 .disabled(run.ticked.isEmpty)
 
+                if run.ticked.count < run.numbers.count {
+                    Button {
+                        markAllDone()
+                    } label: {
+                        Label("Mark All as Done", systemImage: "checkmark.circle")
+                    }
+                }
+
                 Button("Abandon this run", role: .destructive) { confirmAbandon = true }
             }
         }
@@ -293,6 +301,15 @@ struct RunView: View {
         local.currentRun = run
     }
 
+    /// Ticks everything still open, then finishes as usual.
+    private func markAllDone() {
+        guard var run = local.currentRun else { return }
+        let existing = Set(instructions.map(\.number))
+        run.ticked = run.numbers.filter(existing.contains)
+        local.currentRun = run
+        finish()
+    }
+
     /// Asked once for the whole run, not once per instruction: a departure
     /// checklist is one person working through one list.
     private func finish() {
@@ -305,8 +322,11 @@ struct RunView: View {
 
     private func complete(by person: Person?) {
         guard let run = local.currentRun else { return }
-        // Only what was actually ticked is recorded; untouched ones are left alone.
-        for number in run.ticked {
+        // Only what was actually ticked is recorded; untouched ones are left
+        // alone, and ones already marked Done on their own screen are not
+        // recorded twice.
+        let already = Set(run.alreadyDone ?? [])
+        for number in run.ticked where !already.contains(number) {
             if let instruction = Library.instruction(number: number, in: context) {
                 Library.recordCompletion(instruction, by: person)
             }
