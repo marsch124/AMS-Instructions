@@ -20,9 +20,9 @@ struct HomeView: View {
             ScrollView {
                 VStack(spacing: 16) {
                     scanButton
-                    planButton
                     nudges
                     listSection
+                    planButton
                 }
                 .padding()
             }
@@ -82,24 +82,21 @@ struct HomeView: View {
         Button {
             path.append(HomeRoute.plan)
         } label: {
-            HStack(spacing: 16) {
+            HStack(spacing: 10) {
                 Image(systemName: "calendar.badge.clock")
-                    .font(.system(size: 30, weight: .semibold))
-                    .frame(width: 40)
-                VStack(alignment: .leading, spacing: 3) {
-                    Text("Plan My Time")
-                        .font(.headline)
-                    Text("Create a routine for your free time")
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
+                    .font(.body.weight(.semibold))
+                Text("Plan My Time")
+                    .font(.subheadline.weight(.semibold))
+                Text("· create a routine")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
                 Spacer(minLength: 0)
                 Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
             }
             .foregroundStyle(Palette.home)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 16)
-            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 20))
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
         }
         .buttonStyle(.plain)
     }
