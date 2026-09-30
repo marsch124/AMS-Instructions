@@ -195,6 +195,8 @@ struct PlanEditView: View {
                     }
                 }
                 .padding(.vertical, 4)
+                // Also at the bottom; here so a long plan can start at once.
+                startButton
             }
 
             criteria
@@ -242,19 +244,7 @@ struct PlanEditView: View {
             }
 
             Section {
-                Button {
-                    if isRunning { updateRun() }
-                    else if local.currentRun == nil { start() }
-                    else { confirmReplace = true }
-                } label: {
-                    Label(isRunning ? "Update Checklist" : "Start",
-                          systemImage: isRunning ? "arrow.triangle.2.circlepath" : "play.fill")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                }
-                .buttonStyle(.borderedProminent)
-                .disabled(plan.isEmpty)
-                .listRowBackground(Color.clear)
+                startButton
 
                 Button {
                     if let uid = draft.routineUID, let routine = routines.first(where: { $0.uid == uid }) {
@@ -299,6 +289,21 @@ struct PlanEditView: View {
         } message: {
             Text("The ticks in your current run are discarded. Anything already marked Done stays done.")
         }
+    }
+
+    private var startButton: some View {
+        Button {
+            if isRunning { updateRun() }
+            else if local.currentRun == nil { start() }
+            else { confirmReplace = true }
+        } label: {
+            Label(isRunning ? "Update Checklist" : "Start",
+                  systemImage: isRunning ? "arrow.triangle.2.circlepath" : "play.fill")
+                .font(.headline)
+                .frame(maxWidth: .infinity)
+        }
+        .buttonStyle(.borderedProminent)
+        .disabled(plan.isEmpty)
     }
 
     /// Time, place and kinds, changeable at any point — say, when you move
