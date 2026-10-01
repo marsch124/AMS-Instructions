@@ -99,8 +99,9 @@ struct ScanView: View {
                 .multilineTextAlignment(.center)
 
             HStack {
-                TextField("Or type the number, e.g. 007", text: $manualNumber)
-                    .keyboardType(.numberPad)
+                TextField("Or type a number or words, e.g. 007 or heater", text: $manualNumber)
+                    .textInputAutocapitalization(.never)
+                    .autocorrectionDisabled()
                     .textFieldStyle(.roundedBorder)
                     .focused($typing)
                     .onSubmit(openTyped)
@@ -108,7 +109,55 @@ struct ScanView: View {
                     .buttonStyle(.borderedProminent)
                     .disabled(manualNumber.trimmingCharacters(in: .whitespaces).isEmpty)
             }
+
+            // Search as you type: title, number, category, or anything inside.
+            let hits = searchHits
+            if !hits.isEmpty {
+                VStack(spacing: 0) {
+                    ForEach(hits) { instruction in
+                        Button {
+                            onFound(instruction.number)
+                        } label: {
+                            HStack(spacing: 10) {
+                                Circle().fill(Categories.color(instruction.category)).frame(width: 8, height: 8)
+                                Text(instruction.number).font(.subheadline.monospacedDigit().bold())
+                                    .foregroundStyle(Palette.brand)
+                                Text(instruction.title).lineLimit(1)
+                                Spacer(minLength: 4)
+                                Image(systemName: "chevron.right").font(.caption).foregroundStyle(.tertiary)
+                            }
+                            .padding(.vertical, 10)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.plain)
+                        Divider()
+                    }
+                }
+                .padding(.horizontal, 12)
+                .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 12))
+            }
         }
+    }
+
+    /// Up to eight instructions matching what is typed, best first: the
+    /// number itself, then title matches, then anything else that matches.
+    private var searchHits: [Instruction] {
+        let term = manualNumber.trimmingCharacters(in: .whitespaces)
+        guard !term.isEmpty else { return [] }
+        let number = Numbers.normalize(term)
+        let lower = term.lowercased()
+        let matches = instructions.filter { $0.number == number || Search.match($0, term: term).matched }
+        return matches.sorted { a, b in
+            func rank(_ i: Instruction) -> Int {
+                if i.number == number { return 0 }
+                if i.title.lowercased().contains(lower) { return 1 }
+                return 2
+            }
+            let ra = rank(a), rb = rank(b)
+            return ra != rb ? ra < rb : a.number < b.number
+        }
+        .prefix(8)
+        .map { $0 }
     }
 
     private func openTyped() {
@@ -116,8 +165,15 @@ struct ScanView: View {
         guard !number.isEmpty else { return }
         if Library.instruction(number: number, in: context) != nil {
             onFound(number)
+            return
+        }
+        let hits = searchHits
+        if hits.count == 1 {
+            onFound(hits[0].number)
+        } else if hits.isEmpty {
+            status = "Nothing found for \u{201C}\(manualNumber)\u{201D}."
         } else {
-            status = "There is no instruction \(Labels.code(number))."
+            status = "Pick one of the matches below."
         }
     }
 

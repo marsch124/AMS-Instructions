@@ -12,6 +12,7 @@ struct InstructionEditorView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(LocalState.self) private var local
     @Query(sort: \Person.name) private var people: [Person]
+    @Query private var allInstructions: [Instruction]
 
     @State private var number = ""
     @State private var title = ""
@@ -104,8 +105,23 @@ struct InstructionEditorView: View {
 
     private var basics: some View {
         Section("Basics") {
-            TextField("Number (e.g. 001)", text: $number)
-                .keyboardType(.numberPad)
+            HStack {
+                Text("AMS#").foregroundStyle(.secondary)
+                TextField("Number (e.g. 001)", text: $number)
+                    .keyboardType(.numberPad)
+            }
+            // Two instructions may never share a number: say so while typing,
+            // with the next free one a tap away.
+            if let clash = numberClash {
+                VStack(alignment: .leading, spacing: 6) {
+                    Label("\(Labels.code(clash.number)) is already \u{201C}\(clash.title)\u{201D}.",
+                          systemImage: "exclamationmark.triangle.fill")
+                        .font(.callout)
+                        .foregroundStyle(Palette.warm)
+                    Button("Use \(Labels.code(nextFreeNumber)) instead") { number = nextFreeNumber }
+                        .buttonStyle(.bordered)
+                }
+            }
             TextField("Title", text: $title)
             Picker("Category", selection: $category) {
                 ForEach(Categories.groups, id: \.name) { group in
@@ -284,6 +300,17 @@ struct InstructionEditorView: View {
             .filter { !$0.isEmpty }
     }
 
+    private var nextFreeNumber: String {
+        Numbers.next(after: allInstructions.map(\.number))
+    }
+
+    /// Another instruction already using the number typed, if any.
+    private var numberClash: Instruction? {
+        let typed = Numbers.normalize(number)
+        guard !typed.isEmpty else { return nil }
+        return allInstructions.first { $0.number == typed && $0.uid != instruction?.uid }
+    }
+
     private func sizeLine(_ photo: PhotoDraft) -> String {
         let stored = photo.data.count + photo.thumb.count
         var text = Formatting.bytes(stored)
@@ -300,7 +327,11 @@ struct InstructionEditorView: View {
             revisedByID = id
         }
 
-        guard let instruction else { return }
+        guard let instruction else {
+            // A new instruction starts with the next free number.
+            number = nextFreeNumber
+            return
+        }
         number = instruction.number
         title = instruction.title
         category = instruction.category

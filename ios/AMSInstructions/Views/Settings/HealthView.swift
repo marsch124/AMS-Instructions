@@ -152,7 +152,11 @@ struct AboutView: View {
     var body: some View {
         List {
             Section("Finding an instruction") {
-                Text("Every instruction has a number, shown as AMS#007. Tap Scan on the Home screen and point the camera at its label, or type the number.")
+                Text("Every instruction has a number, shown as AMS#007. Tap Scan on the Home screen and point the camera at its label or, under Item, at the item itself. Or type the number or a few words — heater, gas, städa — and tap one of the matches.")
+                Text("A new instruction gets the next free number by itself. Two instructions can never share a number: if you type one that is taken, the app says which instruction has it and offers the next free one.")
+            }
+            Section("The Guide") {
+                Text("Each instruction opens with a short welcome: how long it takes, how many steps, and anything to watch out for. Start Guide shows it full screen, one page at a time, in phases — Prepare (safety, what you need), Do (one step per page, with its photos) and Afterwards — and Mark Done at the end. Swipe, or use Back and Next; each step you pass is ticked off.")
             }
             Section("Printing labels") {
                 Text("Open an instruction and tap Print Label, below Mark Done. Choose your tape width, then Send to the printer's app (Brother or DYMO) and print. For many at once: Instructions → filter → Apply to all → Print labels.")
@@ -206,6 +210,7 @@ struct DefinitionsView: View {
     private let terms: [(String, String)] = [
         ("Instruction", "How to do one job or use one thing: title, where it is, safety, steps, and more. The heart of the app."),
         ("AMS number", "Each instruction's number, shown as AMS#007. It is printed on the label and opens the instruction when scanned."),
+        ("Guide", "An instruction shown full screen, a page at a time: Prepare, Do (one step per page with its photos), Afterwards, then Mark Done. Start Guide on the instruction's welcome card."),
         ("Step", "One action in an instruction. Tick steps as you go; the ticks are kept until you mark the job Done."),
         ("Mark Done", "Records that the job was done, when and by whom. It restarts the clock for jobs that repeat."),
         ("Frequency", "How often a job comes round: daily to yearly, or event-based — before each trip, every session, as needed."),

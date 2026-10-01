@@ -15,6 +15,7 @@ struct InstructionDetailView: View {
     @State private var chooser: ChooserPurpose?
     @State private var justDone = false
     @State private var fullScreenPhoto: InstructionPhoto?
+    @State private var guiding = false
 
     enum ChooserPurpose: Identifiable {
         case markDone, amend
@@ -37,6 +38,7 @@ struct InstructionDetailView: View {
 
         ScrollView {
             VStack(alignment: .leading, spacing: 16) {
+                WelcomeCard(instruction: instruction, name: greetingName) { guiding = true }
                 header
                 quickInfo(colors: colors)
 
@@ -152,6 +154,16 @@ struct InstructionDetailView: View {
         .fullScreenCover(item: $fullScreenPhoto) { photo in
             PhotoViewer(photo: photo)
         }
+        .fullScreenCover(isPresented: $guiding) {
+            GuideView(instruction: instruction, photos: photos) { markDone() }
+        }
+    }
+
+    /// The first name of whoever last did a job on this phone, to greet.
+    private var greetingName: String? {
+        guard let id = local.lastDoneByID ?? local.lastRevisedByID,
+              let person = people.first(where: { $0.uid == id }) else { return nil }
+        return person.name.split(separator: " ").first.map(String.init)
     }
 
     // MARK: Header
