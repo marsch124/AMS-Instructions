@@ -481,6 +481,13 @@ struct NewFromPhotosView: View {
                         .keyboardType(.numberPad)
                         .frame(width: 60)
                 }
+                if let clash = numberClash {
+                    Label("\(Labels.code(clash.number)) is already \u{201C}\(clash.title)\u{201D}.",
+                          systemImage: "exclamationmark.triangle.fill")
+                        .font(.callout)
+                        .foregroundStyle(Palette.warm)
+                    Button("Use \(Labels.code(nextFreeNumber)) instead") { number = nextFreeNumber }
+                }
             }
             Section("Summary") {
                 reviewRow("Title", draft.title, page: .what)
@@ -493,6 +500,17 @@ struct NewFromPhotosView: View {
                 reviewRow("Photos", Formatting.plural(shots.count, "photo"), page: .steps)
             }
         }
+    }
+
+    private var nextFreeNumber: String {
+        Numbers.next(after: instructions.map(\.number))
+    }
+
+    /// Two instructions may never share a number: say so while typing.
+    private var numberClash: Instruction? {
+        let typed = Numbers.normalize(number)
+        guard !typed.isEmpty else { return nil }
+        return instructions.first { $0.number == typed }
     }
 
     private func reviewRow(_ label: String, _ value: String, page target: Page) -> some View {
@@ -606,7 +624,7 @@ struct NewFromPhotosView: View {
         if ownerID.isEmpty, let id = local.lastRevisedByID, people.contains(where: { $0.uid == id }) {
             ownerID = id
         }
-        number = Numbers.next(after: instructions.map(\.number))
+        number = nextFreeNumber
         page = .what
         stage = .guide
     }
