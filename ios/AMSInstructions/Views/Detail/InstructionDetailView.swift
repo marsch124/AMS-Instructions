@@ -63,7 +63,7 @@ struct InstructionDetailView: View {
                     .foregroundStyle(Palette.danger)
                 }
 
-                StepsSection(instruction: instruction, photos: photos) { photo in
+                StepsSection(instruction: instruction) { photo in
                     fullScreenPhoto = photo
                 }
 
@@ -155,7 +155,7 @@ struct InstructionDetailView: View {
             PhotoViewer(photo: photo)
         }
         .fullScreenCover(isPresented: $guiding) {
-            GuideView(instruction: instruction, photos: photos) { markDone() }
+            GuideView(instruction: instruction, photos: photos)
         }
     }
 

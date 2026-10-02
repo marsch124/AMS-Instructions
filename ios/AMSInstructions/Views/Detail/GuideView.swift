@@ -70,16 +70,13 @@ struct WelcomeCard: View {
 }
 
 /// An instruction as an easy-to-read guide: one page at a time, in phases —
-/// Prepare, Do (a page per step, with its photos), Afterwards — and Mark Done
-/// at the end. Swipe or use Back and Next.
+/// Prepare, Do (a page per step, with its photos), Afterwards. A walk-through
+/// only: marking the job Done stays on the instruction screen.
 struct GuideView: View {
     let instruction: Instruction
     let photos: [InstructionPhoto]
-    /// Called after the guide has closed, to mark the job Done as usual.
-    let onMarkDone: () -> Void
 
     @Environment(\.dismiss) private var dismiss
-    @Environment(LocalState.self) private var local
     @State private var index = 0
     @State private var fullScreenPhoto: InstructionPhoto?
 
@@ -205,14 +202,8 @@ struct GuideView: View {
         .background(.bar)
     }
 
+    /// A walk-through: paging on ticks nothing off.
     private func next(from page: Page) {
-        // Moving past a step counts as doing it: the tick shows on the
-        // instruction screen too.
-        if case .step(let step) = page {
-            var ticked = local.tickedSteps(for: instruction)
-            ticked.insert(step)
-            local.setTicked(ticked, for: instruction)
-        }
         withAnimation { index += 1 }
     }
 
@@ -263,26 +254,24 @@ struct GuideView: View {
                 Image(systemName: "checkmark.circle.fill")
                     .font(.system(size: 72))
                     .foregroundStyle(Palette.success)
-                Text("All steps done").font(.title.bold())
+                Text("End of the guide").font(.title.bold())
                 Text(instruction.title)
                     .font(.headline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
+                Text("Mark the job Done on the instruction screen when it is really finished.")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
                 Button {
                     dismiss()
-                    // After the guide has gone, so the "Who did it?" question
-                    // has somewhere to appear.
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { onMarkDone() }
                 } label: {
-                    Label("Mark Done", systemImage: "checkmark.circle.fill")
+                    Label("Close Guide", systemImage: "xmark.circle.fill")
                         .font(.headline)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 6)
                 }
                 .buttonStyle(.borderedProminent)
-                .tint(Palette.success)
-                Button("Close without marking Done") { dismiss() }
-                    .font(.subheadline)
             }
             .frame(maxWidth: .infinity)
             .padding(.top, 30)

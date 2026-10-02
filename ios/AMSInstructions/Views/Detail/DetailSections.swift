@@ -1,15 +1,36 @@
 import SwiftUI
 import SwiftData
+import PhotosUI
 
 /// The steps, with your place in them kept. Tick three of twelve, lock the
 /// phone, come back — the three are still ticked. Losing your place halfway
 /// through a job you are doing with wet hands is the whole reason this exists.
 struct StepsSection: View {
     let instruction: Instruction
-    let photos: [InstructionPhoto]
     let onPhoto: (InstructionPhoto) -> Void
+    /// Its own query, so a photo added here shows at once.
+    @Query private var photos: [InstructionPhoto]
+
+    init(instruction: Instruction, onPhoto: @escaping (InstructionPhoto) -> Void) {
+        self.instruction = instruction
+        self.onPhoto = onPhoto
+        let uid = instruction.uid
+        _photos = Query(filter: #Predicate<InstructionPhoto> { $0.instructionUID == uid },
+                        sort: \.sortIndex)
+    }
 
     @Environment(LocalState.self) private var local
+    @Environment(\.modelContext) private var context
+
+    /// The step a photo is being added to.
+    @State private var addingTo: Int?
+    @State private var choosingSource = false
+    @State private var takingPhoto = false
+    @State private var pickingFromLibrary = false
+    @State private var pickerItems: [PhotosPickerItem] = []
+    @State private var removing: InstructionPhoto?
+
+    static let maxPhotos = 30
 
     var body: some View {
         let ticked = local.tickedSteps(for: instruction)
@@ -65,15 +86,90 @@ struct StepsSection: View {
                                     } label: {
                                         Thumbnail(data: photo.thumbData ?? photo.imageData, size: 88)
                                     }
+                                    .contextMenu {
+                                        Button("Remove Photo", role: .destructive) { removing = photo }
+                                    }
                                 }
                             }
                             .padding(.leading, 34)
                         }
                     }
+
+                    if photos.count < Self.maxPhotos {
+                        Button {
+                            addingTo = index
+                            choosingSource = true
+                        } label: {
+                            Label(stepPhotos.isEmpty ? "Add Photo" : "Add Another Photo", systemImage: "camera")
+                                .font(.caption.weight(.medium))
+                        }
+                        .buttonStyle(.borderless)
+                        .padding(.leading, 34)
+                    }
                 }
                 .padding(.vertical, 4)
             }
+
+            if !instruction.steps.isEmpty {
+                Text("Touch and hold a photo to remove it.")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+            }
         }
+        .confirmationDialog("Add a photo to step \((addingTo ?? 0) + 1)", isPresented: $choosingSource,
+                            titleVisibility: .visible) {
+            Button("Take Photo") { takingPhoto = true }
+            Button("Choose from Library") { pickingFromLibrary = true }
+        }
+        .sheet(isPresented: $takingPhoto) {
+            CameraPicker { image in
+                takingPhoto = false
+                if let data = image?.jpegData(compressionQuality: 0.95) { add([data]) }
+            }
+            .ignoresSafeArea()
+        }
+        .photosPicker(isPresented: $pickingFromLibrary, selection: $pickerItems,
+                      maxSelectionCount: max(1, Self.maxPhotos - photos.count), matching: .images)
+        .onChange(of: pickerItems) { _, items in
+            guard !items.isEmpty else { return }
+            Task { @MainActor in
+                var loaded: [Data] = []
+                for item in items {
+                    if let data = try? await item.loadTransferable(type: Data.self) { loaded.append(data) }
+                }
+                pickerItems = []
+                add(loaded)
+            }
+        }
+        .confirmationDialog("Remove this photo?", isPresented: Binding(get: { removing != nil },
+                                                                      set: { if !$0 { removing = nil } }),
+                            titleVisibility: .visible, presenting: removing) { photo in
+            Button("Remove", role: .destructive) {
+                context.delete(photo)
+                try? context.save()
+            }
+        }
+    }
+
+    /// Pins new photos to the step being added to, after any already there.
+    private func add(_ originals: [Data]) {
+        guard let step = addingTo else { return }
+        var nextIndex = (photos.map(\.sortIndex).max() ?? -1) + 1
+        for original in originals {
+            guard let prepared = PhotoProcessing.prepare(original) else { continue }
+            let photo = InstructionPhoto(instructionUID: instruction.uid)
+            context.insert(photo)
+            photo.name = "Step \(step + 1) photo"
+            photo.imageData = prepared.data
+            photo.thumbData = prepared.thumb
+            photo.width = prepared.width
+            photo.height = prepared.height
+            photo.originalSize = original.count
+            photo.step = step
+            photo.sortIndex = nextIndex
+            nextIndex += 1
+        }
+        try? context.save()
     }
 }
 

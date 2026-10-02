@@ -45,7 +45,7 @@ struct InstructionEditorView: View {
 
     private static let autoStatus = "Auto"
     private static let ownerNamePrefix = "name:"
-    private static let maxPhotos = 5
+    private static let maxPhotos = StepsSection.maxPhotos
 
     struct PhotoDraft: Identifiable {
         let id = UUID()
