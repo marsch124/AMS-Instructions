@@ -39,7 +39,7 @@ enum Search {
 }
 
 enum SortOrder: String, CaseIterable, Identifiable {
-    case number, title, due, changed
+    case number, title, due, changed, created
 
     var id: String { rawValue }
 
@@ -49,6 +49,7 @@ enum SortOrder: String, CaseIterable, Identifiable {
         case .title: return "Title A–Z"
         case .due: return "Most overdue first"
         case .changed: return "Recently changed"
+        case .created: return "Recently created"
         }
     }
 
@@ -58,6 +59,7 @@ enum SortOrder: String, CaseIterable, Identifiable {
         case .title: return "Title"
         case .due: return "Overdue"
         case .changed: return "Changed"
+        case .created: return "Created"
         }
     }
 
@@ -67,6 +69,7 @@ enum SortOrder: String, CaseIterable, Identifiable {
         case .title: return "When you remember the words, not the digits."
         case .due: return "Anything that cannot fall due sits at the bottom."
         case .changed: return "What you have been working on lately."
+        case .created: return "The newest instructions first."
         }
     }
 
@@ -93,6 +96,8 @@ enum SortOrder: String, CaseIterable, Identifiable {
         case .changed:
             let x = SortOrder.lastChanged(a), y = SortOrder.lastChanged(b)
             return x == y ? a.number < b.number : x > y
+        case .created:
+            return a.createdAt == b.createdAt ? a.number < b.number : a.createdAt > b.createdAt
         }
     }
 
