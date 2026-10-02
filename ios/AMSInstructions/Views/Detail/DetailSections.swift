@@ -100,10 +100,11 @@ struct StepsSection: View {
                             addingTo = index
                             choosingSource = true
                         } label: {
-                            Label(stepPhotos.isEmpty ? "Add Photo" : "Add Another Photo", systemImage: "camera")
-                                .font(.caption.weight(.medium))
+                            Label(stepPhotos.isEmpty ? "Add Photo" : "Add Another Photo", systemImage: "camera.fill")
+                                .font(.subheadline.weight(.semibold))
                         }
-                        .buttonStyle(.borderless)
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
                         .padding(.leading, 34)
                     }
                 }

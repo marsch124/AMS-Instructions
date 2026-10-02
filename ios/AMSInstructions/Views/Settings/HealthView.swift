@@ -156,7 +156,8 @@ struct AboutView: View {
                 Text("A new instruction gets the next free number by itself. Two instructions can never share a number: if you type one that is taken, the app says which instruction has it and offers the next free one.")
             }
             Section("Photos for each step") {
-                Text("On an instruction, every step has Add Photo: take one or choose from your library, as many as you need (up to 30 per instruction). They show under the step and on that step's page in the Guide. Touch and hold a photo to remove it.")
+                Text("Under Instructions, every step has an Add Photo button: take one or choose from your library, as many as you need (up to 30 per instruction). They show under the step and on that step's page in the Guide. Touch and hold a photo to remove it.")
+                Text("In Edit, each step has its own box with its own Add Photo button. Press Return at the end of a step to start the next one. Tap × on a photo to remove it. Photos for the whole job go under Other Photos.")
             }
             Section("The Guide") {
                 Text("Each instruction opens with a short welcome: how long it takes, how many steps, and anything to watch out for. Start Guide shows it full screen, one page at a time, in phases — Prepare (safety, what you need), Do (one step per page, with its photos) and Afterwards — then Close Guide. It is a walk-through to read before or while you work: it ticks nothing off and marks nothing Done; you do that on the instruction screen. Swipe, or use Back and Next.")

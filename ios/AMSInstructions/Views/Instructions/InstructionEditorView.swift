@@ -30,7 +30,7 @@ struct InstructionEditorView: View {
     @State private var warnings = ""
     @State private var equipment = ""
     @State private var preparations = ""
-    @State private var steps = ""
+    @State private var steps: [StepDraft] = [StepDraft(text: "")]
     @State private var afterUse = ""
     @State private var maintenance = ""
     @State private var notes = ""
@@ -42,6 +42,14 @@ struct InstructionEditorView: View {
     @State private var loaded = false
     @State private var problem: String?
     @State private var confirmingDelete = false
+
+    /// The step a photo is being added to, and how.
+    @State private var addingTo: UUID?
+    @State private var choosingSource = false
+    @State private var takingPhoto = false
+    @State private var pickingForStep = false
+    @State private var stepPickerItems: [PhotosPickerItem] = []
+    @FocusState private var focusedStep: UUID?
 
     private static let autoStatus = "Auto"
     private static let ownerNamePrefix = "name:"
@@ -56,7 +64,13 @@ struct InstructionEditorView: View {
         var width: Int
         var height: Int
         var originalSize: Int
-        var step: Int?
+        /// The step it belongs to; nil for Other Photos.
+        var stepID: UUID?
+    }
+
+    struct StepDraft: Identifiable {
+        let id = UUID()
+        var text: String
     }
 
     var body: some View {
@@ -66,7 +80,7 @@ struct InstructionEditorView: View {
                 ownership
                 scheduling
                 content
-                photoSection
+                otherPhotos
                 extras
                 if instruction != nil {
                     Section {
@@ -87,8 +101,25 @@ struct InstructionEditorView: View {
             }
             .onAppear(perform: load)
             .onChange(of: pickerItems) { _, items in
-                Task { await addPhotos(items) }
+                Task { await addPhotos(items, to: nil) }
             }
+            .onChange(of: stepPickerItems) { _, items in
+                Task { await addPhotos(items, to: addingTo) }
+            }
+            .confirmationDialog("Add a photo to step \(stepPosition(addingTo))", isPresented: $choosingSource,
+                                titleVisibility: .visible) {
+                Button("Take Photo") { takingPhoto = true }
+                Button("Choose from Library") { pickingForStep = true }
+            }
+            .sheet(isPresented: $takingPhoto) {
+                CameraPicker { image in
+                    takingPhoto = false
+                    if let data = image?.jpegData(compressionQuality: 0.95) { addPhoto(data, to: addingTo) }
+                }
+                .ignoresSafeArea()
+            }
+            .photosPicker(isPresented: $pickingForStep, selection: $stepPickerItems,
+                          maxSelectionCount: max(1, Self.maxPhotos - photos.count), matching: .images)
             .alert("Can’t save yet", isPresented: Binding(get: { problem != nil }, set: { if !$0 { problem = nil } })) {
                 Button("OK", role: .cancel) {}
             } message: {
@@ -211,14 +242,7 @@ struct InstructionEditorView: View {
             Section("Preparations") {
                 TextField("Before you start", text: $preparations, axis: .vertical)
             }
-            Section {
-                TextField("One step per line", text: $steps, axis: .vertical)
-                    .lineLimit(4...20)
-            } header: {
-                Text("Instructions")
-            } footer: {
-                Text("Each line becomes one step you can tick off.")
-            }
+            stepsSection
             Section("After use") {
                 TextField("Afterwards", text: $afterUse, axis: .vertical)
             }
@@ -231,30 +255,108 @@ struct InstructionEditorView: View {
         }
     }
 
-    private var photoSection: some View {
-        let stepTitles = currentSteps
+    /// Each step its own box, with its own photos and Add Photo button right
+    /// under it — the photo goes where you are looking.
+    private var stepsSection: some View {
+        Section {
+            ForEach($steps) { $step in
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Step \(stepPosition(step.id))")
+                        .font(.caption.weight(.semibold))
+                        .foregroundStyle(.secondary)
+                    TextField("What to do", text: $step.text, axis: .vertical)
+                        .focused($focusedStep, equals: step.id)
+                        .onChange(of: step.text) { _, _ in splitLines(of: step.id) }
+
+                    let stepPhotos = photos.filter { $0.stepID == step.id }
+                    if !stepPhotos.isEmpty {
+                        ScrollView(.horizontal, showsIndicators: false) {
+                            HStack(spacing: 10) {
+                                ForEach(stepPhotos) { photo in removablePhoto(photo) }
+                            }
+                            .padding(.top, 6)
+                        }
+                    }
+
+                    if photos.count < Self.maxPhotos {
+                        Button {
+                            focusedStep = nil
+                            addingTo = step.id
+                            choosingSource = true
+                        } label: {
+                            Label(stepPhotos.isEmpty ? "Add Photo" : "Add Another Photo", systemImage: "camera.fill")
+                                .font(.subheadline.weight(.semibold))
+                        }
+                        .buttonStyle(.bordered)
+                        .controlSize(.small)
+                    }
+                }
+                .padding(.vertical, 4)
+            }
+            .onDelete(perform: deleteSteps)
+            .onMove { steps.move(fromOffsets: $0, toOffset: $1) }
+
+            Button {
+                let new = StepDraft(text: "")
+                steps.append(new)
+                focusedStep = new.id
+            } label: {
+                Label("Add Step", systemImage: "plus.circle.fill")
+            }
+        } header: {
+            Text("Instructions")
+        } footer: {
+            Text("Press Return at the end of a step to start the next one. Swipe a step left to delete it; touch and hold to move it.")
+        }
+    }
+
+    private func removablePhoto(_ photo: PhotoDraft) -> some View {
+        Thumbnail(data: photo.thumb, size: 72)
+            .overlay(alignment: .topTrailing) {
+                Button {
+                    photos.removeAll { $0.id == photo.id }
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.title3)
+                        .symbolRenderingMode(.palette)
+                        .foregroundStyle(.white, .black.opacity(0.6))
+                }
+                .buttonStyle(.borderless)
+                .offset(x: 6, y: -6)
+                .accessibilityLabel("Remove photo")
+            }
+    }
+
+    /// Photos for the whole job rather than one step.
+    private var otherPhotos: some View {
+        let stepList = steps
+        let general = $photos.filter { $0.wrappedValue.stepID == nil }
         return Section {
-            ForEach($photos) { $photo in
+            ForEach(general, id: \.wrappedValue.id) { $photo in
                 HStack(alignment: .top, spacing: 12) {
                     Thumbnail(data: photo.thumb, size: 60)
                     VStack(alignment: .leading, spacing: 4) {
                         Text(photo.name).font(.subheadline).lineLimit(1)
                         Text(sizeLine(photo)).font(.caption).foregroundStyle(.secondary)
-                        // Built from the steps as they stand, so it keeps up with
-                        // steps you are still writing.
-                        Picker("Show", selection: $photo.step) {
-                            Text("In the photo gallery").tag(Int?.none)
-                            ForEach(Array(stepTitles.enumerated()), id: \.offset) { index, text in
-                                Text("Step \(index + 1) — " + (text.count > 40 ? String(text.prefix(40)) + "…" : text))
-                                    .tag(Int?.some(index))
+                        if !stepList.isEmpty {
+                            Menu {
+                                ForEach(Array(stepList.enumerated()), id: \.element.id) { index, step in
+                                    Button("Step \(index + 1)" + (step.text.isEmpty ? "" : " — " + String(step.text.prefix(30)))) {
+                                        photo.stepID = step.id
+                                    }
+                                }
+                            } label: {
+                                Label("Move to a Step", systemImage: "arrow.turn.down.right")
+                                    .font(.caption)
                             }
                         }
-                        .pickerStyle(.menu)
-                        .labelsHidden()
                     }
                 }
             }
-            .onDelete { photos.remove(atOffsets: $0) }
+            .onDelete { offsets in
+                let ids = offsets.map { general[$0].wrappedValue.id }
+                photos.removeAll { ids.contains($0.id) }
+            }
 
             if photos.count < Self.maxPhotos {
                 PhotosPicker(selection: $pickerItems,
@@ -264,9 +366,9 @@ struct InstructionEditorView: View {
                 }
             }
         } header: {
-            Text("Photos")
+            Text("Other Photos")
         } footer: {
-            Text("Up to \(Self.maxPhotos). Swipe a photo to remove it. Photos are shrunk to a sensible size as they are added.")
+            Text("Photos of the whole job, shown at the top. Photos for one step go under that step above. Up to \(Self.maxPhotos) in all; swipe a photo to remove it.")
         }
     }
 
@@ -294,10 +396,38 @@ struct InstructionEditorView: View {
 
     // MARK: Loading
 
+    /// The steps with words in them, in order — what gets saved.
+    private var filledSteps: [StepDraft] {
+        steps.filter { !$0.text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+    }
+
     private var currentSteps: [String] {
-        steps.split(separator: "\n", omittingEmptySubsequences: true)
-            .map { $0.trimmingCharacters(in: .whitespaces) }
-            .filter { !$0.isEmpty }
+        filledSteps.map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }
+    }
+
+    private func stepPosition(_ id: UUID?) -> Int {
+        (steps.firstIndex { $0.id == id } ?? 0) + 1
+    }
+
+    /// Return in a step, or pasting several lines, makes new steps after it.
+    private func splitLines(of id: UUID) {
+        guard let index = steps.firstIndex(where: { $0.id == id }), steps[index].text.contains("\n") else { return }
+        let parts = steps[index].text.components(separatedBy: "\n")
+        steps[index].text = parts[0]
+        let rest = parts.dropFirst().enumerated()
+            .filter { offset, text in !text.trimmingCharacters(in: .whitespaces).isEmpty || offset == parts.count - 2 }
+            .map { StepDraft(text: $0.element.trimmingCharacters(in: .whitespaces)) }
+        steps.insert(contentsOf: rest, at: index + 1)
+        if let last = rest.last { focusedStep = last.id }
+    }
+
+    /// A deleted step's photos stay, under Other Photos.
+    private func deleteSteps(_ offsets: IndexSet) {
+        let ids = Set(offsets.map { steps[$0].id })
+        for index in photos.indices where photos[index].stepID.map(ids.contains) == true {
+            photos[index].stepID = nil
+        }
+        steps.remove(atOffsets: offsets)
     }
 
     private var nextFreeNumber: String {
@@ -346,7 +476,8 @@ struct InstructionEditorView: View {
         warnings = instruction.warnings
         equipment = instruction.equipment
         preparations = instruction.preparations
-        steps = instruction.steps.joined(separator: "\n")
+        steps = instruction.steps.map { StepDraft(text: $0) }
+        if steps.isEmpty { steps = [StepDraft(text: "")] }
         afterUse = instruction.afterUse
         maintenance = instruction.maintenance
         notes = instruction.notes
@@ -368,22 +499,27 @@ struct InstructionEditorView: View {
             guard let data = photo.imageData else { return nil }
             return PhotoDraft(existing: photo, name: photo.name, data: data,
                               thumb: photo.thumbData ?? data, width: photo.width, height: photo.height,
-                              originalSize: photo.originalSize, step: photo.step)
+                              originalSize: photo.originalSize,
+                              stepID: photo.step.flatMap { $0 < steps.count ? steps[$0].id : nil })
         }
     }
 
-    private func addPhotos(_ items: [PhotosPickerItem]) async {
+    private func addPhotos(_ items: [PhotosPickerItem], to stepID: UUID?) async {
         guard !items.isEmpty else { return }
         for item in items {
-            guard photos.count < Self.maxPhotos,
-                  let original = try? await item.loadTransferable(type: Data.self),
-                  let prepared = PhotoProcessing.prepare(original) else { continue }
-            photos.append(PhotoDraft(existing: nil, name: "Photo \(photos.count + 1)",
-                                     data: prepared.data, thumb: prepared.thumb,
-                                     width: prepared.width, height: prepared.height,
-                                     originalSize: original.count, step: nil))
+            if let original = try? await item.loadTransferable(type: Data.self) { addPhoto(original, to: stepID) }
         }
         pickerItems = []
+        stepPickerItems = []
+    }
+
+    private func addPhoto(_ original: Data, to stepID: UUID?) {
+        guard photos.count < Self.maxPhotos, let prepared = PhotoProcessing.prepare(original) else { return }
+        let name = stepID == nil ? "Photo \(photos.count + 1)" : "Step \(stepPosition(stepID)) photo"
+        photos.append(PhotoDraft(existing: nil, name: name,
+                                 data: prepared.data, thumb: prepared.thumb,
+                                 width: prepared.width, height: prepared.height,
+                                 originalSize: original.count, stepID: stepID))
     }
 
     // MARK: Saving
@@ -468,12 +604,13 @@ struct InstructionEditorView: View {
         }
         target.revisions = revisions
 
-        savePhotos(for: target, stepCount: stepList.count)
+        savePhotos(for: target)
         try? context.save()
         dismiss()
     }
 
-    private func savePhotos(for target: Instruction, stepCount: Int) {
+    private func savePhotos(for target: Instruction) {
+        let keptSteps = filledSteps.map(\.id)
         let kept = Set(photos.compactMap { $0.existing?.uid })
         for old in Library.photos(for: target.uid, in: context) where !kept.contains(old.uid) {
             context.delete(old)
@@ -490,8 +627,8 @@ struct InstructionEditorView: View {
             photo.width = draft.width
             photo.height = draft.height
             photo.originalSize = draft.originalSize
-            // Pinned to a step that no longer exists: back to the gallery.
-            photo.step = draft.step.flatMap { $0 < stepCount ? $0 : nil }
+            // On a step left empty: back to Other Photos.
+            photo.step = draft.stepID.flatMap { keptSteps.firstIndex(of: $0) }
             photo.sortIndex = index
         }
     }
