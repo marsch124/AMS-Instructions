@@ -12,6 +12,8 @@ struct LabelSheet: View {
     @Environment(\.dismiss) private var dismiss
     @State private var files: [URL] = []
     @State private var preview: UIImage?
+    @State private var printing = false
+    @State private var printStatus: (text: String, ok: Bool)?
 
     /// Pictures as well as the PDF for a handful of labels; for a whole
     /// library the PDF alone, or the share sheet would carry hundreds of files.
@@ -49,6 +51,27 @@ struct LabelSheet: View {
 
                 Section {
                     Button {
+                        printOnCube()
+                    } label: {
+                        HStack {
+                            Label("Print on P-touch Cube", systemImage: "printer.fill")
+                                .font(.headline)
+                            Spacer()
+                            if printing { ProgressView() }
+                        }
+                    }
+                    .disabled(printing)
+                    if let printStatus {
+                        Label(printStatus.text, systemImage: printStatus.ok ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                            .font(.callout)
+                            .foregroundStyle(printStatus.ok ? Palette.success : Palette.warm)
+                    }
+                } footer: {
+                    Text("Prints straight to a Brother PT-P300BT, PT-P710BT or PT-P910BT over Bluetooth. The first time, pair the printer in the iPhone's Settings → Bluetooth.")
+                }
+
+                Section {
+                    Button {
                         sendToPrinter()
                     } label: {
                         Label("Print…", systemImage: "printer")
@@ -59,7 +82,7 @@ struct LabelSheet: View {
                         }
                     }
                 } footer: {
-                    Text("Print… is for AirPrint printers. For Brother or DYMO printers, send the labels to their app instead.")
+                    Text("Print… is for AirPrint printers. For other label printers, such as DYMO, send the labels to their app instead.")
                 }
             }
             .navigationTitle(instructions.count == 1 ? "Label" : "Labels")
@@ -99,6 +122,23 @@ struct LabelSheet: View {
             }
         }
         files = urls
+    }
+
+    private func printOnCube() {
+        printing = true
+        printStatus = nil
+        let size = local.labelSize
+        Task {
+            do {
+                let printer = try await BrotherPrinter.print(instructions, size: size)
+                printStatus = (instructions.count == 1 ? "Printed on the \(printer)." : "\(instructions.count) labels printed on the \(printer).", true)
+            } catch let problem as BrotherPrinter.Problem {
+                printStatus = (problem.message, false)
+            } catch {
+                printStatus = (error.localizedDescription, false)
+            }
+            printing = false
+        }
     }
 
     private func sendToPrinter() {

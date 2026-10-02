@@ -163,7 +163,9 @@ struct AboutView: View {
                 Text("Each instruction opens with a short welcome: how long it takes, how many steps, and anything to watch out for. Start Guide shows it full screen, one page at a time, in phases — Prepare (safety, what you need), Do (one step per page, with its photos) and Afterwards — then Close Guide. It is a walk-through to read before or while you work: it ticks nothing off and marks nothing Done; you do that on the instruction screen. Swipe, or use Back and Next.")
             }
             Section("Printing labels") {
-                Text("Open an instruction and tap Print Label, below Mark Done. Choose your tape width, then Send to the printer's app (Brother or DYMO) and print. For many at once: Instructions → filter → Apply to all → Print labels.")
+                Text("Open an instruction and tap Print Label, below Mark Done. Choose the width of the tape in your printer, then Print on P-touch Cube. For many at once: Instructions → filter → Apply to all → Print labels.")
+                Text("A Brother P-touch Cube (PT-P300BT, PT-P710BT or PT-P910BT) prints straight from the app over Bluetooth. Pair it once in the iPhone's Settings → Bluetooth with the printer switched on; after that the app finds it. The P300BT takes tape up to 12 mm, the P710BT up to 24 mm, the P910BT up to 36 mm.")
+                Text("Other printers: Print… for AirPrint printers, or Send to the printer's app (for example DYMO Connect).")
             }
             Section("Recognising an item without a label") {
                 Text("On an instruction, under Recognise this item, take 2–3 teaching photos of the item. Later, Scan → Item → Recognise opens the instruction when you point the camera at the item. If it is unsure, it shows the likeliest three to choose from.")
