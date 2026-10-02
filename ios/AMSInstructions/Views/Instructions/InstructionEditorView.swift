@@ -75,31 +75,51 @@ struct InstructionEditorView: View {
 
     var body: some View {
         NavigationStack {
-            Form {
-                basics
-                ownership
-                scheduling
-                content
-                otherPhotos
-                extras
-                if instruction != nil {
-                    Section {
-                        Button("Delete Instruction", role: .destructive) { confirmingDelete = true }
-                    }
+            withPhotoAdding(form)
+                .alert("Can’t save yet", isPresented: Binding(get: { problem != nil }, set: { if !$0 { problem = nil } })) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text(problem ?? "")
+                }
+                .confirmationDialog("Delete \"\(instruction?.title ?? "")\"?", isPresented: $confirmingDelete,
+                                    titleVisibility: .visible) {
+                    Button("Delete", role: .destructive) { deleteInstruction() }
+                }
+        }
+    }
+
+    private var form: some View {
+        Form {
+            basics
+            ownership
+            scheduling
+            content
+            otherPhotos
+            extras
+            if instruction != nil {
+                Section {
+                    Button("Delete Instruction", role: .destructive) { confirmingDelete = true }
                 }
             }
-            .navigationTitle(instruction == nil ? "New Instruction" : "Edit Instruction")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
-                        .bold()
-                }
+        }
+        .navigationTitle(instruction == nil ? "New Instruction" : "Edit Instruction")
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .cancellationAction) {
+                Button("Cancel") { dismiss() }
             }
-            .onAppear(perform: load)
+            ToolbarItem(placement: .confirmationAction) {
+                Button("Save") { save() }
+                    .bold()
+            }
+        }
+        .onAppear(perform: load)
+    }
+
+    /// Taking or choosing photos — for a step, or for Other Photos. Kept out
+    /// of the body so the compiler can check it in reasonable time.
+    private func withPhotoAdding(_ content: some View) -> some View {
+        content
             .onChange(of: pickerItems) { _, items in
                 Task { await addPhotos(items, to: nil) }
             }
@@ -120,16 +140,6 @@ struct InstructionEditorView: View {
             }
             .photosPicker(isPresented: $pickingForStep, selection: $stepPickerItems,
                           maxSelectionCount: max(1, Self.maxPhotos - photos.count), matching: .images)
-            .alert("Can’t save yet", isPresented: Binding(get: { problem != nil }, set: { if !$0 { problem = nil } })) {
-                Button("OK", role: .cancel) {}
-            } message: {
-                Text(problem ?? "")
-            }
-            .confirmationDialog("Delete \"\(instruction?.title ?? "")\"?", isPresented: $confirmingDelete,
-                                titleVisibility: .visible) {
-                Button("Delete", role: .destructive) { deleteInstruction() }
-            }
-        }
     }
 
     // MARK: Sections
@@ -260,38 +270,7 @@ struct InstructionEditorView: View {
     private var stepsSection: some View {
         Section {
             ForEach($steps) { $step in
-                VStack(alignment: .leading, spacing: 8) {
-                    Text("Step \(stepPosition(step.id))")
-                        .font(.caption.weight(.semibold))
-                        .foregroundStyle(.secondary)
-                    TextField("What to do", text: $step.text, axis: .vertical)
-                        .focused($focusedStep, equals: step.id)
-                        .onChange(of: step.text) { _, _ in splitLines(of: step.id) }
-
-                    let stepPhotos = photos.filter { $0.stepID == step.id }
-                    if !stepPhotos.isEmpty {
-                        ScrollView(.horizontal, showsIndicators: false) {
-                            HStack(spacing: 10) {
-                                ForEach(stepPhotos) { photo in removablePhoto(photo) }
-                            }
-                            .padding(.top, 6)
-                        }
-                    }
-
-                    if photos.count < Self.maxPhotos {
-                        Button {
-                            focusedStep = nil
-                            addingTo = step.id
-                            choosingSource = true
-                        } label: {
-                            Label(stepPhotos.isEmpty ? "Add Photo" : "Add Another Photo", systemImage: "camera.fill")
-                                .font(.subheadline.weight(.semibold))
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                    }
-                }
-                .padding(.vertical, 4)
+                stepRow($step)
             }
             .onDelete(perform: deleteSteps)
             .onMove { steps.move(fromOffsets: $0, toOffset: $1) }
@@ -308,6 +287,42 @@ struct InstructionEditorView: View {
         } footer: {
             Text("Press Return at the end of a step to start the next one. Swipe a step left to delete it; touch and hold to move it.")
         }
+    }
+
+    private func stepRow(_ step: Binding<StepDraft>) -> some View {
+        let id = step.wrappedValue.id
+        let stepPhotos = photos.filter { $0.stepID == id }
+        return VStack(alignment: .leading, spacing: 8) {
+            Text("Step \(stepPosition(id))")
+                .font(.caption.weight(.semibold))
+                .foregroundStyle(.secondary)
+            TextField("What to do", text: step.text, axis: .vertical)
+                .focused($focusedStep, equals: id)
+                .onChange(of: step.wrappedValue.text) { _, _ in splitLines(of: id) }
+
+            if !stepPhotos.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: 10) {
+                        ForEach(stepPhotos) { photo in removablePhoto(photo) }
+                    }
+                    .padding(.top, 6)
+                }
+            }
+
+            if photos.count < Self.maxPhotos {
+                Button {
+                    focusedStep = nil
+                    addingTo = id
+                    choosingSource = true
+                } label: {
+                    Label(stepPhotos.isEmpty ? "Add Photo" : "Add Another Photo", systemImage: "camera.fill")
+                        .font(.subheadline.weight(.semibold))
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.small)
+            }
+        }
+        .padding(.vertical, 4)
     }
 
     private func removablePhoto(_ photo: PhotoDraft) -> some View {
