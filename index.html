@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1791894745-78c9e533">
+    <meta name="cache-bust" content="1791896180-2dae1a58">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.18&t=1791894745-78c9e533">
+    <link rel="stylesheet" href="css/style.css?v=41.19&t=1791896180-2dae1a58">
 </head>
 <body>
     <!--
@@ -270,7 +270,7 @@
     <div id="homeScreen" class="screen active">
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
-                <h1 data-testid="home-title">Instructions</h1>
+                <h1>Instructions</h1>
                 <span class="version-badge" id="homeVersion" data-testid="app-version"></span>
             </div>
         </header>
@@ -1320,7 +1320,6 @@
                     <li><strong>Settings — blue.</strong> The housekeeping: Run a Set and Library Health, People, backups and Data Safety, this guide, and the Version Log.</li>
                 </ul>
                 <p>Anything you open <em>from</em> a tab — an instruction, an editor, the People list — hides the tabs and gives you a ← Back button instead, so you always know whether you are on a main screen or inside something. It <em>keeps</em> the colour of the tab you came from, so a green instruction screen is one you reached from Instructions and Back will take you there.</p>
-                <p>On the iPhone, the top bar of every screen sits a little below the clock, because iOS blurs the strip just under it when the app is opened from the Home Screen. On the Mac it stays right at the top.</p>
                 <p><strong>Two colours mean the same thing everywhere, whatever tab you are on:</strong> a <strong>filled</strong> button is the thing you came to do (Save, Back Up Now, Done), and an <strong>outlined red</strong> button is a destructive one (Delete, Clear All Data). If a button is outlined in red, read it twice.</p>
 
                 <h4>The icons</h4>
@@ -1578,10 +1577,12 @@
         <div class="how-it-works-content">
                 <section class="version-log">
                     <div class="version-entry">
-                        <p><strong>v41.18 (2026-10-13) - THE TOP BAR MOVES OUT OF THE BLUR UNDER THE CLOCK</strong></p>
-                        <p>The top bar of every screen — the title, <strong>← Back</strong>, <strong>＋</strong> and <strong>★</strong> — sits a little lower on the iPhone, out of the soft blur iOS now draws just under the clock when the app is opened from the Home Screen, so it looks sharp again. On the Mac nothing moves.</p>
-                        <p>A long <strong>Who did it?</strong> list now stops short of the clock as well, and scrolls instead of running up underneath it.</p>
-                        <p>A nineteenth automatic test checks that the top bars on Home, Actions, Instructions, an instruction and People all start clear of the blur — and that on a screen with no clock strip they stay right at the top. Proved by putting the old layout back: it went red.</p>
+                        <p><strong>v41.19 (2026-10-13) - THE TOP BAR IS BACK WHERE IT WAS</strong></p>
+                        <p>The top bar of every screen — the title, <strong>← Back</strong>, <strong>＋</strong> and <strong>★</strong> — is back in its old place, right under the clock. Version 41.18 had moved it a little lower on the iPhone, to keep it out of the soft blur iOS draws just under the clock; you preferred it the way it was.</p>
+                    </div>
+                    <div class="version-entry">
+                        <p><strong>v41.18 (2026-10-13) - THE TOP BAR MOVED OUT OF THE BLUR UNDER THE CLOCK</strong></p>
+                        <p>The top bar of every screen sat a little lower on the iPhone, clear of the soft blur iOS draws just under the clock. Undone in 41.19.</p>
                     </div>
                     <div class="version-entry">
                         <p><strong>v41.17 (2026-09-17) - LIBRARY HEALTH IS TESTED TOO</strong></p>
@@ -2246,12 +2247,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.18&t=1791894745-78c9e533"></script>
-    <script src="js/qr.js?v=41.18&t=1791894745-78c9e533"></script>
-    <script src="js/version-sync.js?v=41.18&t=1791894745-78c9e533"></script>
-    <script src="js/persistence.js?v=41.18&t=1791894745-78c9e533"></script>
-    <script src="js/hybrid-storage.js?v=41.18&t=1791894745-78c9e533"></script>
-    <script src="js/ui.js?v=41.18&t=1791894745-78c9e533"></script>
-    <script src="js/app.js?v=41.18&t=1791894745-78c9e533"></script>
+    <script src="js/db.js?v=41.19&t=1791896180-2dae1a58"></script>
+    <script src="js/qr.js?v=41.19&t=1791896180-2dae1a58"></script>
+    <script src="js/version-sync.js?v=41.19&t=1791896180-2dae1a58"></script>
+    <script src="js/persistence.js?v=41.19&t=1791896180-2dae1a58"></script>
+    <script src="js/hybrid-storage.js?v=41.19&t=1791896180-2dae1a58"></script>
+    <script src="js/ui.js?v=41.19&t=1791896180-2dae1a58"></script>
+    <script src="js/app.js?v=41.19&t=1791896180-2dae1a58"></script>
 </body>
 </html>

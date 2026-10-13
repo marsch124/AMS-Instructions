@@ -52,13 +52,6 @@
     --safe-area-inset-top: env(safe-area-inset-top, 0);
     --safe-area-inset-bottom: env(safe-area-inset-bottom, 0);
 
-    /* iOS 26 draws a soft blur over the strip just under the clock in a
-       Home-Screen app (flat at the top inset, fading out ~45–50 pt lower; the
-       Simulator does not show it). Top bars start this much lower so their
-       title and buttons sit clear of it. 50px on a phone with a top inset,
-       0 everywhere else (Mac, desktop) — so nothing moves there. */
-    --under-clock: calc(min(env(safe-area-inset-top, 0px), 1px) * 50);
-
     /* Height of the bottom tab bar, excluding the phone's own safe area */
     --tabbar-height: 3.35rem;
 }
@@ -137,7 +130,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: calc(env(safe-area-inset-top, 0px) + var(--under-clock)) 1rem 1rem;
+    padding: var(--safe-area-inset-top) 1rem 1rem;
     background-color: var(--color-surface);
     border-bottom: 1px solid var(--color-border);
     gap: 1rem;
@@ -2586,9 +2579,6 @@ body {
     justify-content: center;
     z-index: 100;
     padding: 1rem;
-    /* A long sheet (many people to pick from) stops short of the clock and its
-       blur, and scrolls inside instead of running up underneath it. */
-    padding-top: calc(1rem + env(safe-area-inset-top, 0px) + var(--under-clock));
     padding-bottom: calc(1rem + var(--safe-area-inset-bottom));
 }
 
@@ -2602,8 +2592,6 @@ body {
     padding: 1.5rem;
     width: 100%;
     max-width: 500px;
-    max-height: 100%;
-    overflow-y: auto;
     display: flex;
     flex-direction: column;
     gap: 1rem;
