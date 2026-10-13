@@ -4,7 +4,7 @@
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate, max-age=0">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <meta name="cache-bust" content="1788542232-e57056b0">
+    <meta name="cache-bust" content="1791894745-78c9e533">
     <meta charset="UTF-8">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
@@ -19,7 +19,7 @@
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-touch-icon.png">
     <link rel="manifest" href="manifest.json">
-    <link rel="stylesheet" href="css/style.css?v=41.17&t=1789656854-9543933">
+    <link rel="stylesheet" href="css/style.css?v=41.18&t=1791894745-78c9e533">
 </head>
 <body>
     <!--
@@ -270,7 +270,7 @@
     <div id="homeScreen" class="screen active">
         <header class="app-header">
             <div style="flex: 1; text-align: center;">
-                <h1>Instructions</h1>
+                <h1 data-testid="home-title">Instructions</h1>
                 <span class="version-badge" id="homeVersion" data-testid="app-version"></span>
             </div>
         </header>
@@ -1320,6 +1320,7 @@
                     <li><strong>Settings — blue.</strong> The housekeeping: Run a Set and Library Health, People, backups and Data Safety, this guide, and the Version Log.</li>
                 </ul>
                 <p>Anything you open <em>from</em> a tab — an instruction, an editor, the People list — hides the tabs and gives you a ← Back button instead, so you always know whether you are on a main screen or inside something. It <em>keeps</em> the colour of the tab you came from, so a green instruction screen is one you reached from Instructions and Back will take you there.</p>
+                <p>On the iPhone, the top bar of every screen sits a little below the clock, because iOS blurs the strip just under it when the app is opened from the Home Screen. On the Mac it stays right at the top.</p>
                 <p><strong>Two colours mean the same thing everywhere, whatever tab you are on:</strong> a <strong>filled</strong> button is the thing you came to do (Save, Back Up Now, Done), and an <strong>outlined red</strong> button is a destructive one (Delete, Clear All Data). If a button is outlined in red, read it twice.</p>
 
                 <h4>The icons</h4>
@@ -1576,6 +1577,12 @@
 
         <div class="how-it-works-content">
                 <section class="version-log">
+                    <div class="version-entry">
+                        <p><strong>v41.18 (2026-10-13) - THE TOP BAR MOVES OUT OF THE BLUR UNDER THE CLOCK</strong></p>
+                        <p>The top bar of every screen — the title, <strong>← Back</strong>, <strong>＋</strong> and <strong>★</strong> — sits a little lower on the iPhone, out of the soft blur iOS now draws just under the clock when the app is opened from the Home Screen, so it looks sharp again. On the Mac nothing moves.</p>
+                        <p>A long <strong>Who did it?</strong> list now stops short of the clock as well, and scrolls instead of running up underneath it.</p>
+                        <p>A nineteenth automatic test checks that the top bars on Home, Actions, Instructions, an instruction and People all start clear of the blur — and that on a screen with no clock strip they stay right at the top. Proved by putting the old layout back: it went red.</p>
+                    </div>
                     <div class="version-entry">
                         <p><strong>v41.17 (2026-09-17) - LIBRARY HEALTH IS TESTED TOO</strong></p>
                         <p>Nothing changes on screen. An eighteenth automatic test covers <strong>Library Health</strong>, whose failure mode is being believed: a screen that says "nothing to tidy up" while instructions sit there with nobody's name on them is worse than no screen at all, because you stop checking by hand.</p>
@@ -2239,12 +2246,12 @@
         </div>
     </div>
 
-    <script src="js/db.js?v=41.17&t=1789656854-9543933"></script>
-    <script src="js/qr.js?v=41.17&t=1789656854-9543933"></script>
-    <script src="js/version-sync.js?v=41.17&t=1789656854-9543933"></script>
-    <script src="js/persistence.js?v=41.17&t=1789656854-9543933"></script>
-    <script src="js/hybrid-storage.js?v=41.17&t=1789656854-9543933"></script>
-    <script src="js/ui.js?v=41.17&t=1789656854-9543933"></script>
-    <script src="js/app.js?v=41.17&t=1789656854-9543933"></script>
+    <script src="js/db.js?v=41.18&t=1791894745-78c9e533"></script>
+    <script src="js/qr.js?v=41.18&t=1791894745-78c9e533"></script>
+    <script src="js/version-sync.js?v=41.18&t=1791894745-78c9e533"></script>
+    <script src="js/persistence.js?v=41.18&t=1791894745-78c9e533"></script>
+    <script src="js/hybrid-storage.js?v=41.18&t=1791894745-78c9e533"></script>
+    <script src="js/ui.js?v=41.18&t=1791894745-78c9e533"></script>
+    <script src="js/app.js?v=41.18&t=1791894745-78c9e533"></script>
 </body>
 </html>
